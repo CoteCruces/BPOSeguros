@@ -2,40 +2,60 @@ package com.example.bposeguros.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
-private val DarkColorScheme = darkColorScheme(
+private val EsquemaOscuro = darkColorScheme(
     primary = Blue80,
+    onPrimary = SobrePrimarioOscuro,
+    primaryContainer = ContenedorOscuro,
+    onPrimaryContainer = SobreContenedorOscuro,
     secondary = BlueGrey80,
-    tertiary = Cyan80
+    onSecondary = TextoOscuro,
+    tertiary = Cyan80,
+    onTertiary = TextoOscuro,
+    background = FondoOscuro,
+    onBackground = TextoClaro,
+    surface = SuperficieOscura,
+    onSurface = TextoClaro,
+    error = ErrorOscuro
 )
 
-private val LightColorScheme = lightColorScheme(
+private val EsquemaClaro = lightColorScheme(
     primary = Blue40,
+    onPrimary = Blanco,
+    primaryContainer = ContenedorClaro,
+    onPrimaryContainer = SobreContenedorClaro,
     secondary = BlueGrey40,
-    tertiary = Cyan40
+    onSecondary = Blanco,
+    tertiary = Cyan40,
+    onTertiary = Blanco,
+    background = FondoClaro,
+    onBackground = TextoOscuro,
+    surface = SuperficieClara,
+    onSurface = TextoOscuro,
+    error = ErrorClaro
+)
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+// Esquinas redondeadas (equivale a border-radius)
+private val Formas = Shapes(
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(20.dp)
 )
 
 @Composable
 fun BPOSegurosTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
+    // Se deja en false para que se vea siempre nuestra paleta azul
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -45,13 +65,14 @@ fun BPOSegurosTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> EsquemaOscuro
+        else -> EsquemaClaro
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = Tipografia,
+        shapes = Formas,
         content = content
     )
 }
