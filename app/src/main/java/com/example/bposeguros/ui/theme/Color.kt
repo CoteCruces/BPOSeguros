@@ -30,3 +30,5 @@ val Exito = Color(0xFF1B7A43)
 val ExitoFondo = Color(0xFFE3F5EA)
 val ErrorClaro = Color(0xFFB3261E)
 val ErrorOscuro = Color(0xFFF2B8B5)
+
+val BordeCampo = Color(0xFF6B7782)
