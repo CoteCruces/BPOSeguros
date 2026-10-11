@@ -2,36 +2,68 @@
 <resources>
     <string name="app_name">BPOSeguros</string>
 
-    <!--Pantalla Formulario -->
-    <string name="titulo_formulario">Crear cuenta</string>
-    <string name="banner_titulo">Únete a nosotros</string>
-    <string name="banner_subtitulo">Completa tus datos en menos de un minuto</string>
-    <string name="seccion_datos">Datos personales</string>
-    <string name="seccion_preferencias">Preferencias</string>
-    <string name="campo_nombre">Nombre Completo</string>
-    <string name="campo_contrasena">Contraseña</string>
+    <!-- Títulos de pantallas -->
+    <string name="titulo_inicio">Ingresar</string>
+    <string name="titulo_mis_siniestros">Mis siniestros</string>
+    <string name="titulo_detalle">Detalle del siniestro</string>
+    <string name="titulo_reportar">Reportar un siniestro</string>
+    <string name="titulo_avisos">Avisos</string>
+
+    <!-- Banner de inicio -->
+    <string name="banner_titulo">Sigue tu siniestro</string>
+    <string name="banner_subtitulo">Sabrás siempre en qué etapa va tu caso</string>
+
+    <!-- Campos de formulario -->
+    <string name="campo_nombre">Nombre completo</string>
+    <string name="campo_rut">RUT</string>
     <string name="campo_correo">Correo electrónico</string>
-    <string name="etiqueta_nivel">Nivel de experiencia</string>
-    <string name="opcion_noticias">Recibir novedades por correo</string>
-    <string name="opcion_terminos">Acepto los términos y condiciones</string>
-    <string name="btn_registrar">Registrarme</string>
+    <string name="campo_telefono">Teléfono (opcional)</string>
+    <string name="campo_contrasena">Contraseña</string>
+    <string name="campo_compania">Compañía de seguros</string>
+    <string name="campo_tipo_siniestro">Tipo de siniestro</string>
+    <string name="campo_fecha_ocurrencia">Fecha en que ocurrió (día-mes-año)</string>
+    <string name="campo_comuna">Comuna donde ocurrió</string>
+    <string name="campo_descripcion">Cuéntanos qué pasó</string>
+
+    <!-- Botones -->
+    <string name="btn_ingresar">Ingresar</string>
+    <string name="btn_reportar">Reportar siniestro</string>
+    <string name="btn_enviar">Enviar reporte</string>
     <string name="btn_limpiar">Limpiar</string>
-    <string name="registro_exitoso">Registro exitoso. Bienvenido/a %1$s</string>
+    <string name="btn_volver">Volver</string>
+    <string name="btn_adjuntar">Adjuntar documento</string>
+    <string name="btn_tomar_foto">Tomar foto</string>
 
+    <!-- Etapas del siniestro (RN-01, Anexo 7) -->
+    <string name="etapa_recibido">Recibido</string>
+    <string name="etapa_en_evaluacion">En evaluación</string>
+    <string name="etapa_en_liquidacion">En liquidación</string>
+    <string name="etapa_cerrado">Cerrado</string>
 
-    <!--Pantalla Perfil -->
-    <string name="titulo_perfil">Mi cuenta</string>
-    <string name="seccion_sobre_mi">Sobre mí</string>
-    <string name="seccion_intereses">Intereses</string>
-    <string name="btn_seguir">Seguir</string>
-    <string name="btn_siguiendo">Siguiendo</string>
+    <!-- Próximo paso según la situación del caso (Aclaración nº 2) -->
+    <string name="paso_recibido">Estamos revisando tu reporte para asignarlo a un liquidador. No necesitas hacer nada por ahora.</string>
+    <string name="paso_evaluacion_pendientes">Necesitamos que nos envíes los documentos pendientes para continuar con tu caso.</string>
+    <string name="paso_evaluacion_sin_pendientes">Tu liquidador está revisando tu caso. Si necesitamos algo más, te avisaremos.</string>
+    <string name="paso_liquidacion">Tenemos todo lo necesario. Estamos definiendo la resolución con tu compañía de seguros.</string>
+    <string name="paso_cerrado">Tu caso terminó. Revisa el resultado y el mensaje de cierre.</string>
 
+    <!-- Secciones del detalle -->
+    <string name="seccion_proximo_paso">¿Qué viene ahora?</string>
+    <string name="seccion_historial">Historial de tu caso</string>
+    <string name="seccion_documentos">Tus documentos</string>
+    <string name="documento_pendiente">Pendiente</string>
+    <string name="documento_entregado">Entregado</string>
 
-    <!-- Descripciones de accesabilidad (TalkBack) -->
-    <string name="cd_banner">Ilustración de un formulario</string>
-    <string name="cd_portada">Paisaje de montañas al atardecer</string>
-    <string name="cd_avatar">Foto del perfil</string>
+    <!-- Estados vacíos y mensajes -->
+    <string name="sin_siniestros">Aún no tienes siniestros reportados. Puedes reportar uno desde el botón de abajo.</string>
+    <string name="reporte_exitoso">Recibimos tu reporte. Tu número de siniestro es %1$s</string>
+    <string name="actualizado_el">Última actualización: %1$s</string>
+    <string name="sin_conexion_aviso">Sin conexión. Estás viendo la información del %1$s</string>
+
+    <!-- Descripciones de accesibilidad (TalkBack) -->
+    <string name="cd_banner">Ilustración de seguimiento de siniestros</string>
+    <string name="cd_portada">Imagen de portada de la aplicación</string>
+    <string name="cd_avatar">Foto de perfil</string>
     <string name="cd_mostrar_contrasena">Mostrar contraseña</string>
     <string name="cd_ocultar_contrasena">Ocultar contraseña</string>
-
 </resources>
