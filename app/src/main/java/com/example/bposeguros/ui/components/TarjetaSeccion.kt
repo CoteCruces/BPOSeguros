@@ -45,7 +45,7 @@ fun TarjetaSeccion(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            contenido()
+            contenido()  // <- aquí se dibuja lo que venga entre llaves
         }
     }
 }

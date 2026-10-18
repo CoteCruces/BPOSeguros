@@ -3,17 +3,18 @@
     <string name="app_name">BPOSeguros</string>
 
     <!-- Títulos de pantallas -->
-    <string name="titulo_inicio">Ingresar</string>
+    <string name="titulo_inicio">Crear cuenta</string>
     <string name="titulo_mis_siniestros">Mis siniestros</string>
     <string name="titulo_detalle">Detalle del siniestro</string>
     <string name="titulo_reportar">Reportar un siniestro</string>
     <string name="titulo_avisos">Avisos</string>
 
     <!-- Banner de inicio -->
-    <string name="banner_titulo">Sigue tu siniestro</string>
-    <string name="banner_subtitulo">Sabrás siempre en qué etapa va tu caso</string>
+    <string name="banner_titulo">Únete a BPO Seguros y Sigue tu siniesto</string>
+    <string name="banner_subtitulo">Regístrate completando tus datos</string>
 
     <!-- Campos de formulario -->
+    <string name="seccion_datos">Datos personales</string>
     <string name="campo_nombre">Nombre completo</string>
     <string name="campo_rut">RUT</string>
     <string name="campo_correo">Correo electrónico</string>
@@ -24,6 +25,9 @@
     <string name="campo_fecha_ocurrencia">Fecha en que ocurrió (día-mes-año)</string>
     <string name="campo_comuna">Comuna donde ocurrió</string>
     <string name="campo_descripcion">Cuéntanos qué pasó</string>
+    <string name="opcion_noticias">Recibir novedades por correo</string>
+    <string name="opcion_terminos">Acepto los términos y condiciones</string>
+    <string name="registro_exitoso">Registro exitoso. Bienvenido/a %1$s</string>
 
     <!-- Botones -->
     <string name="btn_ingresar">Ingresar</string>
@@ -61,7 +65,7 @@
     <string name="sin_conexion_aviso">Sin conexión. Estás viendo la información del %1$s</string>
 
     <!-- Descripciones de accesibilidad (TalkBack) -->
-    <string name="cd_banner">Ilustración de seguimiento de siniestros</string>
+    <string name="cd_banner">Ilustración de un formulario</string>
     <string name="cd_portada">Imagen de portada de la aplicación</string>
     <string name="cd_avatar">Foto de perfil</string>
     <string name="cd_mostrar_contrasena">Mostrar contraseña</string>
