@@ -1,12 +1,16 @@
 package com.example.bposeguros.model
 
-// Datos que viajan entre pantallas. La contraseña NO viaja (RNF-08).
-// El rut va sin puntos ni guion, por ejemplo "158423715".
-
 data class Usuario (
+    val id: Long = 0,
     val nombre: String,
-    val rut: String,
-    val correo: String
+    val rut: String = "",
+    val correo: String = "",
+    val comuna: String = "",
+    val codigo: String = "",
+    val equipo: String = "",
+    val activo: Boolean = true,
+    val rolId: Long = Rol.ID_ASEGURADO,
+    val rolNombre: String = ""
 ) {
 
     //trim(): Elimina espacios en blanco accidentales al inicio o al final
