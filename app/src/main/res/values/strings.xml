@@ -64,6 +64,11 @@
     <string name="actualizado_el">Última actualización: %1$s</string>
     <string name="sin_conexion_aviso">Sin conexión. Estás viendo la información del %1$s</string>
 
+    <!-- Estados vacíos y mensajes -->
+    <string name="resultado_aprobado">Aprobado</string>
+    <string name="resultado_rechazado">Rechazado</string>
+    <string name="resultado_desistido">Desistido</string>
+
     <!-- Descripciones de accesibilidad (TalkBack) -->
     <string name="cd_banner">Ilustración de un formulario</string>
     <string name="cd_portada">Imagen de portada de la aplicación</string>
