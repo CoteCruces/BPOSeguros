@@ -139,6 +139,7 @@ class FormularioViewModel : ViewModel() {
                 errorCorreo = errorCorreo,
                 errorTelefono = errorTelefono,
                 errorContrasena = errorContrasena,
+                errorTerminos = errorTerminos,
                 registroExitoso = !hayErrores,
                 // RNF-08: la clave solo se valida, nunca se guarda
                 contrasena = if (hayErrores) it.contrasena else ""
