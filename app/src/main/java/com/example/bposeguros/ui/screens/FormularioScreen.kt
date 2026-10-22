@@ -200,7 +200,8 @@ fun FormularioContent(
                         colors = CardDefaults.cardColors(containerColor = ExitoFondo)
                     ) {
                         Text(
-                            text = stringResource(R.string.registro_exitoso),
+                            //// Este segundo argumento reemplaza el %1$s del strings.xml
+                            text = stringResource(R.string.registro_exitoso, uiState.nombre.trim()),
                             modifier = Modifier.padding(Dimens.espacioMedio),
                             style = MaterialTheme.typography.bodyLarge,
                             color = Exito
