@@ -51,7 +51,7 @@ import com.example.bposeguros.viewmodel.FormularioViewModel
 
 @Composable
 fun FormularioScreen(
-    onRegistroExitoso: (Usuario) -> Unit,          //  entrega el Usuario
+    onIrAIngresar: (String) -> Unit,
     //usuarioActual: Usuario?,                       //  quién inició sesión (o null)
     //onVerMiPerfil: () -> Unit,                     //  opción del menú ☰
     //onVerUsuarios: () -> Unit,                     //  opción del menú ☰
@@ -70,8 +70,9 @@ fun FormularioScreen(
         onAlternarVisibilidad = viewModel::onAlternarVisibilidad,
         // ?.let = "si NO es null, ejecuta" -> solo navega si los datos son válidos
         onAceptaTerminos = viewModel::onAceptaTerminos,
-        onIngresar = { viewModel.onIngresar()?.let { usuario -> onRegistroExitoso(usuario) } },
-        onLimpiar = viewModel::onLimpiar
+        onIngresar = { viewModel.onIngresar() },  // solo valida; no navega
+        onLimpiar = viewModel::onLimpiar,
+        onIrAIngresar = { onIrAIngresar(uiState.rut) }
     )
 }
 
@@ -87,7 +88,8 @@ fun FormularioContent(
     onAlternarVisibilidad: () -> Unit,
     onAceptaTerminos: (Boolean) -> Unit,
     onIngresar: () -> Unit,
-    onLimpiar: () -> Unit
+    onLimpiar: () -> Unit,
+    onIrAIngresar: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -199,13 +201,25 @@ fun FormularioContent(
                         shape = EstilosTarjeta.forma,
                         colors = CardDefaults.cardColors(containerColor = ExitoFondo)
                     ) {
-                        Text(
-                            //// Este segundo argumento reemplaza el %1$s del strings.xml
-                            text = stringResource(R.string.registro_exitoso, uiState.nombre.trim()),
+                        Column(
                             modifier = Modifier.padding(Dimens.espacioMedio),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Exito
-                        )
+                            verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
+                        ) {
+                            Text(
+                                // Este segundo argumento reemplaza el %1$s del strings.xml
+                                text = stringResource(
+                                    R.string.registro_exitoso,
+                                    uiState.nombre.trim()
+                                ),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Exito
+                            )
+                            BotonPrincipal(
+                                texto = stringResource(R.string.btn_ir_ingresar),
+                                onClick = onIrAIngresar,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             }
@@ -239,7 +253,8 @@ private fun RegistroPreview() {
             onAlternarVisibilidad = {},
             onAceptaTerminos = {},
             onIngresar = {},
-            onLimpiar = {}
+            onLimpiar = {},
+            onIrAIngresar = {}
         )
     }
 
