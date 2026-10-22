@@ -34,6 +34,7 @@
     <string name="campo_tipo_siniestro">Tipo de siniestro</string>
     <string name="campo_fecha_ocurrencia">Fecha en que ocurrió (día-mes-año)</string>
     <string name="campo_comuna">Comuna donde ocurrió</string>
+    <string name="campo_comuna_registro">Comuna</string>
     <string name="campo_descripcion">Cuéntanos qué pasó</string>
     <string name="opcion_noticias">Recibir novedades por correo</string>
     <string name="opcion_terminos">Acepto los términos y condiciones</string>
