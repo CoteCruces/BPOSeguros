@@ -60,13 +60,22 @@ class FormularioViewModel : ViewModel() {
     fun onIngresar(): Usuario? {
         val estado = _uiState.value
 
-        // Nombre: solo letras y espacios, mínimo 6 letras (nombre + apellido)
+        // Nombre: solo letras y espacios, al menos 2 palabras (nombre + apellido) y mínimo 6 letras
+        val palabrasNombre = estado.nombre.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+        // trim(): quita espacios al inicio y al final
+        // split(Regex("\\s+")): separa el texto en palabras, aunque haya varios espacios seguidos
+        // filter { it.isNotBlank() }: descarta trozos vacíos
+
         val errorNombre = when {
             estado.nombre.isBlank() -> "El nombre es obligatorio"
-            !estado.nombre.all { it.isLetter() || it == ' ' } ->   //all { ... }: Revisa cada uno de los caracteres del texto.
-                "El nombre no puede tener números ni símbolos"     //it.isLetter() || it == ' ': Permite únicamente letras (incluye tildes, letras como la ñ, etc.) o espacios simples.
-            estado.nombre.count { it.isLetter() } < 6 ->   //count { it.isLetter() }: Cuenta únicamente cuántas letras hay en el texto, ignorando por completo los espacios.
-                "Escribe tu nombre y apellido (mínimo 6 letras)"
+            !estado.nombre.all { it.isLetter() || it == ' ' } ->
+                "El nombre no puede tener números ni símbolos"
+            palabrasNombre.size < 3 ->
+                "Escribe tu nombre y apellido (al menos 3 palabras)"
+            palabrasNombre.any { it.length < 3 } ->
+                "Cada palabra debe tener al menos 3 letras"
+            estado.nombre.count { it.isLetter() } < 7 ->
+                "El nombre y apellido deben sumar al menos 7 caracteres"
             else -> null
         }
 

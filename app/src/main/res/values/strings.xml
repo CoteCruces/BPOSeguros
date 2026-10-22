@@ -3,15 +3,25 @@
     <string name="app_name">BPOSeguros</string>
 
     <!-- Títulos de pantallas -->
-    <string name="titulo_inicio">Crear cuenta</string>
+    <string name="titulo_inicio">Registro de datos</string>
     <string name="titulo_mis_siniestros">Mis siniestros</string>
     <string name="titulo_detalle">Detalle del siniestro</string>
     <string name="titulo_reportar">Reportar un siniestro</string>
     <string name="titulo_avisos">Avisos</string>
 
     <!-- Banner de inicio -->
-    <string name="banner_titulo">Únete a BPO Seguros y Sigue tu siniesto</string>
+    <string name="banner_titulo">Únete a BPO Seguros y sigue tu siniestro</string>
     <string name="banner_subtitulo">Regístrate completando tus datos</string>
+
+    <!-- Ingreso -->
+    <string name="titulo_login">Ingresar</string>
+    <string name="banner_login_titulo">Sigue el estado de tu siniestro</string>
+    <string name="banner_login_subtitulo">Ingresa con tu RUT o tu código de liquidador</string>
+    <string name="campo_codigo">Código de liquidador (ej: LIQ-01)</string>
+    <string name="opcion_soy_liquidador">Soy liquidador de Andes</string>
+    <string name="btn_ir_registro">Registrar mis datos</string>
+    <string name="btn_ir_ingresar">Ir a ingresar</string>
+
 
     <!-- Campos de formulario -->
     <string name="seccion_datos">Datos personales</string>
@@ -64,7 +74,7 @@
     <string name="actualizado_el">Última actualización: %1$s</string>
     <string name="sin_conexion_aviso">Sin conexión. Estás viendo la información del %1$s</string>
 
-    <!-- Estados vacíos y mensajes -->
+    <!-- Resultados de cierre del siniestro -->
     <string name="resultado_aprobado">Aprobado</string>
     <string name="resultado_rechazado">Rechazado</string>
     <string name="resultado_desistido">Desistido</string>
