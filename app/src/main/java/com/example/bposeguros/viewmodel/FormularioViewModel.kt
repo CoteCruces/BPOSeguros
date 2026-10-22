@@ -41,6 +41,10 @@ class FormularioViewModel : ViewModel() {
         _uiState.update { it.copy(telefono = valor, errorTelefono = null, registroExitoso = false) }
     }
 
+    fun onComunaSeleccionada(comuna: String) {
+        _uiState.update { it.copy(comuna = comuna, errorComuna = null) }
+    }
+
     fun onContrasenaCambia(valor: String) {
         _uiState.update { it.copy(contrasena = valor, errorContrasena = null, registroExitoso = false) }
     }
@@ -87,7 +91,6 @@ class FormularioViewModel : ViewModel() {
             else -> null
         }
 
-
         val errorCorreo = when {
             estado.correo.isBlank() -> "El correo es obligatorio"
             !estado.correo.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")) ->
@@ -101,12 +104,14 @@ class FormularioViewModel : ViewModel() {
                                                                         //it.isDigit()} que evalúa si el carácter actual es un número del 0 al 9
         val telefonoValido = (digitosTelefono.length == 11 && digitosTelefono.startsWith("569")) ||  //.startsWith("569")   Verifica que la cadena comience con los tres dígitos "569" ó
                 (digitosTelefono.length == 9 && digitosTelefono.startsWith("9"))                     //.startsWith("9")  que comience con en prefijo 9
+
         val errorTelefono = when {
             estado.telefono.isBlank() -> null // Opcional: no hay error si está vacío
             !telefonoValido -> "Ingresa un celular válido (ejemplo: +56 9 12345678)"
             else -> null
         }
 
+        val errorComuna = if (estado.comuna.isBlank()) "Elige tu comuna" else null
 
         // Contraseña: mayúscula, número y carácter especial
         val errorContrasena = when {
@@ -138,7 +143,7 @@ class FormularioViewModel : ViewModel() {
             "Debes aceptar los términos" else null
 
 
-        val hayErrores = listOf(errorNombre, errorRut, errorCorreo, errorTelefono, errorContrasena, errorTerminos)
+        val hayErrores = listOf(errorNombre, errorRut, errorCorreo, errorTelefono, errorComuna, errorContrasena, errorTerminos)
             .any { it != null }
 
         _uiState.update {
@@ -147,6 +152,7 @@ class FormularioViewModel : ViewModel() {
                 errorRut = errorRut,
                 errorCorreo = errorCorreo,
                 errorTelefono = errorTelefono,
+                errorComuna = errorComuna,
                 errorContrasena = errorContrasena,
                 errorTerminos = errorTerminos,
                 registroExitoso = !hayErrores,

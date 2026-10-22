@@ -19,8 +19,6 @@ import com.example.bposeguros.model.TipoSiniestro
 import com.example.bposeguros.model.Usuario
 
 // =====================================================================
-//  NUEVO (SQLite) — SiniestroDbHelper.kt
-//  ---------------------------------------------------------------------
 //  UNA base de datos (bposeguros.db) con NUEVE tablas relacionadas:
 //
 //   roles 1───N usuarios 1───N siniestros N───1 companias
@@ -44,7 +42,7 @@ class SiniestroDbHelper(context: Context) :
         private const val NOMBRE_BD = "bposeguros.db"
         private const val VERSION_BD = 1
 
-        // NUEVO (Singleton): varios ViewModels comparten UN solo helper (una sola conexión)
+        // Varios ViewModels comparten UN solo helper (una sola conexión)
         @Volatile private var instancia: SiniestroDbHelper? = null
 
         fun obtener(context: Context): SiniestroDbHelper =
@@ -57,7 +55,7 @@ class SiniestroDbHelper(context: Context) :
         private const val ROL_ID = "id_rol"
         private const val ROL_NOMBRE = "nombre_rol"
 
-        // ---- usuarios (asegurados, liquidadores y analistas) ----
+        // ---- usuarios: asegurados, liquidadores y analistas ----
         private const val TABLA_USUARIOS = "usuarios"
         private const val USU_ID = "id_usuario"
         private const val USU_NOMBRE = "nombre"
@@ -105,6 +103,8 @@ class SiniestroDbHelper(context: Context) :
         private const val SIN_MENSAJE = "mensaje_cierre"
         private const val ALIAS_LIQ_NOMBRE = "nombre_liquidador"
         private const val ALIAS_LIQ_EQUIPO = "equipo_liquidador"
+        private const val ALIAS_ASE_NOMBRE = "nombre_asegurado"
+        private const val ALIAS_ULTIMA = "ultima_actualizacion"
 
         // ---- gestiones ----
         private const val TABLA_GESTIONES = "gestiones"
@@ -184,7 +184,8 @@ class SiniestroDbHelper(context: Context) :
                     "$TIP_NOMBRE TEXT NOT NULL, " +
                     "$TIP_LINEA TEXT NOT NULL CHECK ($TIP_LINEA IN ('VEHICULO','HOGAR')))"
 
-        // NUEVO (CHECK): la propia base rechaza una etapa fuera de 1..4 o un resultado inventado.
+        // CHECK. la propia base rechaza una etapa fuera de 1..4 o un resultado inventado.
+
         // id_liquidador NO lleva NOT NULL: un siniestro "Recibido" aún no tiene liquidador (RN-07).
         private const val SQL_CREAR_SINIESTROS =
             "CREATE TABLE $TABLA_SINIESTROS (" +
@@ -247,7 +248,7 @@ class SiniestroDbHelper(context: Context) :
 
         // ------------------------- PRECARGA (Anexo 9) -------------------------
         // Los ids van explícitos para que las claves foráneas apunten siempre al mismo registro
-        // (igual que los roles del profesor). Los usuarios 1..15 coinciden con los de DatosEjemplo.
+        //Los usuarios 1..15 vienen de los datos de ejemplo.
 
         private const val SQL_PRECARGAR_ROLES =
             "INSERT INTO $TABLA_ROLES ($ROL_ID, $ROL_NOMBRE) VALUES " +
@@ -366,7 +367,7 @@ class SiniestroDbHelper(context: Context) :
                     "(10, '2026-08-19 11:00', 'Cierre', 'Tu siniestro SIN-26-004745 fue cerrado. Revisa el detalle de la resolución.', 1)"
 
         // ------------------------- SELECT BASE (con JOIN) -------------------------
-        // NUEVO (LEFT JOIN): usuarios (l) se une con LEFT porque el liquidador puede ser NULL.
+        // LEFT JOIN. usuarios (l) se une con LEFT porque el liquidador puede ser NULL.
         // Con INNER JOIN, los siniestros "por asignar" desaparecerían de la lista.
         private const val SQL_SELECT_USUARIOS =
             "SELECT u.*, r.$ROL_NOMBRE AS $ROL_NOMBRE " +
@@ -375,10 +376,14 @@ class SiniestroDbHelper(context: Context) :
 
         private const val SQL_SELECT_SINIESTROS =
             "SELECT s.*, c.$COM_NOMBRE AS $COM_NOMBRE, t.$TIP_NOMBRE AS $TIP_NOMBRE, " +
-                    "l.$USU_NOMBRE AS $ALIAS_LIQ_NOMBRE, l.$USU_EQUIPO AS $ALIAS_LIQ_EQUIPO " +
+                    "l.$USU_NOMBRE AS $ALIAS_LIQ_NOMBRE, l.$USU_EQUIPO AS $ALIAS_LIQ_EQUIPO, " +
+                    "a.$USU_NOMBRE AS $ALIAS_ASE_NOMBRE, " +
+                    "(SELECT MAX(g.$GES_FECHA) FROM $TABLA_GESTIONES g " +
+                    "WHERE g.$GES_SINIESTRO = s.$SIN_ID AND g.$GES_VISIBLE = 1) AS $ALIAS_ULTIMA " +
                     "FROM $TABLA_SINIESTROS s " +
                     "INNER JOIN $TABLA_COMPANIAS c ON s.$SIN_COMPANIA = c.$COM_ID " +
                     "INNER JOIN $TABLA_TIPOS t ON s.$SIN_TIPO = t.$TIP_ID " +
+                    "INNER JOIN $TABLA_USUARIOS a ON s.$SIN_ASEGURADO = a.$USU_ID " +
                     "LEFT JOIN $TABLA_USUARIOS l ON s.$SIN_LIQUIDADOR = l.$USU_ID"
     }
 
@@ -479,7 +484,7 @@ class SiniestroDbHelper(context: Context) :
             arrayOf(idAsegurado.toString())
         ) { leerSiniestro(it) }
 
-    // Casos del liquidador (RF-10): los abiertos más antiguos primero
+    // Casos del liquidador: los abiertos más antiguos primero
     fun listarSiniestrosAsignados(idLiquidador: Long): List<Siniestro> =
         consultar(
             "$SQL_SELECT_SINIESTROS WHERE s.$SIN_LIQUIDADOR = ? " +
@@ -493,6 +498,37 @@ class SiniestroDbHelper(context: Context) :
             "$SQL_SELECT_SINIESTROS WHERE s.$SIN_ID = ? AND s.$SIN_ASEGURADO = ?",
             arrayOf(idSiniestro.toString(), idAsegurado.toString())
         ) { leerSiniestro(it) }.firstOrNull()
+
+    // HU-09 CA2: el liquidador solo puede abrir (y gestionar) los siniestros asignados a él
+    fun buscarSiniestroDeLiquidador(idSiniestro: Long, idLiquidador: Long): Siniestro? =
+        consultar(
+            "$SQL_SELECT_SINIESTROS WHERE s.$SIN_ID = ? AND s.$SIN_LIQUIDADOR = ?",
+            arrayOf(idSiniestro.toString(), idLiquidador.toString())
+        ) { leerSiniestro(it) }.firstOrNull()
+
+    // UPDATE. cambia la etapa y guarda la fecha del cambio (RN-17: los días se cuentan desde aquí)
+    fun actualizarEtapa(idSiniestro: Long, etapa: Etapa, fecha: String): Int =
+        writableDatabase.update(
+            TABLA_SINIESTROS,
+            ContentValues().apply {
+                put(SIN_ETAPA, etapa.id)
+                put(SIN_F_ETAPA, fecha)
+            },
+            "$SIN_ID = ?", arrayOf(idSiniestro.toString())
+        )
+
+    // UPDATE. RN-02 -> todo cierre lleva resultado y mensaje para el asegurado
+    fun cerrarSiniestro(idSiniestro: Long, resultado: Resultado, mensaje: String, fecha: String): Int =
+        writableDatabase.update(
+            TABLA_SINIESTROS,
+            ContentValues().apply {
+                put(SIN_ETAPA, Etapa.CERRADO.id)
+                put(SIN_F_ETAPA, fecha)
+                put(SIN_RESULTADO, resultado.name)
+                put(SIN_MENSAJE, mensaje)
+            },
+            "$SIN_ID = ?", arrayOf(idSiniestro.toString())
+        )
 
     // RN-06: SIN-AA-NNNNNN. Toma el correlativo más alto de ese año y suma 1 (nunca se reutiliza).
     // SUBSTR(numero, 8) = lo que va después de "SIN-26-"
@@ -518,7 +554,7 @@ class SiniestroDbHelper(context: Context) :
         return numero
     }
 
-    // NUEVO (Transacción): guarda el siniestro Y su primera gestión ("Recibimos tu reporte", RF-12).
+    // Transacción. guarda el siniestro Y su primera gestión ("Recibimos tu reporte").
     // O se guardan las dos cosas o ninguna. Devuelve el id generado (o -1 si falla).
     fun insertarSiniestro(siniestro: Siniestro, fechaHora: String): Long {
         val db = writableDatabase
@@ -593,7 +629,71 @@ class SiniestroDbHelper(context: Context) :
             )
         }
 
-    // INNER JOIN avisos + siniestros: trae el número del siniestro (Aclaración 5) y filtra por asegurado (RNF-07)
+    // El liquidador pide un documento -> queda "Pendiente" (entregado = 0)
+    fun insertarSolicitud(solicitud: SolicitudDocumento): Long =
+        writableDatabase.insert(TABLA_SOLICITUDES, null, ContentValues().apply {
+            put(SOL_SINIESTRO, solicitud.siniestroId)
+            put(SOL_DOC, solicitud.tipoDocumento)
+            put(SOL_COMENTARIO, solicitud.comentario)
+            put(SOL_F_SOL, solicitud.fechaSolicitud)
+            put(SOL_ENTREGADO, 0)
+        })
+
+    // Al adjuntar el documento pedido, la solicitud pasa a "Entregado"
+    fun marcarSolicitudEntregada(idSolicitud: Long, fecha: String): Int =
+        writableDatabase.update(
+            TABLA_SOLICITUDES,
+            ContentValues().apply {
+                put(SOL_ENTREGADO, 1)
+                put(SOL_F_ENT, fecha)
+            },
+            "$SOL_ID = ?", arrayOf(idSolicitud.toString())
+        )
+
+    fun contarPendientes(idSiniestro: Long): Int = contar(
+        "SELECT COUNT(*) FROM $TABLA_SOLICITUDES WHERE $SOL_SINIESTRO = ? AND $SOL_ENTREGADO = 0",
+        arrayOf(idSiniestro.toString())
+    )
+
+    // RN-10: máximo 15 adjuntos por siniestro
+    fun contarAdjuntos(idSiniestro: Long): Int = contar(
+        "SELECT COUNT(*) FROM $TABLA_ADJUNTOS WHERE $ADJ_SINIESTRO = ?",
+        arrayOf(idSiniestro.toString())
+    )
+
+    fun insertarAdjunto(adjunto: DocumentoAdjunto): Long =
+        writableDatabase.insert(TABLA_ADJUNTOS, null, ContentValues().apply {
+            put(ADJ_SINIESTRO, adjunto.siniestroId)
+            put(ADJ_ARCHIVO, adjunto.nombreArchivo)
+            put(ADJ_RUTA, adjunto.rutaArchivo)
+            put(ADJ_TIPO, adjunto.tipoDocumento)
+            put(ADJ_FECHA, adjunto.fechaCarga)
+            put(ADJ_POR, adjunto.cargadoPor)
+            put(ADJ_COMENTARIO, adjunto.comentario)
+            if (adjunto.solicitudId != null) put(ADJ_SOLICITUD, adjunto.solicitudId) else putNull(ADJ_SOLICITUD)
+        })
+
+    // INSERT. Aviso para el asegurado (RF-09). Lo genera el ViewModel del liquidador.
+    fun insertarAviso(idSiniestro: Long, fechaHora: String, motivo: String, mensaje: String): Long =
+        writableDatabase.insert(TABLA_AVISOS, null, ContentValues().apply {
+            put(AVI_SINIESTRO, idSiniestro)
+            put(AVI_FECHA, fechaHora)
+            put(AVI_MOTIVO, motivo)
+            put(AVI_MENSAJE, mensaje)
+            put(AVI_LEIDO, 0)
+        })
+
+    // Update. Al tocar un aviso queda como leído
+    fun marcarAvisoLeido(idAviso: Long): Int =
+        writableDatabase.update(
+            TABLA_AVISOS,
+            ContentValues().apply { put(AVI_LEIDO, 1) },
+            "$AVI_ID = ?", arrayOf(idAviso.toString())
+        )
+
+
+
+    // INNER JOIN avisos + siniestros: trae el número del siniestro y filtra por asegurado (RNF-07)
     fun listarAvisos(idAsegurado: Long): List<Aviso> =
         consultar(
             "SELECT a.*, s.$SIN_NUMERO AS $SIN_NUMERO FROM $TABLA_AVISOS a " +
@@ -611,7 +711,6 @@ class SiniestroDbHelper(context: Context) :
     // ---------------------------- AYUDANTES ----------------------------
 
     // NUEVO (genérico): una sola función ejecuta cualquier SELECT y convierte cada fila con "leer".
-    // El profesor tiene una por tabla (consultarUsuarios); aquí hay 6 tablas, así que se generaliza.
     private fun <T> consultar(sql: String, args: Array<String>?, leer: (Cursor) -> T): List<T> {
         val lista = mutableListOf<T>()
         readableDatabase.rawQuery(sql, args).use { cursor ->
@@ -620,6 +719,14 @@ class SiniestroDbHelper(context: Context) :
             }
         }
         return lista
+    }
+
+    private fun contar(sql: String, args: Array<String>): Int {
+        var total = 0
+        readableDatabase.rawQuery(sql, args).use { cursor ->
+            if (cursor.moveToFirst()) total = cursor.getInt(0)
+        }
+        return total
     }
 
     // ContentValues = mapa columna -> valor (para INSERT). Los NULL se escriben con putNull.
@@ -658,6 +765,7 @@ class SiniestroDbHelper(context: Context) :
         id = c.largo(SIN_ID),
         numero = c.texto(SIN_NUMERO),
         aseguradoId = c.largo(SIN_ASEGURADO),
+        aseguradoNombre = c.texto(ALIAS_ASE_NOMBRE),
         companiaId = c.largo(SIN_COMPANIA),
         companiaNombre = c.texto(COM_NOMBRE),
         tipoId = c.largo(SIN_TIPO),
@@ -673,7 +781,8 @@ class SiniestroDbHelper(context: Context) :
         liquidadorEquipo = c.textoONull(ALIAS_LIQ_EQUIPO),
         fueraDePlazo = c.entero(SIN_FUERA_PLAZO) == 1,
         resultado = c.textoONull(SIN_RESULTADO)?.let { Resultado.valueOf(it) },
-        mensajeCierre = c.textoONull(SIN_MENSAJE)
+        mensajeCierre = c.textoONull(SIN_MENSAJE),
+        ultimaActualizacion = c.textoONull(ALIAS_ULTIMA)
     )
 
     // Lectores cortos del Cursor (evitan repetir getColumnIndexOrThrow en cada columna)

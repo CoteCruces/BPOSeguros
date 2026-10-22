@@ -41,6 +41,18 @@ import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.theme.Exito
 import com.example.bposeguros.ui.theme.ExitoFondo
 import com.example.bposeguros.viewmodel.FormularioViewModel
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
+import com.example.bposeguros.ui.styles.EstilosCampo
 
 // =====================================================================
 //  FormularioScreen.kt  —  PANTALLA DE INGRESO (la "V")
@@ -66,6 +78,7 @@ fun FormularioScreen(
         onRutCambia = viewModel::onRutCambia,
         onCorreoCambia = viewModel::onCorreoCambia,
         onTelefonoCambia = viewModel::onTelefonoCambia,
+        onComunaSeleccionada = viewModel::onTelefonoCambia,
         onContrasenaCambia = viewModel::onContrasenaCambia,
         onAlternarVisibilidad = viewModel::onAlternarVisibilidad,
         // ?.let = "si NO es null, ejecuta" -> solo navega si los datos son válidos
@@ -84,6 +97,7 @@ fun FormularioContent(
     onRutCambia: (String) -> Unit,
     onCorreoCambia: (String) -> Unit,
     onTelefonoCambia: (String) -> Unit,
+    onComunaSeleccionada: (String) -> Unit,
     onContrasenaCambia: (String) -> Unit,
     onAlternarVisibilidad: () -> Unit,
     onAceptaTerminos: (Boolean) -> Unit,
@@ -153,6 +167,44 @@ fun FormularioContent(
                         error = uiState.errorTelefono,
                         tipoTeclado = KeyboardType.Phone
                     )
+                    var expandido by remember { mutableStateOf(false) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = expandido,
+                        onExpandedChange = { expandido = it }
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.comuna,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(R.string.campo_comuna_registro)) },
+                            leadingIcon = {
+                                Icon(painterResource(R.drawable.ic_ubicacion), contentDescription = null, modifier = Modifier.size(Dimens.tamanoIcono))
+                            },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido) },
+                            isError = uiState.errorComuna != null,
+                            supportingText = { uiState.errorComuna?.let { Text(it) } },
+                            shape = EstilosCampo.forma,
+                            colors = EstilosCampo.colores(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandido,
+                            onDismissRequest = { expandido = false }
+                        ) {
+                            uiState.comunas.forEach { comuna ->
+                                DropdownMenuItem(
+                                    text = { Text(comuna) },
+                                    onClick = {
+                                        onComunaSeleccionada(comuna)
+                                        expandido = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                     CampoContrasena(
                         valor = uiState.contrasena,
                         onValorCambia = onContrasenaCambia,
@@ -249,6 +301,7 @@ private fun RegistroPreview() {
             onRutCambia = {},
             onCorreoCambia = {},
             onTelefonoCambia = {},
+            onComunaSeleccionada = {},
             onContrasenaCambia = {},
             onAlternarVisibilidad = {},
             onAceptaTerminos = {},

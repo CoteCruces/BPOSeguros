@@ -4,6 +4,7 @@ data class Siniestro(
     val id: Long = 0,
     val numero: String,
     val aseguradoId: Long,
+    val aseguradoNombre: String = "",
     val companiaId: Long,
     val companiaNombre: String = "",
     val tipoId: Long,
@@ -19,7 +20,8 @@ data class Siniestro(
     val liquidadorEquipo: String? = null,
     val fueraDePlazo: Boolean = false,
     val resultado: Resultado? = null,
-    val mensajeCierre: String? = null
+    val mensajeCierre: String? = null,
+    val ultimaActualizacion: String? = null
 ) {
     // RN-14: al asegurado solo se le muestra "Paulina F. – Equipo Vehículos" (nunca correo ni teléfono).
     // Supone el formato "Nombre Apellido Apellido" de los datos de ejemplo.
