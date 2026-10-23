@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -20,11 +21,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.bposeguros.model.Rol
+import com.example.bposeguros.model.Siniestro
 import com.example.bposeguros.ui.components.BotonPrincipal
 import com.example.bposeguros.ui.screens.FormularioScreen
 import com.example.bposeguros.ui.screens.LoginScreen
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.SesionViewModel
+import com.example.bposeguros.ui.screens.MisSiniestrosScreen
+import com.example.bposeguros.viewmodel.AseguradoViewModel
 
 // =====================================================================
 //  AppNavegacion.kt — el ÚNICO lugar que decide a dónde se va.
@@ -92,7 +96,29 @@ fun AppNavegacion() {
         }
 
         // ----- Pantallas pendientes: cada una se reemplaza en su propia rama -----
-        composable(Ruta.MisSiniestros.ruta) { Proximamente("Mis siniestros", cerrarSesion) }
+        composable(Ruta.MisSiniestros.ruta) {
+            // El ViewModel que lee los siniestros y los avisos desde la BD
+            val aseguradoViewModel: AseguradoViewModel = viewModel()
+            val siniestros by aseguradoViewModel.siniestros.collectAsStateWithLifecycle()
+            val avisos by aseguradoViewModel.avisos.collectAsStateWithLifecycle()
+
+            // ?.let: si la sesión se cerró (usuario null) no se dibuja nada mientras se vuelve al login
+            usuarioActual?.let { usuario ->
+                // Se recarga cada vez que la pantalla aparece (por ejemplo al volver de "Reportar")
+                LaunchedEffect(usuario.id) { aseguradoViewModel.cargar(usuario.id) }
+                MisSiniestrosScreen(
+                    usuario = usuario,
+                    siniestros = siniestros,
+                    avisosSinLeer = avisos.count{!it.leido},  // cuenta cuántos avisos no se han leído
+                    onAbrir = { id -> navController.navigate(Ruta.Detalle.crear(id)) },
+                    onReportar = { navController.navigate(Ruta.Reportar.ruta) },
+                    onVerAvisos = { navController.navigate(Ruta.Avisos.ruta) },
+                    onCerrarSesion = cerrarSesion
+                )
+            }
+        }
+
+
         composable(Ruta.Detalle.ruta) { Proximamente("Detalle del siniestro") }
         composable(Ruta.Reportar.ruta) { Proximamente("Reportar siniestro") }
         composable(Ruta.Adjuntar.ruta) { Proximamente("Adjuntar documento") }

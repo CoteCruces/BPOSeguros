@@ -16,7 +16,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberWideNavigationRailState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -27,7 +26,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bposeguros.R
 import com.example.bposeguros.model.FormularioUiState
-import com.example.bposeguros.model.Usuario
 import com.example.bposeguros.ui.components.BotonPrincipal
 import com.example.bposeguros.ui.components.BotonSecundario
 import com.example.bposeguros.ui.components.CampoContrasena
@@ -128,8 +126,8 @@ fun FormularioContent(
             ImagenEncabezado(
                 imagen = R.drawable.banner_registro_bpo,
                 descripcion = stringResource(R.string.cd_banner),
-                titulo = stringResource(R.string.banner_titulo),
-                subtitulo = stringResource(R.string.banner_subtitulo)
+                titulo = stringResource(R.string.banner_creacion_usuario),
+                subtitulo = stringResource(R.string.banner_registro)
             )
             Column(
                 modifier = Modifier.padding(Dimens.espacioPantalla),

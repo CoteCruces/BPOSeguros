@@ -32,3 +32,12 @@ val ErrorClaro = Color(0xFFB3261E)
 val ErrorOscuro = Color(0xFFF2B8B5)
 
 val BordeCampo = Color(0xFF6B7782)
+
+
+// Colores de las etapas: tonos suaves (Aclaración 10: estilo sobrio, sin transmitir urgencia).
+// Siempre van junto a un ícono y un texto, nunca solos (RNF-04).
+val EtapaRecibido = Color(0xFFCFD8E3)      // gris azulado
+val EtapaEvaluacion = Color(0xFFFFE0A3)    // ámbar claro
+val EtapaLiquidacion = Color(0xFFB9D7F5)   // azul claro
+val EtapaCerrado = Color(0xFFBFE6CC)       // verde claro
+

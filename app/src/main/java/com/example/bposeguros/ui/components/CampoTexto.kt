@@ -29,6 +29,7 @@ import com.example.bposeguros.ui.theme.Dimens
 //  Esto se llama "estado elevado" (state hoisting).
 //
 //  error: mensaje bajo el campo; null = sin error.
+//  ayuda: texto de ejemplo bajo el campo; se muestra solo si no hay error.
 //  El error se comunica con TEXTO y con borde rojo, no solo con color.
 // =====================================================================
 @Composable
@@ -39,8 +40,14 @@ fun CampoTexto(
     @DrawableRes icono: Int,
     modifier: Modifier = Modifier,
     error: String? = null,
-    tipoTeclado: KeyboardType = KeyboardType.Text
+    ayuda: String? = null,
+    tipoTeclado: KeyboardType = KeyboardType.Text,
+    lineas: Int = 1,
+    //soloMarcador: Boolean = false
 ) {
+    // Si hay error se muestra el error; si no, el texto de ayuda (ejemplo)
+    //val textoApoyo = error ?: ayuda
+
     OutlinedTextField(
         value = valor,
         onValueChange = onValorCambia,
@@ -54,11 +61,17 @@ fun CampoTexto(
             )
         },
         isError = error != null,
-        supportingText = { if (error != null) Text(error) },
-        singleLine = true,
+        supportingText = {
+            when {
+                error != null -> Text(error)
+                ayuda != null -> Text(ayuda)
+            }
+        },
+        singleLine = lineas == 1,
+        minLines = lineas,
         keyboardOptions = KeyboardOptions(
             keyboardType = tipoTeclado,
-            imeAction = ImeAction.Next
+            imeAction = if (lineas == 1) ImeAction.Next else ImeAction.Default
         ),
         shape = EstilosCampo.forma,
         colors = EstilosCampo.colores()
@@ -70,12 +83,13 @@ fun CampoTexto(
 private fun CampoTextoPreview() {
     BPOSegurosTheme {
         CampoTexto(
-            valor = "ana@",
+            valor = "15.842.371-4",
             onValorCambia = {},
-            etiqueta = "Correo electrónico",
-            icono = R.drawable.ic_correo,
-            error = "Ingresa un correo válido",
+            etiqueta = "RUT",
+            icono = R.drawable.ic_rut,
+            error = "El RUT no es válido. Revisa el dígito verificador",
             modifier = Modifier.padding(16.dp)
+            
         )
     }
 }
