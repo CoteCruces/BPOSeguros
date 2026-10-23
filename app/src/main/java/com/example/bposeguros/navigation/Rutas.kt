@@ -13,6 +13,7 @@ sealed class Ruta(val ruta: String) {
     data object Reportar : Ruta("reportar")
     data object Adjuntar : Ruta("adjuntar/{id}") { fun crear(id: Long) = "adjuntar/$id" }
     data object Avisos : Ruta("avisos")
+
     data object Casos : Ruta("casos")
     data object Caso : Ruta("caso/{id}") { fun crear(id: Long) = "caso/$id" }
 }

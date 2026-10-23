@@ -75,7 +75,7 @@ class FormularioViewModel : ViewModel() {
             !estado.nombre.all { it.isLetter() || it == ' ' } ->
                 "El nombre no puede tener números ni símbolos"
             palabrasNombre.size < 3 ->
-                "Escribe tu nombre y apellido (al menos 3 palabras)"
+                "Escribe tu nombre y apellido (al menos 2 palabras)"
             palabrasNombre.any { it.length < 3 } ->
                 "Cada palabra debe tener al menos 3 letras"
             estado.nombre.count { it.isLetter() } < 7 ->

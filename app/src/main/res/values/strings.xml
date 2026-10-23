@@ -3,24 +3,42 @@
     <string name="app_name">BPOSeguros</string>
 
     <!-- Títulos de pantallas -->
+    <string name="saludo">Hola, %1$s</string>
     <string name="titulo_inicio">Registro de datos</string>
+    <string name="titulo_ingreso">Ingresa para ver tu caso</string>
     <string name="titulo_mis_siniestros">Mis siniestros</string>
     <string name="titulo_detalle">Detalle del siniestro</string>
     <string name="titulo_reportar">Reportar un siniestro</string>
     <string name="titulo_avisos">Avisos</string>
+    <string name="titulo_adjuntar">Adjuntar documento</string>
+    <string name="titulo_mis_casos">Mis casos asignados</string>
+
 
     <!-- Banner de inicio -->
-    <string name="banner_titulo">Únete a BPO Seguros y sigue tu siniestro</string>
-    <string name="banner_subtitulo">Regístrate completando tus datos</string>
+    <string name="banner_creacion_usuario">Únete a BPO Seguros y sigue tu siniestro</string>
+    <string name="banner_registro">Regístrate completando tus datos</string>
 
     <!-- Ingreso -->
     <string name="titulo_login">Ingresar</string>
     <string name="banner_login_titulo">Sigue el estado de tu siniestro</string>
     <string name="banner_login_subtitulo">Ingresa con tu RUT o tu código de liquidador</string>
-    <string name="campo_codigo">Código de liquidador (ej: LIQ-01)</string>
-    <string name="opcion_soy_liquidador">Soy liquidador de Andes</string>
     <string name="btn_ir_registro">Registrar mis datos</string>
     <string name="btn_ir_ingresar">Ir a ingresar</string>
+
+    <string name="banner_titulo">Sigue tu siniestro</string>
+    <string name="banner_subtitulo">Revisa en qué va tu caso, sin llamar ni escribir</string>
+    <string name="campo_codigo">Código de liquidador</string>
+    <string name="opcion_soy_liquidador">Soy liquidador de Andes</string>
+    <string name="ayuda_rut">Ejemplo: 15.842.371-5</string>
+    <string name="ayuda_codigo">Ejemplo: LIQ-01</string>
+    <string name="texto_datos_prueba">Datos de prueba (ficticios): asegurada Camila Rojas, RUT 15.842.371-5 · asegurada Daniela Vergara, RUT 17.552.093-7 · liquidadora Paulina Fernández, código LIQ-01.</string>
+
+
+    <!-- Mis siniestros -->
+    <string name="texto_rut_oculto">RUT %1$s</string>
+    <string name="titulo_activar_avisos">Entérate de los cambios</string>
+    <string name="texto_activar_avisos">Activa los avisos y te contaremos cuando tu caso avance o necesitemos algún documento.</string>
+    <string name="btn_activar_avisos">Activar avisos</string>
 
 
     <!-- Campos de formulario -->
@@ -40,20 +58,52 @@
     <string name="opcion_terminos">Acepto los términos y condiciones</string>
     <string name="registro_exitoso">Registro exitoso. Bienvenido/a %1$s</string>
 
-    <!-- Botones -->
-    <string name="btn_ingresar">Ingresar</string>
-    <string name="btn_reportar">Reportar siniestro</string>
-    <string name="btn_enviar">Enviar reporte</string>
-    <string name="btn_limpiar">Limpiar</string>
-    <string name="btn_volver">Volver</string>
-    <string name="btn_adjuntar">Adjuntar documento</string>
-    <string name="btn_tomar_foto">Tomar foto</string>
+    <!-- Detalle -->
+    <string name="siniestro_no_encontrado">No encontramos este siniestro.</string>
+    <string name="seccion_proximo_paso">¿Qué viene ahora?</string>
+    <string name="seccion_datos_siniestro">Datos de tu siniestro</string>
+    <string name="seccion_historial">Historial de tu caso</string>
+    <string name="seccion_documentos">Tus documentos</string>
+    <string name="subtitulo_pedidos">Lo que te pedimos</string>
+    <string name="subtitulo_enviados">Documentos enviados (%1$d)</string>
+    <string name="texto_sin_adjuntos">Todavía no hay documentos.</string>
+    <string name="texto_pedido_el">Pedido el %1$s</string>
+    <string name="documento_pendiente">Pendiente</string>
+    <string name="documento_entregado">Entregado</string>
+    <string name="texto_no_adjuntar_cerrado">Tu caso está cerrado, por eso ya no se pueden adjuntar documentos.</string>
+    <string name="texto_resultado">Resultado: %1$s</string>
+    <string name="texto_dias_etapa">Lleva %1$d días en esta etapa</string>
+    <string name="texto_fecha_ocurrencia">Ocurrió el %1$s</string>
+    <string name="texto_fecha_reporte">Reportado el %1$s</string>
+    <string name="texto_sin_liquidador">A la espera de asignación a un liquidador</string>
+    <string name="texto_fuera_plazo">Reportado después de 30 días: tu compañía lo revisará</string>
+    <string name="btn_ver_historial">Ver historial (%1$d)</string>
+    <string name="btn_ocultar_historial">Ocultar historial (%1$d)</string>
+    <string name="texto_gestion_interna">Interna: el asegurado no la ve</string>
 
     <!-- Etapas del siniestro (RN-01, Anexo 7) -->
     <string name="etapa_recibido">Recibido</string>
     <string name="etapa_en_evaluacion">En evaluación</string>
     <string name="etapa_en_liquidacion">En liquidación</string>
     <string name="etapa_cerrado">Cerrado</string>
+
+
+    <!-- Botones -->
+    <string name="btn_ingresar">Ingresar</string>
+    <string name="btn_reportar">Reportar siniestro</string>
+    <string name="btn_enviar">Enviar</string>
+    <string name="btn_enviar_documento">Enviar documento</string>
+    <string name="btn_cancelar">Cancelar</string>
+    <string name="btn_guardar">Guardar</string>
+    <string name="btn_adjuntar">Adjuntar documento</string>
+    <string name="btn_tomar_foto">Cámara</string>
+    <string name="btn_galeria">Galería</string>
+    <string name="btn_cerrar_sesion">Cerrar sesión</string>
+    <string name="btn_ajustes">Ajustes</string>
+    <string name="btn_volver">Volver</string>
+    <string name="btn_limpiar">Limpiar</string>
+
+
 
     <!-- Próximo paso según la situación del caso (Aclaración nº 2) -->
     <string name="paso_recibido">Estamos revisando tu reporte para asignarlo a un liquidador. No necesitas hacer nada por ahora.</string>
@@ -62,18 +112,21 @@
     <string name="paso_liquidacion">Tenemos todo lo necesario. Estamos definiendo la resolución con tu compañía de seguros.</string>
     <string name="paso_cerrado">Tu caso terminó. Revisa el resultado y el mensaje de cierre.</string>
 
-    <!-- Secciones del detalle -->
-    <string name="seccion_proximo_paso">¿Qué viene ahora?</string>
-    <string name="seccion_historial">Historial de tu caso</string>
-    <string name="seccion_documentos">Tus documentos</string>
-    <string name="documento_pendiente">Pendiente</string>
-    <string name="documento_entregado">Entregado</string>
 
     <!-- Estados vacíos y mensajes -->
-    <string name="sin_siniestros">Aún no tienes siniestros reportados. Puedes reportar uno desde el botón de abajo.</string>
-    <string name="reporte_exitoso">Recibimos tu reporte. Tu número de siniestro es %1$s</string>
     <string name="actualizado_el">Última actualización: %1$s</string>
     <string name="sin_conexion_aviso">Sin conexión. Estás viendo la información del %1$s</string>
+
+    <string name="sin_siniestros">Aún no tienes siniestros reportados. Puedes reportar uno desde el botón de abajo.</string>
+    <string name="reporte_exitoso">Tu número de siniestro es %1$s. Úsalo como referencia en cualquier canal.</string>
+
+
+    <!-- Permisos -->
+    <string name="permiso_camara_denegado">Sin permiso de cámara no podemos tomar la foto. Puedes activarlo en Ajustes.</string>
+    <string name="permiso_galeria_denegado">Sin permiso de fotos no podemos abrir tu galería. Puedes activarlo en Ajustes.</string>
+    <string name="permiso_notificaciones_denegado">Sin permiso de notificaciones verás los avisos solo dentro de la app.</string>
+
+
 
     <!-- Resultados de cierre del siniestro -->
     <string name="resultado_aprobado">Aprobado</string>
@@ -86,4 +139,54 @@
     <string name="cd_avatar">Foto de perfil</string>
     <string name="cd_mostrar_contrasena">Mostrar contraseña</string>
     <string name="cd_ocultar_contrasena">Ocultar contraseña</string>
+
+    <!-- Liquidador -->
+    <string name="texto_liquidador">%1$s · %2$s · Equipo %3$s</string>
+    <string name="sin_casos">No tienes casos asignados.</string>
+    <string name="alerta_sin_movimiento">%1$d días sin gestión visible</string>
+    <string name="caso_no_asignado">Este caso no está asignado a ti.</string>
+    <string name="seccion_acciones">Acciones</string>
+    <string name="btn_registrar_gestion">Registrar gestión</string>
+    <string name="btn_pedir_documento">Pedir documento</string>
+    <string name="btn_avanzar">Avanzar a \"%1$s\"</string>
+    <string name="btn_cerrar_caso">Cerrar caso</string>
+    <string name="campo_que_hiciste">¿Qué hiciste?</string>
+    <string name="ayuda_lenguaje_simple">Usa palabras simples: el asegurado lo leerá</string>
+    <string name="opcion_visible_asegurado">Visible para el asegurado</string>
+    <string name="campo_resultado">Resultado</string>
+    <string name="campo_mensaje_cierre">Mensaje para el asegurado</string>
+
+
+    <!-- Avisos -->
+    <string name="sin_avisos">No tienes avisos por ahora.</string>
+    <string name="texto_nuevo">Nuevo</string>
+    <string name="canal_nombre">Avisos de tu siniestro</string>
+    <string name="canal_descripcion">Cambios de etapa, documentos pedidos y cierre de tu caso</string>
+
+
+    <!-- Adjuntar -->
+    <string name="texto_adjuntar_a">Siniestro %1$s</string>
+    <string name="titulo_no_se_puede">No es posible adjuntar</string>
+    <string name="seccion_que_documento">¿Qué documento es?</string>
+    <string name="seccion_imagen">Imagen</string>
+    <string name="campo_tipo_documento">Tipo de documento</string>
+    <string name="campo_comentario">Comentario</string>
+    <string name="ayuda_opcional">Opcional</string>
+    <string name="cd_vista_previa">Vista previa de la imagen</string>
+
+    <!-- Reportar -->
+    <string name="texto_intro_reporte">Completa estos datos. Tomará solo unos minutos.</string>
+    <string name="seccion_que_paso">¿Qué pasó?</string>
+    <string name="seccion_cuando_donde">¿Cuándo y dónde?</string>
+    <string name="ayuda_fecha">Día-mes-año, por ejemplo 02-09-2026</string>
+    <string name="ayuda_descripcion">%1$d de 500 caracteres</string>
+    <string name="titulo_duplicado">¿Es el mismo siniestro?</string>
+    <string name="texto_duplicado">Ya tienes el siniestro %1$s con la misma compañía, tipo y fecha. Si es otro hecho distinto, puedes continuar.</string>
+    <string name="btn_es_otro">Es otro, continuar</string>
+    <string name="btn_revisar">Revisar</string>
+    <string name="titulo_reporte_ok">Recibimos tu reporte</string>
+    <string name="btn_ver_mis_siniestros">Ver mis siniestros</string>
+
+
+
 </resources>
