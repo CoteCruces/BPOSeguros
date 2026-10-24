@@ -28,6 +28,7 @@ import com.example.bposeguros.ui.screens.LoginScreen
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.SesionViewModel
 import com.example.bposeguros.ui.screens.MisSiniestrosScreen
+import com.example.bposeguros.ui.screens.ReportarScreen
 import com.example.bposeguros.viewmodel.AseguradoViewModel
 
 // =====================================================================
@@ -120,7 +121,15 @@ fun AppNavegacion() {
 
 
         composable(Ruta.Detalle.ruta) { Proximamente("Detalle del siniestro") }
-        composable(Ruta.Reportar.ruta) { Proximamente("Reportar siniestro") }
+        composable(Ruta.Reportar.ruta) {
+            usuarioActual?.let { actual ->
+                ReportarScreen(
+                    idAsegurado = actual.id,
+                    onVolver = { navController.navigateUp() },
+                    onTerminar = { navController.navigateUp() }
+                )
+            }
+        }
         composable(Ruta.Adjuntar.ruta) { Proximamente("Adjuntar documento") }
         composable(Ruta.Avisos.ruta) { Proximamente("Avisos") }
         composable(Ruta.Casos.ruta) { Proximamente("Casos del liquidador", cerrarSesion) }
