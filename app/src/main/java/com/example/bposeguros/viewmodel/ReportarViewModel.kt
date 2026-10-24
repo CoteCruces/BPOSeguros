@@ -49,7 +49,6 @@ class ReportarViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun onDescripcionCambia(valor: String) {
-        // take(500): no deja escribir más de 500 caracteres
         _uiState.update { it.copy(descripcion = valor.take(500), errorDescripcion = null) }
     }
 

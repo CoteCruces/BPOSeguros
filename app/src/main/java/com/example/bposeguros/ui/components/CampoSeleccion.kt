@@ -48,7 +48,7 @@ fun CampoSeleccion(
         OutlinedTextField(
             value = seleccionada?.let { opciones.getOrNull(it) } ?: "",
             onValueChange = {},
-            readOnly = true,                       // no se escribe: solo se elige
+            readOnly = true,
             enabled = habilitado,
             label = { Text(etiqueta) },
             leadingIcon = {
@@ -67,7 +67,6 @@ fun CampoSeleccion(
             expanded = expandido,
             onDismissRequest = { expandido = false }
         ) {
-            // forEachIndexed: recorre la lista entregando la posición y el texto
             opciones.forEachIndexed { posicion, texto ->
                 DropdownMenuItem(
                     text = { Text(texto) },

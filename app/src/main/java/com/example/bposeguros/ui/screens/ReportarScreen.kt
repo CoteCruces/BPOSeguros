@@ -70,7 +70,6 @@ fun ReportarScreen(
                     onSeleccionar = viewModel::onTipoElegido,
                     icono = R.drawable.ic_documento,
                     error = uiState.errorTipo,
-                    // hasta elegir compañía no se sabe qué tipos corresponden (no todas tienen vehículo y hogar)
                     habilitado = uiState.companiaElegida != null
                 )
             }
@@ -88,7 +87,6 @@ fun ReportarScreen(
                 CampoSeleccion(
                     etiqueta = stringResource(R.string.campo_comuna),
                     opciones = uiState.comunas,
-                    // indexOf da -1 si todavía no elige ninguna; takeIf lo convierte en null
                     seleccionada = uiState.comunas.indexOf(uiState.comuna).takeIf { it >= 0 },
                     onSeleccionar = viewModel::onComunaElegida,
                     icono = R.drawable.ic_ubicacion,
