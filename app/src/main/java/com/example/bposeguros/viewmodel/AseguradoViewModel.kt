@@ -10,11 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-// =====================================================================
-//  AseguradoViewModel.kt  —  Datos que ve la persona asegurada
-//  Se crea UNA vez en AppNavegacion y lo comparten: Mis siniestros, Detalle y Avisos.
-//  Todas las consultas reciben el id del asegurado (RNF-07: nunca ve casos de otra persona).
-// =====================================================================
 class AseguradoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = SiniestroDbHelper.obtener(application)
@@ -28,7 +23,6 @@ class AseguradoViewModel(application: Application) : AndroidViewModel(applicatio
     private val _detalle = MutableStateFlow(DetalleUiState())
     val detalle: StateFlow<DetalleUiState> = _detalle.asStateFlow()
 
-    // Se llama cada vez que se entra a "Mis siniestros" (así se ve lo recién reportado)
     fun cargar(idAsegurado: Long) {
         _siniestros.value = db.listarSiniestrosDeAsegurado(idAsegurado)
         _avisos.value = db.listarAvisos(idAsegurado)
@@ -38,7 +32,7 @@ class AseguradoViewModel(application: Application) : AndroidViewModel(applicatio
         val siniestro = db.buscarSiniestroDeAsegurado(idSiniestro, idAsegurado)
         _detalle.value = if (siniestro == null) DetalleUiState() else DetalleUiState(
             siniestro = siniestro,
-            gestiones = db.listarGestiones(idSiniestro, soloVisibles = true),   // RN-13
+            gestiones = db.listarGestiones(idSiniestro, soloVisibles = true),
             solicitudes = db.listarSolicitudes(idSiniestro),
             adjuntos = db.listarAdjuntos(idSiniestro)
         )
