@@ -2,48 +2,114 @@
 <resources>
     <string name="app_name">BPOSeguros</string>
 
-    <!-- Títulos de pantallas -->
+
     <string name="saludo">Hola, %1$s</string>
-    <string name="titulo_inicio">Registro de datos</string>
-    <string name="titulo_ingreso">Ingresa para ver tu caso</string>
+    <string name="saludo_sin_nombre">¡Hola!</string>
+    <string name="titulo_bienvenida">Bienvenido/a a BPO Seguros</string>
+    <string name="titulo_ingreso">Ingresa a tu cuenta</string>
     <string name="titulo_mis_siniestros">Mis siniestros</string>
     <string name="titulo_detalle">Detalle del siniestro</string>
     <string name="titulo_reportar">Reportar un siniestro</string>
     <string name="titulo_avisos">Avisos</string>
     <string name="titulo_adjuntar">Adjuntar documento</string>
     <string name="titulo_mis_casos">Mis casos asignados</string>
+    <string name="titulo_recuperar">Recuperar contraseña</string>
+    <string name="titulo_cambiar_clave">Cambiar contraseña</string>
+    <string name="titulo_perfil">Mi perfil</string>
+    <string name="titulo_nuevo_cliente">Nuevo cliente</string>
+    <string name="titulo_todos">Todos mis siniestros</string>
+    <string name="titulo_por_fecha">Ocurridos el %1$s</string>
+    <string name="titulo_entre_fechas">Del %1$s al %2$s</string>
 
 
-    <!-- Banner de inicio -->
-    <string name="banner_creacion_usuario">Únete a BPO Seguros y sigue tu siniestro</string>
-    <string name="banner_registro">Regístrate completando tus datos</string>
 
-    <!-- Ingreso -->
+    <string name="banner_bienvenida_titulo">Te damos la bienvenida</string>
+    <string name="banner_bienvenida_subtitulo">Sigue tu siniestro sin llamar ni escribir</string>
     <string name="titulo_login">Ingresar</string>
     <string name="banner_login_titulo">Sigue el estado de tu siniestro</string>
     <string name="banner_login_subtitulo">Ingresa con tu RUT o tu código de liquidador</string>
     <string name="btn_ir_registro">Registrar mis datos</string>
-    <string name="btn_ir_ingresar">Ir a ingresar</string>
-
-    <string name="banner_titulo">Sigue tu siniestro</string>
-    <string name="banner_subtitulo">Revisa en qué va tu caso, sin llamar ni escribir</string>
-    <string name="campo_codigo">Código de liquidador</string>
-    <string name="opcion_soy_liquidador">Soy liquidador de Andes</string>
     <string name="ayuda_rut">Ejemplo: 15.842.371-5</string>
-    <string name="ayuda_codigo">Ejemplo: LIQ-01</string>
-    <string name="texto_datos_prueba">Datos de prueba (ficticios): asegurada Camila Rojas, RUT 15.842.371-5 · asegurada Daniela Vergara, RUT 17.552.093-7 · liquidadora Paulina Fernández, código LIQ-01.</string>
+    <string name="btn_olvide_clave">¿Olvidaste tu contraseña?</string>
+    <string name="texto_datos_prueba">Datos de prueba (ficticios), todos con la contraseña Andes2026! · asegurada Camila Rojas, RUT 15.842.371-5 · asegurada Daniela Vergara, RUT 17.552.093-7 · liquidadora Paulina Fernández, RUT 16.234.567-2 (activa \"Soy liquidador de Andes\").</string>
+    <string name="opcion_soy_liquidador">Soy liquidador de Andes</string>
+    <string name="texto_ingreso_cliente">Ingresa con el RUT y la contraseña que te entregó tu liquidador.</string>
+    <string name="texto_ingreso_liquidador">Ingreso para el equipo de Andes: usa tu RUT y tu contraseña de liquidador.</string>
+    <string name="campo_rut_liquidador">RUT del liquidador</string>
+    <string name="ayuda_rut_liquidador">Ejemplo: 16.234.567-2</string>
 
 
-    <!-- Mis siniestros -->
+    <string name="texto_recuperar">Escribe tu RUT y el correo de tu cuenta. Te enviaremos una contraseña temporal para que puedas entrar y elegir una nueva.</string>
+    <string name="seccion_tu_cuenta">Tu cuenta</string>
+    <string name="btn_enviar_clave">Enviar contraseña temporal</string>
+    <string name="btn_volver_ingresar">Volver a ingresar</string>
+    <string name="titulo_correo_simulado">Correo enviado (simulación: no hay servidor de correo)</string>
+    <string name="titulo_vista_previa_correo">Vista previa del correo para el cliente</string>
+    <string name="correo_para">Para: %1$s</string>
+    <string name="correo_recuperar_asunto">BPO Seguros: tu contraseña temporal</string>
+    <string name="correo_recuperar_cuerpo">Hola. Tu contraseña temporal es:\n%1$s\n\nÚsala para entrar a la app; te pediremos que elijas una nueva.</string>
+    <string name="texto_clave_obligatoria">Estás usando una contraseña temporal. Por seguridad, elige una nueva para continuar.</string>
+    <string name="texto_clave_voluntaria">Escribe tu contraseña actual y elige una nueva.</string>
+    <string name="seccion_contrasena">Contraseña</string>
+    <string name="campo_clave_temporal">Contraseña temporal</string>
+    <string name="campo_clave_actual">Contraseña actual</string>
+    <string name="campo_clave_nueva">Nueva contraseña</string>
+    <string name="campo_clave_repetir">Repite la nueva contraseña</string>
+    <string name="ayuda_reglas_clave">Mínimo 8 caracteres, con una mayúscula, un número y un carácter especial (por ejemplo @, # o !).</string>
+    <string name="btn_guardar_clave">Guardar contraseña</string>
+
+
+    <string name="seccion_datos_cuenta">Datos de tu cuenta</string>
+    <string name="texto_rut_fijo">RUT %1$s (no se puede cambiar)</string>
+    <string name="texto_liquidador_fijo">Código %1$s · Equipo %2$s</string>
+    <string name="campo_comuna_perfil">Comuna (opcional)</string>
+    <string name="opcion_sin_indicar">Sin indicar</string>
+    <string name="campo_fecha_nacimiento">Fecha de nacimiento (opcional)</string>
+    <string name="ayuda_fecha_nacimiento">Día-mes-año, por ejemplo 14-05-1990</string>
+    <string name="btn_quitar_foto">Quitar foto (usar avatar por defecto)</string>
+    <string name="btn_guardar_cambios">Guardar cambios</string>
+    <string name="btn_cambiar_clave">Cambiar contraseña</string>
+    <string name="texto_perfil_guardado">Cambios guardados</string>
+    <string name="titulo_completa_perfil">Completa tu perfil</string>
+    <string name="texto_completa_perfil">Tu cuenta ya está lista. Agrega tu nombre, teléfono y foto para que sea más fácil atenderte.</string>
+    <string name="btn_ir_perfil">Ir a mi perfil</string>
+
+
+    <string name="titulo_cerrar_sesion">¿Cerrar sesión?</string>
+    <string name="texto_cerrar_sesion">Volverás a la pantalla de bienvenida y tendrás que ingresar de nuevo con tu RUT y contraseña.</string>
+
+
     <string name="texto_rut_oculto">RUT %1$s</string>
     <string name="titulo_activar_avisos">Entérate de los cambios</string>
     <string name="texto_activar_avisos">Activa los avisos y te contaremos cuando tu caso avance o necesitemos algún documento.</string>
     <string name="btn_activar_avisos">Activar avisos</string>
+    <string name="titulo_ultimos">Tus últimos siniestros</string>
+    <string name="titulo_buscar_siniestros">¿Buscas otro siniestro?</string>
+    <string name="texto_buscar_fecha">¿No recuerdas el día exacto? Elige en el calendario un rango: desde una fecha hasta otra. También puedes revisar la lista completa.</string>
+    <string name="btn_buscar_fecha">Buscar entre fechas</string>
+    <string name="btn_ver_todos">Ver todos mis siniestros</string>
+    <string name="btn_buscar">Buscar</string>
+    <string name="texto_cantidad_resultados">Encontramos %1$d siniestro(s)</string>
+    <string name="sin_resultados_fecha">No tienes siniestros ocurridos en esas fechas. Prueba con un rango más amplio.</string>
 
 
-    <!-- Campos de formulario -->
+    <string name="banner_nuevo_cliente">Crea la cuenta de un cliente</string>
+    <string name="banner_nuevo_cliente_sub">El cliente completará el resto de sus datos al entrar</string>
+    <string name="seccion_datos_obligatorios">Datos obligatorios</string>
+    <string name="btn_sugerir_clave">Sugerir contraseña temporal</string>
+    <string name="texto_resto_perfil">Nombre, teléfono, comuna, fecha de nacimiento y foto quedan vacíos: el cliente los completa en "Mi perfil". Al entrar por primera vez deberá cambiar la contraseña.</string>
+    <string name="btn_crear_cuenta">Crear cuenta</string>
+    <string name="cuenta_creada">Cuenta creada para el RUT %1$s. Envíale sus datos de ingreso.</string>
+    <string name="btn_enviar_correo">Enviar datos por correo</string>
+    <string name="btn_crear_otra">Crear otra cuenta</string>
+    <string name="texto_sin_app_correo">No hay una app de correo instalada en este teléfono.</string>
+    <string name="correo_cuenta_asunto">Tu cuenta en BPO Seguros</string>
+    <string name="correo_cuenta_cuerpo">Hola. Creamos tu cuenta para que sigas tus siniestros desde la app BPO Seguros.\n\nRUT: %1$s\nContraseña temporal: %2$s\n\nAl entrar por primera vez te pediremos que elijas una contraseña nueva.</string>
+
+
+
     <string name="seccion_datos">Datos personales</string>
-    <string name="campo_nombre">Nombre completo</string>
+    <string name="campo_nombre">Nombre completo (opcional)</string>
     <string name="campo_rut">RUT</string>
     <string name="campo_correo">Correo electrónico</string>
     <string name="campo_telefono">Teléfono (opcional)</string>
@@ -52,13 +118,9 @@
     <string name="campo_tipo_siniestro">Tipo de siniestro</string>
     <string name="campo_fecha_ocurrencia">Fecha en que ocurrió (día-mes-año)</string>
     <string name="campo_comuna">Comuna donde ocurrió</string>
-    <string name="campo_comuna_registro">Comuna</string>
     <string name="campo_descripcion">Cuéntanos qué pasó</string>
-    <string name="opcion_noticias">Recibir novedades por correo</string>
-    <string name="opcion_terminos">Acepto los términos y condiciones</string>
-    <string name="registro_exitoso">Registro exitoso. Bienvenido/a %1$s</string>
 
-    <!-- Detalle -->
+
     <string name="siniestro_no_encontrado">No encontramos este siniestro.</string>
     <string name="seccion_proximo_paso">¿Qué viene ahora?</string>
     <string name="seccion_datos_siniestro">Datos de tu siniestro</string>
@@ -81,14 +143,13 @@
     <string name="btn_ocultar_historial">Ocultar historial (%1$d)</string>
     <string name="texto_gestion_interna">Interna: el asegurado no la ve</string>
 
-    <!-- Etapas del siniestro (RN-01, Anexo 7) -->
+
     <string name="etapa_recibido">Recibido</string>
     <string name="etapa_en_evaluacion">En evaluación</string>
     <string name="etapa_en_liquidacion">En liquidación</string>
     <string name="etapa_cerrado">Cerrado</string>
 
 
-    <!-- Botones -->
     <string name="btn_ingresar">Ingresar</string>
     <string name="btn_reportar">Reportar siniestro</string>
     <string name="btn_enviar">Enviar</string>
@@ -105,44 +166,39 @@
 
 
 
-    <!-- Próximo paso según la situación del caso (Aclaración nº 2) -->
     <string name="paso_recibido">Estamos revisando tu reporte para asignarlo a un liquidador. No necesitas hacer nada por ahora.</string>
     <string name="paso_evaluacion_pendientes">Necesitamos que nos envíes los documentos pendientes para continuar con tu caso.</string>
     <string name="paso_evaluacion_sin_pendientes">Tu liquidador está revisando tu caso. Si necesitamos algo más, te avisaremos.</string>
     <string name="paso_liquidacion">Tenemos todo lo necesario. Estamos definiendo la resolución con tu compañía de seguros.</string>
     <string name="paso_cerrado">Tu caso terminó. Revisa el resultado y el mensaje de cierre.</string>
 
-
-    <!-- Estados vacíos y mensajes -->
-    <string name="actualizado_el">Última actualización: %1$s</string>
-    <string name="sin_conexion_aviso">Sin conexión. Estás viendo la información del %1$s</string>
-
     <string name="sin_siniestros">Aún no tienes siniestros reportados. Puedes reportar uno desde el botón de abajo.</string>
     <string name="reporte_exitoso">Tu número de siniestro es %1$s. Úsalo como referencia en cualquier canal.</string>
 
-
-    <!-- Permisos -->
     <string name="permiso_camara_denegado">Sin permiso de cámara no podemos tomar la foto. Puedes activarlo en Ajustes.</string>
     <string name="permiso_galeria_denegado">Sin permiso de fotos no podemos abrir tu galería. Puedes activarlo en Ajustes.</string>
     <string name="permiso_notificaciones_denegado">Sin permiso de notificaciones verás los avisos solo dentro de la app.</string>
 
 
-
-    <!-- Resultados de cierre del siniestro -->
     <string name="resultado_aprobado">Aprobado</string>
     <string name="resultado_rechazado">Rechazado</string>
     <string name="resultado_desistido">Desistido</string>
 
-    <!-- Descripciones de accesibilidad (TalkBack) -->
+
     <string name="cd_banner">Ilustración de un formulario</string>
     <string name="cd_portada">Imagen de portada de la aplicación</string>
     <string name="cd_avatar">Foto de perfil</string>
     <string name="cd_mostrar_contrasena">Mostrar contraseña</string>
     <string name="cd_ocultar_contrasena">Ocultar contraseña</string>
 
-    <!-- Liquidador -->
+
     <string name="texto_liquidador">%1$s · %2$s · Equipo %3$s</string>
     <string name="sin_casos">No tienes casos asignados.</string>
+    <string name="campo_buscar_caso">Buscar caso</string>
+    <string name="ayuda_buscar_caso">N° de siniestro (ej: 4801), RUT o nombre del cliente</string>
+    <string name="sin_resultados_busqueda">Ningún caso tuyo coincide con la búsqueda.</string>
+    <string name="texto_cliente_sin_nombre">Cliente sin nombre registrado</string>
+    <string name="btn_nuevo_cliente">Nuevo cliente</string>
     <string name="alerta_sin_movimiento">%1$d días sin gestión visible</string>
     <string name="caso_no_asignado">Este caso no está asignado a ti.</string>
     <string name="seccion_acciones">Acciones</string>
@@ -157,14 +213,12 @@
     <string name="campo_mensaje_cierre">Mensaje para el asegurado</string>
 
 
-    <!-- Avisos -->
+
     <string name="sin_avisos">No tienes avisos por ahora.</string>
     <string name="texto_nuevo">Nuevo</string>
     <string name="canal_nombre">Avisos de tu siniestro</string>
     <string name="canal_descripcion">Cambios de etapa, documentos pedidos y cierre de tu caso</string>
 
-
-    <!-- Adjuntar -->
     <string name="texto_adjuntar_a">Siniestro %1$s</string>
     <string name="titulo_no_se_puede">No es posible adjuntar</string>
     <string name="seccion_que_documento">¿Qué documento es?</string>
@@ -174,7 +228,6 @@
     <string name="ayuda_opcional">Opcional</string>
     <string name="cd_vista_previa">Vista previa de la imagen</string>
 
-    <!-- Reportar -->
     <string name="texto_intro_reporte">Completa estos datos. Tomará solo unos minutos.</string>
     <string name="seccion_que_paso">¿Qué pasó?</string>
     <string name="seccion_cuando_donde">¿Cuándo y dónde?</string>
@@ -186,7 +239,6 @@
     <string name="btn_revisar">Revisar</string>
     <string name="titulo_reporte_ok">Recibimos tu reporte</string>
     <string name="btn_ver_mis_siniestros">Ver mis siniestros</string>
-
 
 
 </resources>

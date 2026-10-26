@@ -10,9 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-// Ingreso simulado (el caso pide no hacer login real ni guardar claves).
-// Valida el formato y luego BUSCA a la persona en la BD.
-// No navega: onIngresar() devuelve el Usuario (o null) y AppNavegacion decide a dónde ir.
+
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = SiniestroDbHelper.obtener(application)
@@ -20,10 +18,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    // ----- Eventos -----
 
-    fun onModoCambia(esColaborador: Boolean) {
-        _uiState.update { it.copy(esColaborador = esColaborador, errorRut = null, errorCodigo = null) }
+
+    fun onModoCambia(esLiquidador: Boolean) {
+        _uiState.update { it.copy(esLiquidador = esLiquidador, errorRut = null, errorCodigo = null) }
     }
 
     fun onRutCambia(valor: String) {
@@ -31,13 +29,17 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onCodigoCambia(valor: String) {
-        _uiState.update { it.copy(codigo = valor, errorCodigo = null) }
+        _uiState.update { it.copy(clave = valor, errorCodigo = null) }
     }
 
-    /** Botón "Ingresar": valida el formato, busca en la BD y entrega el Usuario (o null). */
+    fun onAlternarVisibilidad() {
+        _uiState.update { it.copy(claveVisible = !it.claveVisible) }
+    }
+
+
     fun onIngresar(): Usuario? {
         val estado = _uiState.value
-        return if (estado.esColaborador) ingresarColaborador(estado) else ingresarAsegurado(estado)
+        return if (estado.esLiquidador) ingresarColaborador(estado) else ingresarAsegurado(estado)
     }
 
     private fun ingresarAsegurado(estado: LoginUiState): Usuario? {
@@ -59,7 +61,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun ingresarColaborador(estado: LoginUiState): Usuario? {
-        val codigo = estado.codigo.trim().uppercase()
+        val codigo = estado.clave.trim().uppercase()
         val errorFormato = when {
             codigo.isBlank() -> "El código es obligatorio"
             !Regex("^LIQ-\\d{2}$").matches(codigo) -> "El código debe tener el formato LIQ-01"
@@ -84,13 +86,12 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // ----- Funciones privadas de RUT -----
 
-    // Deja el RUT como lo guarda la BD: sin puntos ni guion y con K mayúscula (158423715)
+
     private fun limpiarRut(valor: String): String =
         valor.replace(".", "").replace("-", "").trim().uppercase()
 
-    // Algoritmo módulo 11 del RUT chileno (igual al de FormularioViewModel)
+
     private fun rutValido(valor: String): Boolean {
         val limpio = limpiarRut(valor)
         if (limpio.length < 8 || limpio.length > 9) return false

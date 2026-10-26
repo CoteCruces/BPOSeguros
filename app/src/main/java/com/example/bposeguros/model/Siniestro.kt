@@ -23,8 +23,7 @@ data class Siniestro(
     val mensajeCierre: String? = null,
     val ultimaActualizacion: String? = null
 ) {
-    // RN-14: al asegurado solo se le muestra "Paulina F. – Equipo Vehículos" (nunca correo ni teléfono).
-    // Supone el formato "Nombre Apellido Apellido" de los datos de ejemplo.
+
     fun liquidadorVisible(): String? {
         val nombre = liquidadorNombre ?: return null
         val partes = nombre.trim().split(" ")
