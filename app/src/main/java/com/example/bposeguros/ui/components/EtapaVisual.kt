@@ -43,13 +43,7 @@ import com.example.bposeguros.ui.theme.EtapaLiquidacion
 import com.example.bposeguros.ui.theme.EtapaRecibido
 import com.example.bposeguros.ui.theme.TextoOscuro
 
-// =====================================================================
-//  EtapaVisual.kt  —  Cómo se ve la etapa del siniestro
-//  La etapa es lo PRIMERO que debe entenderse y no puede depender solo del
-//  color (RNF-04, baja visión): cada etapa tiene color + ÍCONO + TEXTO.
-// =====================================================================
 
-// Ícono y color de cada etapa. "when" sobre un enum: Kotlin obliga a cubrir las 4.
 fun iconoDe(etapa: Etapa): Int = when (etapa) {
     Etapa.RECIBIDO -> R.drawable.ic_documento
     Etapa.EN_EVALUACION -> R.drawable.ic_reloj
@@ -64,7 +58,6 @@ fun colorDe(etapa: Etapa): Color = when (etapa) {
     Etapa.CERRADO -> EtapaCerrado
 }
 
-// Etiqueta chica (tipo "chip") para las listas: [ícono  En evaluación]
 @Composable
 fun EtiquetaEtapa(etapa: Etapa, modifier: Modifier = Modifier) {
     Row(
@@ -83,17 +76,10 @@ fun EtiquetaEtapa(etapa: Etapa, modifier: Modifier = Modifier) {
     }
 }
 
-// =====================================================================
-//  ANIMACIÓN: barra de progreso de las 4 etapas.
-//  animateFloatAsState = cuando cambia el valor "objetivo", Compose dibuja los
-//  valores intermedios durante 900 ms -> la barra "se llena" sola.
-//  Para que también se anime al ABRIR la pantalla, el objetivo parte en 0
-//  y un LaunchedEffect lo cambia al valor real apenas se dibuja.
-// =====================================================================
 @Composable
 fun IndicadorEtapas(etapaActual: Etapa, modifier: Modifier = Modifier) {
-    val etapas = Etapa.entries                                   // las 4 en orden
-    val posicion = etapas.indexOf(etapaActual)                   // 0..3
+    val etapas = Etapa.entries
+    val posicion = etapas.indexOf(etapaActual)
 
     var objetivo by remember { mutableStateOf(0f) }
     LaunchedEffect(etapaActual) { objetivo = (posicion + 1) / etapas.size.toFloat() }
@@ -117,7 +103,6 @@ fun IndicadorEtapas(etapaActual: Etapa, modifier: Modifier = Modifier) {
     }
 }
 
-// Un paso: círculo con ícono + nombre. El color del círculo también se anima.
 @Composable
 private fun PasoEtapa(etapa: Etapa, alcanzada: Boolean, actual: Boolean, modifier: Modifier = Modifier) {
     val fondo by animateColorAsState(
