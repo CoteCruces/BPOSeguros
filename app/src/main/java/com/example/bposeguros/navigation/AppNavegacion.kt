@@ -23,11 +23,14 @@ import androidx.navigation.navArgument
 import com.example.bposeguros.model.Rol
 import com.example.bposeguros.model.Siniestro
 import com.example.bposeguros.ui.components.BotonPrincipal
+import com.example.bposeguros.ui.screens.AvisosScreen
+import com.example.bposeguros.ui.screens.DetalleSiniestroScreen
 import com.example.bposeguros.ui.screens.FormularioScreen
 import com.example.bposeguros.ui.screens.LoginScreen
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.SesionViewModel
 import com.example.bposeguros.ui.screens.MisSiniestrosScreen
+import com.example.bposeguros.ui.screens.ReportarScreen
 import com.example.bposeguros.viewmodel.AseguradoViewModel
 
 
@@ -35,6 +38,7 @@ import com.example.bposeguros.viewmodel.AseguradoViewModel
 fun AppNavegacion() {
     val navController = rememberNavController()
     val sesionViewModel: SesionViewModel = viewModel()
+    val aseguradoViewModel: AseguradoViewModel = viewModel()
     val usuarioActual by sesionViewModel.usuarioActual.collectAsStateWithLifecycle()
 
 
@@ -113,10 +117,48 @@ fun AppNavegacion() {
         }
 
 
-        composable(Ruta.Detalle.ruta) { Proximamente("Detalle del siniestro") }
-        composable(Ruta.Reportar.ruta) { Proximamente("Reportar siniestro") }
+        composable(
+            Ruta.Detalle.ruta,
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { entrada ->
+            val actual = usuarioActual ?: return@composable
+            val id = entrada.arguments?.getLong("id") ?: 0L
+            val detalle by aseguradoViewModel.detalle.collectAsStateWithLifecycle()
+            LaunchedEffect(id) { aseguradoViewModel.cargarDetalle(id, actual.id) }
+
+            DetalleSiniestroScreen(
+                detalle = detalle,
+                onVolver = { navController.navigateUp() },
+                onAdjuntar = { navController.navigate(Ruta.Adjuntar.crear(id)) }
+            )
+        }
+
+        composable(Ruta.Reportar.ruta) {
+            usuarioActual?.let { actual ->
+                ReportarScreen(
+                    idAsegurado = actual.id,
+                    onVolver = { navController.navigateUp() },
+                    onTerminar = { navController.navigateUp() }
+                )
+            }
+        }
         composable(Ruta.Adjuntar.ruta) { Proximamente("Adjuntar documento") }
-        composable(Ruta.Avisos.ruta) { Proximamente("Avisos") }
+
+        composable(Ruta.Avisos.ruta) {
+            val actual = usuarioActual ?: return@composable
+            val avisos by aseguradoViewModel.avisos.collectAsStateWithLifecycle()
+            LaunchedEffect(Unit) { aseguradoViewModel.cargar(actual.id) }
+
+            AvisosScreen(
+                avisos = avisos,
+                onVolver = { navController.navigateUp() },
+                onAbrir = { aviso ->
+                    aseguradoViewModel.marcarLeido(aviso, actual.id)
+                    navController.navigate(Ruta.Detalle.crear(aviso.siniestroId))
+                }
+            )
+        }
+
         composable(Ruta.Casos.ruta) { Proximamente("Casos del liquidador", cerrarSesion) }
         composable(Ruta.Caso.ruta) { Proximamente("Caso del liquidador") }
     }
