@@ -5,7 +5,7 @@ package com.example.bposeguros.navigation
 sealed class Ruta(val ruta: String) {
     // "rut" es opcional: viene escrito cuando se llega desde el registro
     data object Login : Ruta("login?rut={rut}") {
-        fun crear(rut: String = "") = "login?rut=$rut"
+        fun crear(rut: String = "") = "login?rut=$rut"   
     }
     data object Registro : Ruta("registro")
     data object MisSiniestros : Ruta("mis_siniestros")

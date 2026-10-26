@@ -30,7 +30,6 @@ import com.example.bposeguros.ui.components.BotonPrincipal
 import com.example.bposeguros.ui.components.BotonSecundario
 import com.example.bposeguros.ui.components.CampoContrasena
 import com.example.bposeguros.ui.components.CampoTexto
-import com.example.bposeguros.ui.components.CasillaConTexto
 import com.example.bposeguros.ui.components.ImagenEncabezado
 import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.styles.EstilosTarjeta
@@ -39,35 +38,13 @@ import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.theme.Exito
 import com.example.bposeguros.ui.theme.ExitoFondo
 import com.example.bposeguros.viewmodel.FormularioViewModel
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.painterResource
-import com.example.bposeguros.ui.styles.EstilosCampo
-
-// =====================================================================
-//  FormularioScreen.kt  —  PANTALLA DE INGRESO (la "V")
-//   1) RegistroScreen  -> CON estado: conoce el ViewModel.
-//   2) RegistroContent -> SIN estado: recibe datos y lambdas (se ve en @Preview).
-//  La pantalla NO navega: solo AVISA "ingresé" con onRegistroExitoso(usuario).
-//  AppNavegacion decide a dónde ir.
 
 @Composable
 fun FormularioScreen(
-    onIrAIngresar: (String) -> Unit,
-    //usuarioActual: Usuario?,                       //  quién inició sesión (o null)
-    //onVerMiPerfil: () -> Unit,                     //  opción del menú ☰
-    //onVerUsuarios: () -> Unit,                     //  opción del menú ☰
-    //onCerrarSesion: () -> Unit,                    //  opción del menú ☰
-    viewModel: FormularioViewModel = viewModel()   // se crea una vez y sobrevive a la rotación
-){
+    onVolver: () -> Unit,
+    onIrAIngresar: () -> Unit = {},
+    viewModel: FormularioViewModel = viewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     FormularioContent(
@@ -75,15 +52,11 @@ fun FormularioScreen(
         onNombreCambia = viewModel::onNombreCambia,
         onRutCambia = viewModel::onRutCambia,
         onCorreoCambia = viewModel::onCorreoCambia,
-        onTelefonoCambia = viewModel::onTelefonoCambia,
-        onComunaSeleccionada = viewModel::onTelefonoCambia,
         onContrasenaCambia = viewModel::onContrasenaCambia,
         onAlternarVisibilidad = viewModel::onAlternarVisibilidad,
-        // ?.let = "si NO es null, ejecuta" -> solo navega si los datos son válidos
-        onAceptaTerminos = viewModel::onAceptaTerminos,
-        onIngresar = { viewModel.onIngresar() },  // solo valida; no navega
+        onIngresar = { viewModel.onIngresar() },
         onLimpiar = viewModel::onLimpiar,
-        onIrAIngresar = { onIrAIngresar(uiState.rut) }
+        onIrAIngresar = onIrAIngresar
     )
 }
 
@@ -94,11 +67,8 @@ fun FormularioContent(
     onNombreCambia: (String) -> Unit,
     onRutCambia: (String) -> Unit,
     onCorreoCambia: (String) -> Unit,
-    onTelefonoCambia: (String) -> Unit,
-    onComunaSeleccionada: (String) -> Unit,
     onContrasenaCambia: (String) -> Unit,
     onAlternarVisibilidad: () -> Unit,
-    onAceptaTerminos: (Boolean) -> Unit,
     onIngresar: () -> Unit,
     onLimpiar: () -> Unit,
     onIrAIngresar: () -> Unit
@@ -106,7 +76,7 @@ fun FormularioContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.titulo_inicio)) },
+                title = { Text(stringResource(R.string.titulo_ingreso)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
@@ -126,14 +96,14 @@ fun FormularioContent(
             ImagenEncabezado(
                 imagen = R.drawable.banner_registro_bpo,
                 descripcion = stringResource(R.string.cd_banner),
-                titulo = stringResource(R.string.banner_creacion_usuario),
-                subtitulo = stringResource(R.string.banner_registro)
+                titulo = stringResource(R.string.banner_bienvenida_titulo),
+                subtitulo = stringResource(R.string.banner_bienvenida_subtitulo)
             )
             Column(
                 modifier = Modifier.padding(Dimens.espacioPantalla),
                 verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
             ) {
-                //Datos personales (card 1)
+
                 TarjetaSeccion(titulo = stringResource(R.string.seccion_datos)) {
                     CampoTexto(
                         valor = uiState.nombre,
@@ -157,52 +127,6 @@ fun FormularioContent(
                         error = uiState.errorCorreo,
                         tipoTeclado = KeyboardType.Email
                     )
-                    CampoTexto(
-                        valor = uiState.telefono,
-                        onValorCambia = onTelefonoCambia,
-                        etiqueta = stringResource(R.string.campo_telefono),
-                        icono = R.drawable.ic_telefono,
-                        error = uiState.errorTelefono,
-                        tipoTeclado = KeyboardType.Phone
-                    )
-                    var expandido by remember { mutableStateOf(false) }
-
-                    ExposedDropdownMenuBox(
-                        expanded = expandido,
-                        onExpandedChange = { expandido = it }
-                    ) {
-                        OutlinedTextField(
-                            value = uiState.comuna,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.campo_comuna_registro)) },
-                            leadingIcon = {
-                                Icon(painterResource(R.drawable.ic_ubicacion), contentDescription = null, modifier = Modifier.size(Dimens.tamanoIcono))
-                            },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido) },
-                            isError = uiState.errorComuna != null,
-                            supportingText = { uiState.errorComuna?.let { Text(it) } },
-                            shape = EstilosCampo.forma,
-                            colors = EstilosCampo.colores(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expandido,
-                            onDismissRequest = { expandido = false }
-                        ) {
-                            uiState.comunas.forEach { comuna ->
-                                DropdownMenuItem(
-                                    text = { Text(comuna) },
-                                    onClick = {
-                                        onComunaSeleccionada(comuna)
-                                        expandido = false
-                                    }
-                                )
-                            }
-                        }
-                    }
                     CampoContrasena(
                         valor = uiState.contrasena,
                         onValorCambia = onContrasenaCambia,
@@ -213,23 +137,7 @@ fun FormularioContent(
                     )
                 }
 
-                //Terminos
-                Column {
-                    CasillaConTexto(
-                        texto = stringResource(R.string.opcion_terminos),
-                        marcado = uiState.aceptaTerminos,
-                        onCambio = onAceptaTerminos
-                    )
-                    uiState.errorTerminos?.let { mensaje ->
-                        Text(
-                            text = mensaje,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = Dimens.espacioMedio)
-                        )
-                    }
-                }
-                //Botones
+
                 Row(horizontalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)) {
                     BotonSecundario(
                         texto = stringResource(R.string.btn_limpiar),
@@ -244,7 +152,7 @@ fun FormularioContent(
                     )
                 }
 
-                // Se muestra solo si registroExitoso (en Compose se muestra/oculta con un "if")
+
                 if (uiState.registroExitoso) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -256,16 +164,12 @@ fun FormularioContent(
                             verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
                         ) {
                             Text(
-                                // Este segundo argumento reemplaza el %1$s del strings.xml
-                                text = stringResource(
-                                    R.string.registro_exitoso,
-                                    uiState.nombre.trim()
-                                ),
+                                text = "¡Ingreso correcto, ${uiState.nombre.trim()}!",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = Exito
                             )
                             BotonPrincipal(
-                                texto = stringResource(R.string.btn_ir_ingresar),
+                                texto = stringResource(R.string.btn_volver_ingresar),
                                 onClick = onIrAIngresar,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -277,36 +181,26 @@ fun FormularioContent(
     }
 }
 
-@Preview(showBackground = true, heightDp = 1000)
+@Preview(showBackground = true, heightDp = 800)
 @Composable
-private fun RegistroPreview() {
-    BPOSegurosTheme() {
-        FormularioContent (
+private fun FormularioPreview() {
+    BPOSegurosTheme {
+        FormularioContent(
             uiState = FormularioUiState(
-                nombre = "Ana1",
-                errorNombre = "El nombre no puede tener números ni símbolos",
-                rut = "15.842.371-R",
-                errorRut = "Ingresa un rut válido",
-                correo = "ana@",
-                errorCorreo = "Ingresa un correo válido",
-                telefono = "+569 1235rfre",
-                errorTelefono = "Ingresa sólo números",
-                contrasena = "sdfr",
-                errorContrasena = "La contraseña debe tener al menos 8 caracteres ",
-                errorTerminos = "Acepta los términos"
+                nombre = "Camila Rojas",
+                rut = "15.842.371-5",
+                correo = "camila@correo.com",
+                contrasena = "Andes2026!",
+                registroExitoso = true
             ),
             onNombreCambia = {},
             onRutCambia = {},
             onCorreoCambia = {},
-            onTelefonoCambia = {},
-            onComunaSeleccionada = {},
             onContrasenaCambia = {},
             onAlternarVisibilidad = {},
-            onAceptaTerminos = {},
             onIngresar = {},
             onLimpiar = {},
             onIrAIngresar = {}
         )
     }
-
 }

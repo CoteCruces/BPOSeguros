@@ -27,6 +27,7 @@ data class Siniestro(
     val mensajeCierre: String? = null,
     val ultimaActualizacion: String? = null
 ) {
+
     fun liquidadorVisible(): String? {
         val nombre = liquidadorNombre ?: return null
         val partes = nombre.trim().split(" ")

@@ -15,11 +15,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,6 +33,7 @@ import com.example.bposeguros.model.LoginUiState
 import com.example.bposeguros.model.Usuario
 import com.example.bposeguros.ui.components.BotonPrincipal
 import com.example.bposeguros.ui.components.BotonSecundario
+import com.example.bposeguros.ui.components.CampoContrasena
 import com.example.bposeguros.ui.components.CampoTexto
 import com.example.bposeguros.ui.components.ImagenEncabezado
 import com.example.bposeguros.ui.components.InterruptorConTexto
@@ -39,22 +42,17 @@ import com.example.bposeguros.ui.theme.BPOSegurosTheme
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.LoginViewModel
 
-// =====================================================================
-//  LoginScreen.kt — PANTALLA DE INGRESO (acceso simulado, sin contraseña)
-//   1) LoginScreen  -> CON estado: conoce el ViewModel.
-//   2) LoginContent -> SIN estado: recibe datos y lambdas (se ve en @Preview).
-//  La pantalla NO navega: avisa con onIngresoExitoso(usuario) / onIrARegistro().
-// =====================================================================
+
 @Composable
 fun LoginScreen(
     rutInicial: String,
     onIngresoExitoso: (Usuario) -> Unit,
     onIrARegistro: () -> Unit,
+    onOlvideClave: () -> Unit = {},
     viewModel: LoginViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Si se llega desde el registro, el RUT aparece ya escrito
     LaunchedEffect(rutInicial) {
         if (rutInicial.isNotBlank()) viewModel.onRutCambia(rutInicial)
     }
@@ -63,10 +61,11 @@ fun LoginScreen(
         uiState = uiState,
         onModoCambia = viewModel::onModoCambia,
         onRutCambia = viewModel::onRutCambia,
-        onCodigoCambia = viewModel::onCodigoCambia,
-        // ?.let = "si NO es null, ejecuta" -> solo navega si el usuario existe
+        onContrasenaCambia = viewModel::onCodigoCambia,
+        onAlternarVisibilidad = viewModel::onAlternarVisibilidad,
         onIngresar = { viewModel.onIngresar()?.let(onIngresoExitoso) },
-        onIrARegistro = onIrARegistro
+        onIrARegistro = onIrARegistro,
+        onOlvideClave = onOlvideClave
     )
 }
 
@@ -76,14 +75,16 @@ fun LoginContent(
     uiState: LoginUiState,
     onModoCambia: (Boolean) -> Unit,
     onRutCambia: (String) -> Unit,
-    onCodigoCambia: (String) -> Unit,
+    onContrasenaCambia: (String) -> Unit,
+    onAlternarVisibilidad: () -> Unit,
     onIngresar: () -> Unit,
-    onIrARegistro: () -> Unit
+    onIrARegistro: () -> Unit,
+    onOlvideClave: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.titulo_login)) },
+                title = { Text(stringResource(R.string.titulo_bienvenida)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
@@ -104,43 +105,74 @@ fun LoginContent(
                 titulo = stringResource(R.string.banner_login_titulo),
                 subtitulo = stringResource(R.string.banner_login_subtitulo)
             )
-            Column (
+            Column(
                 modifier = Modifier.padding(Dimens.espacioPantalla),
                 verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
             ) {
                 TarjetaSeccion(titulo = stringResource(R.string.titulo_ingreso)) {
                     InterruptorConTexto(
                         texto = stringResource(R.string.opcion_soy_liquidador),
-                        activado = uiState.esColaborador,
+                        activado = uiState.esLiquidador,
                         onCambio = onModoCambia
                     )
 
-                    // ANIMACIÓN: AnimatedContent cambia el campo RUT <-> código con un fundido
+                    Text(
+                        text = if (uiState.esLiquidador) {
+                            stringResource(R.string.texto_ingreso_liquidador)
+                        } else {
+                            stringResource(R.string.texto_ingreso_cliente)
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+
                     AnimatedContent(
-                        targetState = uiState.esColaborador,
+                        targetState = uiState.esLiquidador,
                         transitionSpec = { fadeIn() togetherWith fadeOut() },
                         label = "campoIngreso"
                     ) { esColaborador ->
-                        if (esColaborador) {
-                            CampoTexto(
-                                valor = uiState.codigo,
-                                onValorCambia = onCodigoCambia,
-                                etiqueta = stringResource(R.string.campo_codigo),
-                                icono = R.drawable.ic_persona,
-                                error = uiState.errorCodigo,
-                                ayuda = stringResource(R.string.ayuda_codigo)
-                            )
-                        } else {
-                            CampoTexto(
-                                valor = uiState.rut,
-                                onValorCambia = onRutCambia,
-                                etiqueta = stringResource(R.string.campo_rut),
-                                icono = R.drawable.ic_rut,
-                                error = uiState.errorRut,
-                                ayuda = stringResource(R.string.ayuda_rut),
-                                tipoTeclado = KeyboardType.Text
+                        Column(verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)) {
+                            if (esColaborador) {
+                                CampoTexto(
+                                    valor = uiState.rut,
+                                    onValorCambia = onRutCambia,
+                                    etiqueta = stringResource(R.string.campo_rut_liquidador),
+                                    icono = R.drawable.ic_rut,
+                                    error = uiState.errorRut,
+                                    ayuda = stringResource(R.string.ayuda_rut_liquidador)
+                                )
+                            } else {
+                                CampoTexto(
+                                    valor = uiState.rut,
+                                    onValorCambia = onRutCambia,
+                                    etiqueta = stringResource(R.string.campo_rut),
+                                    icono = R.drawable.ic_rut,
+                                    error = uiState.errorRut,
+                                    ayuda = stringResource(R.string.ayuda_rut),
+                                    tipoTeclado = KeyboardType.Text
+                                )
+                            }
+
+                            CampoContrasena(
+                                valor = uiState.clave,
+                                onValorCambia = onContrasenaCambia,
+                                etiqueta = stringResource(R.string.campo_contrasena),
+                                visible = uiState.claveVisible,
+                                onAlternarVisible = onAlternarVisibilidad,
+                                error = uiState.errorCodigo
                             )
                         }
+                    }
+
+                    TextButton(
+                        onClick = onOlvideClave,
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.btn_olvide_clave),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
 
                     BotonPrincipal(
@@ -155,9 +187,10 @@ fun LoginContent(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+
                 Text(
                     text = stringResource(R.string.texto_datos_prueba),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -170,12 +203,17 @@ fun LoginContent(
 private fun LoginPreview() {
     BPOSegurosTheme {
         LoginContent(
-            uiState = LoginUiState(rut = "15.842.371-4", errorRut = "El RUT no es válido. Revisa el dígito verificador"),
+            uiState = LoginUiState(
+                rut = "15.842.371-5",
+                errorRut = null
+            ),
             onModoCambia = {},
             onRutCambia = {},
-            onCodigoCambia = {},
+            onContrasenaCambia = {},
+            onAlternarVisibilidad = {},
             onIngresar = {},
-            onIrARegistro = {}
+            onIrARegistro = {},
+            onOlvideClave = {}
         )
     }
 }

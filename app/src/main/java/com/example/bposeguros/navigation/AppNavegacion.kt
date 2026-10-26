@@ -33,11 +33,7 @@ import com.example.bposeguros.ui.screens.MisSiniestrosScreen
 import com.example.bposeguros.ui.screens.ReportarScreen
 import com.example.bposeguros.viewmodel.AseguradoViewModel
 
-// =====================================================================
-//  AppNavegacion.kt — el ÚNICO lugar que decide a dónde se va.
-//  Las pantallas no navegan solas: solo avisan "pasó esto" (onIngresoExitoso...)
-//  y aquí se decide el destino.
-// =====================================================================
+
 @Composable
 fun AppNavegacion() {
     val navController = rememberNavController()
@@ -45,8 +41,7 @@ fun AppNavegacion() {
     val aseguradoViewModel: AseguradoViewModel = viewModel()
     val usuarioActual by sesionViewModel.usuarioActual.collectAsStateWithLifecycle()
 
-    // Si ya hay una sesión guardada (SharedPreferences) se entra directo, sin pasar por el login.
-    // remember { } sin claves: se calcula solo al abrir la app.
+
     val destinoInicial = remember {
         val usuario = usuarioActual
         when {
@@ -56,7 +51,7 @@ fun AppNavegacion() {
         }
     }
 
-    // Cierra la sesión y vuelve al login borrando todo el historial de pantallas
+
     val cerrarSesion = {
         sesionViewModel.cerrarSesion()
         navController.navigate(Ruta.Login.crear()) {
@@ -89,26 +84,25 @@ fun AppNavegacion() {
 
         composable(Ruta.Registro.ruta) {
             FormularioScreen(
-                onIrAIngresar = { rut ->
-                    // El RUT viaja sin puntos ni guion; el login lo recibe escrito
-                    val rutLimpio = rut.filter { it.isLetterOrDigit() }
-                    navController.navigate(Ruta.Login.crear(rutLimpio)) {
+                onVolver = { navController.popBackStack() },
+                onIrAIngresar = {
+                    navController.navigate(Ruta.Login.ruta) {
                         popUpTo(Ruta.Login.ruta) { inclusive = true }
                     }
                 }
             )
         }
 
-        // ----- Pantallas pendientes: cada una se reemplaza en su propia rama -----
+
         composable(Ruta.MisSiniestros.ruta) {
-            // El ViewModel que lee los siniestros y los avisos desde la BD
+
             val aseguradoViewModel: AseguradoViewModel = viewModel()
             val siniestros by aseguradoViewModel.siniestros.collectAsStateWithLifecycle()
             val avisos by aseguradoViewModel.avisos.collectAsStateWithLifecycle()
 
-            // ?.let: si la sesión se cerró (usuario null) no se dibuja nada mientras se vuelve al login
+
             usuarioActual?.let { usuario ->
-                // Se recarga cada vez que la pantalla aparece (por ejemplo al volver de "Reportar")
+
                 LaunchedEffect(usuario.id) { aseguradoViewModel.cargar(usuario.id) }
                 MisSiniestrosScreen(
                     usuario = usuario,
@@ -170,7 +164,7 @@ fun AppNavegacion() {
     }
 }
 
-// Pantalla temporal para poder probar la navegación. Se borra al terminar el proyecto.
+
 @Composable
 private fun Proximamente(titulo: String, onCerrarSesion: (() -> Unit)? = null) {
     Column(
