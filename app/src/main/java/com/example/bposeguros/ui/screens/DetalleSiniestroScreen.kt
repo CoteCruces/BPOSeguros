@@ -60,9 +60,15 @@ import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.theme.EtapaCerrado
 import com.example.bposeguros.ui.theme.EtapaEvaluacion
 import com.example.bposeguros.ui.theme.TextoOscuro
-import com.example.bposeguros.util.Fechas
-import kotlin.collections.forEach
+import com.example.bposeguros.ui.util.Fechas
 
+// =====================================================================
+//  DetalleSiniestroScreen.kt  —  Detalle para el ASEGURADO (RF-05, RF-06, RF-08 / HU-03, HU-04, HU-06)
+//  Orden pensado para alguien estresado: 1° la etapa, 2° qué viene ahora,
+//  3° documentos (lo que tiene que hacer), 4° datos, 5° historial.
+//  Las secciones (SeccionDocumentos, SeccionHistorial...) son públicas porque
+//  la pantalla del liquidador las reutiliza.
+// =====================================================================
 @Composable
 fun DetalleSiniestroScreen(
     detalle: DetalleUiState,
@@ -108,11 +114,12 @@ fun DetalleSiniestroScreen(
     }
 }
 
+// --------------------------- ETAPA + PRÓXIMO PASO ---------------------------
 @Composable
 fun SeccionEtapa(siniestro: Siniestro, hayPendientes: Boolean) {
     TarjetaSeccion(titulo = siniestro.numero) {
         IndicadorEtapas(siniestro.etapa)
-
+        // Aclaración 2: el próximo paso, en lenguaje simple (RNF-03)
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             modifier = Modifier.fillMaxWidth()
@@ -130,7 +137,7 @@ fun SeccionEtapa(siniestro: Siniestro, hayPendientes: Boolean) {
                 )
             }
         }
-
+        // RN-02: si está cerrado se ve el resultado y el mensaje final
         if (siniestro.estaCerrado && siniestro.resultado != null) {
             Text(
                 stringResource(R.string.texto_resultado, stringResource(siniestro.resultado.etiqueta)),
@@ -138,30 +145,33 @@ fun SeccionEtapa(siniestro: Siniestro, hayPendientes: Boolean) {
             )
             siniestro.mensajeCierre?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
         } else {
-
+            // RF-15 (deseable): días que lleva en la etapa actual (RN-17: días corridos)
             val dias = Fechas.diasEntre(siniestro.fechaCambioEtapa, Fechas.hoy())
             FilaDato(R.drawable.ic_reloj, stringResource(R.string.texto_dias_etapa, dias))
         }
     }
 }
 
+// --------------------------- DATOS DEL SINIESTRO ---------------------------
 @Composable
 fun SeccionDatos(siniestro: Siniestro) {
     TarjetaSeccion(titulo = stringResource(R.string.seccion_datos_siniestro)) {
-        FilaDato(R.drawable.ic_compania, siniestro.companiaNombre)
+        FilaDato(R.drawable.ic_compania, siniestro.companiaNombre)                 // S-01
         FilaDato(R.drawable.ic_documento, siniestro.tipoNombre)
         FilaDato(R.drawable.ic_calendario, stringResource(R.string.texto_fecha_ocurrencia, Fechas.paraMostrar(siniestro.fechaOcurrencia)))
         FilaDato(R.drawable.ic_calendario, stringResource(R.string.texto_fecha_reporte, Fechas.paraMostrar(siniestro.fechaReporte)))
         FilaDato(R.drawable.ic_ubicacion, siniestro.comuna)
+        // RN-14 / HU-03 CA2: nombre de pila + inicial y equipo, o "a la espera de asignación"
         FilaDato(R.drawable.ic_persona, siniestro.liquidadorVisible() ?: stringResource(R.string.texto_sin_liquidador))
-        if (siniestro.fueraDePlazo) FilaDato(R.drawable.ic_advertencia, stringResource(R.string.texto_fuera_plazo))
+        if (siniestro.fueraDePlazo) FilaDato(R.drawable.ic_advertencia, stringResource(R.string.texto_fuera_plazo))  // RN-05
         if (siniestro.descripcion.isNotBlank()) {
             Text("“${siniestro.descripcion}”", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
-
+// --------------------------- DOCUMENTOS (RF-08) ---------------------------
+// "accion" = slot para el botón (el asegurado adjunta; el liquidador pide documentos)
 @Composable
 fun SeccionDocumentos(
     solicitudes: List<SolicitudDocumento>,
@@ -181,6 +191,7 @@ fun SeccionDocumentos(
     }
 }
 
+// Pendiente / Entregado se distingue con ícono + texto + color (no solo color)
 @Composable
 private fun FilaSolicitud(solicitud: SolicitudDocumento) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -212,6 +223,7 @@ private fun FilaSolicitud(solicitud: SolicitudDocumento) {
 
 @Composable
 private fun FilaAdjunto(adjunto: DocumentoAdjunto) {
+    // remember(ruta): la imagen se lee del archivo una sola vez, no en cada dibujo
     val foto = remember(adjunto.rutaArchivo) { ConvertidorImagen.leer(adjunto.rutaArchivo)?.asImageBitmap() }
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (foto != null) {
@@ -235,8 +247,12 @@ private fun FilaAdjunto(adjunto: DocumentoAdjunto) {
     }
 }
 
+// --------------------------- HISTORIAL (RF-06 / HU-04) ---------------------------
+// ANIMACIÓN: AnimatedVisibility muestra / oculta el historial deslizándolo,
+// y la flecha gira 180° con animateFloatAsState.
 @Composable
 fun SeccionHistorial(gestiones: List<Gestion>, mostrarVisibilidad: Boolean) {
+    // rememberSaveable: si se gira el teléfono, se recuerda si estaba abierto
     var abierto by rememberSaveable { mutableStateOf(true) }
     val giro by animateFloatAsState(if (abierto) 180f else 0f, label = "flecha")
 
@@ -271,6 +287,7 @@ fun SeccionHistorial(gestiones: List<Gestion>, mostrarVisibilidad: Boolean) {
 @Composable
 private fun ItemHistorial(gestion: Gestion, mostrarVisibilidad: Boolean) {
     Row {
+        // Puntito de "línea de tiempo"
         Box(
             Modifier
                 .padding(top = 6.dp, end = Dimens.espacioChico)
@@ -285,7 +302,7 @@ private fun ItemHistorial(gestion: Gestion, mostrarVisibilidad: Boolean) {
             )
             Text(gestion.descripcion, style = MaterialTheme.typography.bodyLarge)
             Text(gestion.responsable, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
-
+            // Solo el liquidador ve cuáles son internas (el asegurado nunca las recibe, RN-13)
             if (mostrarVisibilidad && !gestion.visible) {
                 Text(
                     stringResource(R.string.texto_gestion_interna),

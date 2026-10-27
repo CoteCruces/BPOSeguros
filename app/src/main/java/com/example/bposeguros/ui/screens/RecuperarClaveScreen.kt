@@ -32,7 +32,11 @@ import com.example.bposeguros.ui.styles.EstilosTarjeta
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.RecuperarClaveViewModel
 
-
+// =====================================================================
+//  RecuperarClaveScreen.kt  —  "¿Olvidaste tu contraseña?"
+//  Pide RUT + correo de la cuenta. Si coinciden, muestra el correo que se
+//  "envió" con la contraseña temporal (simulado: no hay servidor de correo).
+// =====================================================================
 @Composable
 fun RecuperarClaveScreen(
     onVolver: () -> Unit,
@@ -79,7 +83,7 @@ fun RecuperarClaveScreen(
                 )
             }
 
-
+            // ANIMACIÓN: el "correo enviado" aparece desplegándose
             AnimatedVisibility(visible = uiState.claveTemporal != null, enter = expandVertically() + fadeIn()) {
                 CorreoSimulado(
                     para = uiState.correo,
@@ -99,7 +103,7 @@ fun RecuperarClaveScreen(
     }
 }
 
-
+// Tarjeta que imita un correo: Para, Asunto y el texto. La usan "Recuperar" y "Nuevo cliente".
 @Composable
 fun CorreoSimulado(para: String, asunto: String, cuerpo: String, titulo: String = stringResource(R.string.titulo_correo_simulado)) {
     Card(

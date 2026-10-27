@@ -27,8 +27,13 @@ import com.example.bposeguros.model.Aviso
 import com.example.bposeguros.ui.components.BarraSuperior
 import com.example.bposeguros.ui.styles.EstilosTarjeta
 import com.example.bposeguros.ui.theme.Dimens
-import com.example.bposeguros.util.Fechas
+import com.example.bposeguros.ui.util.Fechas
 
+// =====================================================================
+//  AvisosScreen.kt  —  Avisos del asegurado (RF-09 / HU-07)
+//  Cada aviso dice a qué siniestro corresponde (Aclaración 5) y al tocarlo
+//  se marca como leído y se abre el detalle de ese siniestro.
+// =====================================================================
 @Composable
 fun AvisosScreen(
     avisos: List<Aviso>,
