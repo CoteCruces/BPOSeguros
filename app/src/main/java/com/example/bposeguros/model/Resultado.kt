@@ -7,4 +7,4 @@ enum class Resultado (@StringRes val etiqueta: Int) {
     APROBADO(R.string.resultado_aprobado),
     RECHAZADO(R.string.resultado_rechazado),
     DESISTIDO(R.string.resultado_desistido)
-}
+}

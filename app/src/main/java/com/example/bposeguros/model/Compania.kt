@@ -7,4 +7,4 @@ data class Compania(
     val lineas: List<LineaSiniestro>,
     val plazoDiasHabiles: Int,
     val activa: Boolean = true
-)
+)

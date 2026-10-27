@@ -40,4 +40,4 @@ data class Aviso(
     val motivo: String,
     val mensaje: String,
     val leido: Boolean = false
-)
+)
