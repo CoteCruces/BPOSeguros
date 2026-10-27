@@ -16,15 +16,10 @@ import com.example.bposeguros.ui.theme.Blanco
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.theme.GrisDeshabilitado
 
-// =====================================================================
-//  EstilosBoton.kt  —  Estilos de botones en UN solo lugar.
-//  Si se cambia aquí, cambian TODOS los botones de la app.
-// =====================================================================
 object EstilosBoton {
     val forma: Shape = RoundedCornerShape(Dimens.radioBoton)
     val relleno = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
 
-    // Botón principal: fondo del color principal y texto contrastante
     @Composable
     fun coloresPrincipal(): ButtonColors = ButtonDefaults.buttonColors(
         containerColor = MaterialTheme.colorScheme.primary,
@@ -33,20 +28,17 @@ object EstilosBoton {
         disabledContentColor = Blanco
     )
 
-    // Botón secundario: transparente, con texto del color principal
     @Composable
     fun coloresSecundario(): ButtonColors = ButtonDefaults.outlinedButtonColors(
         contentColor = MaterialTheme.colorScheme.primary
     )
 
-    // Borde del botón secundario
     @Composable
     fun bordeSecundario(): BorderStroke = BorderStroke(
         Dimens.bordeBoton,
         MaterialTheme.colorScheme.primary
     )
 
-    // Sombra del botón principal (al presionarlo, "se hunde")
     @Composable
     fun elevacion(): ButtonElevation = ButtonDefaults.buttonElevation(
         defaultElevation = Dimens.elevacionBoton,
@@ -54,5 +46,4 @@ object EstilosBoton {
     )
 }
 
-// Altura mínima: crece si el usuario aumenta el tamaño de letra del teléfono (RNF-04)
-fun Modifier.estiloAltoBoton(): Modifier = this.heightIn(min = Dimens.alturaBoton)
+fun Modifier.estiloAltoBoton(): Modifier = this.heightIn(min = Dimens.alturaBoton)

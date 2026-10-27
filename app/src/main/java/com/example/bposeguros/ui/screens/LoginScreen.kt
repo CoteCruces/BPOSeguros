@@ -38,16 +38,6 @@ import com.example.bposeguros.ui.theme.BPOSegurosTheme
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.LoginViewModel
 
-// =====================================================================
-//  LoginScreen.kt — PANTALLA DE BIENVENIDA (primera pantalla de la app)
-//  Da la bienvenida y permite entrar con RUT + contraseña.
-//  Tiene el interruptor "Soy liquidador de Andes" del proyecto original: al moverlo,
-//  AnimatedContent cambia el texto y el campo con un fundido (animación pedida en la rúbrica).
-//  Ya NO tiene "Registrar mis datos": las cuentas de clientes las crea el liquidador.
-//   1) LoginScreen  -> CON estado: conoce el ViewModel.
-//   2) LoginContent -> SIN estado: recibe datos y lambdas (se ve en @Preview).
-//  La pantalla NO navega: avisa con onIngresoExitoso(usuario) / onOlvideClave().
-// =====================================================================
 @Composable
 fun LoginScreen(
     onIngresoExitoso: (Usuario) -> Unit,
@@ -62,7 +52,6 @@ fun LoginScreen(
         onRutCambia = viewModel::onRutCambia,
         onClaveCambia = viewModel::onClaveCambia,
         onAlternarVisibilidad = viewModel::onAlternarVisibilidad,
-        // ?.let = "si NO es null, ejecuta" -> solo navega si el RUT y la clave son correctos
         onIngresar = { viewModel.onIngresar()?.let(onIngresoExitoso) },
         onOlvideClave = onOlvideClave
     )
@@ -79,7 +68,6 @@ fun LoginContent(
     onOlvideClave: () -> Unit
 ) {
     Scaffold(
-        // Primera pantalla: no hay a dónde volver, por eso no lleva flecha
         topBar = { BarraSuperior(titulo = stringResource(R.string.titulo_bienvenida)) },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
@@ -106,9 +94,6 @@ fun LoginContent(
                         onCambio = onModoCambia
                     )
 
-                    // ANIMACIÓN: AnimatedContent cambia el contenido de cliente <-> liquidador con un fundido.
-                    // targetState = el valor que "vigila"; cada vez que cambia, anima de lo viejo a lo nuevo.
-                    // Ambos escriben su RUT: cambia el texto de bienvenida, la etiqueta y el ejemplo.
                     AnimatedContent(
                         targetState = uiState.esLiquidador,
                         transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -145,7 +130,6 @@ fun LoginContent(
                         icono = R.drawable.ic_check,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    // "¿Olvidaste tu contraseña?" (pedido por el profesor)
                     TextButton(onClick = onOlvideClave, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text(stringResource(R.string.btn_olvide_clave))
                     }

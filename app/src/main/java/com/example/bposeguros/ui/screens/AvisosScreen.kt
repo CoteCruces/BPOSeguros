@@ -29,11 +29,6 @@ import com.example.bposeguros.ui.styles.EstilosTarjeta
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.util.Fechas
 
-// =====================================================================
-//  AvisosScreen.kt  —  Avisos del asegurado (RF-09 / HU-07)
-//  Cada aviso dice a qué siniestro corresponde (Aclaración 5) y al tocarlo
-//  se marca como leído y se abre el detalle de ese siniestro.
-// =====================================================================
 @Composable
 fun AvisosScreen(
     avisos: List<Aviso>,
@@ -61,7 +56,6 @@ fun AvisosScreen(
                         .fillMaxWidth()
                         .animateItem(),
                     shape = EstilosTarjeta.forma,
-                    // los no leídos se destacan con fondo de color Y con la palabra "Nuevo"
                     colors = CardDefaults.cardColors(
                         containerColor = if (aviso.leido) MaterialTheme.colorScheme.surface
                         else MaterialTheme.colorScheme.primaryContainer

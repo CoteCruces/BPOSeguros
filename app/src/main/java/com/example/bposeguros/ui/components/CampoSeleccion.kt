@@ -26,13 +26,6 @@ import com.example.bposeguros.ui.styles.EstilosCampo
 import com.example.bposeguros.ui.theme.BPOSegurosTheme
 import com.example.bposeguros.ui.theme.Dimens
 
-// =====================================================================
-//  CampoSeleccion.kt  —  LISTA DESPLEGABLE (el <select> de HTML)
-//  Igual al del rol en EditarScreen del profesor (ExposedDropdownMenuBox),
-//  pero reutilizable: recibe la lista de textos y la POSICIÓN elegida (o null).
-//  "expandido" es estado SOLO visual (si el menú está abierto), por eso vive
-//  aquí con remember y no en el ViewModel.
-// =====================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampoSeleccion(
@@ -55,7 +48,7 @@ fun CampoSeleccion(
         OutlinedTextField(
             value = seleccionada?.let { opciones.getOrNull(it) } ?: "",
             onValueChange = {},
-            readOnly = true,                       // no se escribe: solo se elige
+            readOnly = true,
             enabled = habilitado,
             label = { Text(etiqueta) },
             leadingIcon = {
@@ -74,7 +67,6 @@ fun CampoSeleccion(
             expanded = expandido,
             onDismissRequest = { expandido = false }
         ) {
-            // forEachIndexed: recorre la lista entregando la posición y el texto
             opciones.forEachIndexed { posicion, texto ->
                 DropdownMenuItem(
                     text = { Text(texto) },

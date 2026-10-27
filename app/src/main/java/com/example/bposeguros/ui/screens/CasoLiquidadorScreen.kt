@@ -35,11 +35,6 @@ import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.LiquidadorViewModel
 
-// =====================================================================
-//  CasoLiquidadorScreen.kt  —  Un caso visto por el LIQUIDADOR (RF-10, RF-11, RF-12)
-//  Reutiliza las secciones del detalle del asegurado y agrega 4 acciones,
-//  cada una en un diálogo con su propio formulario validado en el ViewModel.
-// =====================================================================
 @Composable
 fun CasoLiquidadorScreen(
     idSiniestro: Long,
@@ -53,7 +48,6 @@ fun CasoLiquidadorScreen(
 
     LaunchedEffect(idSiniestro) { viewModel.cargarDetalle(idSiniestro, liquidador.id) }
 
-    // Cuando el ViewModel deja un mensaje, se muestra en el Snackbar y se borra
     LaunchedEffect(acciones.mensaje) {
         acciones.mensaje?.let {
             snackbarHostState.showSnackbar(it)
@@ -76,12 +70,11 @@ fun CasoLiquidadorScreen(
             verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
         ) {
             if (siniestro == null) {
-                Text(stringResource(R.string.caso_no_asignado))       // HU-09 CA2
+                Text(stringResource(R.string.caso_no_asignado))
                 return@Column
             }
             SeccionEtapa(siniestro, hayPendientes = detalle.pendientes > 0)
 
-            // ---------------- ACCIONES (solo con el caso abierto) ----------------
             if (!siniestro.estaCerrado) {
                 TarjetaSeccion(titulo = stringResource(R.string.seccion_acciones)) {
                     BotonPrincipal(
@@ -115,7 +108,6 @@ fun CasoLiquidadorScreen(
         }
     }
 
-    // ---------------- DIÁLOGOS ----------------
     val siniestro = detalle.siniestro ?: return
     when (acciones.dialogo) {
         DialogoLiquidador.GESTION -> DialogoFormulario(
@@ -193,7 +185,6 @@ fun CasoLiquidadorScreen(
     }
 }
 
-// Diálogo con título, un formulario adentro (slot) y botones Guardar / Cancelar
 @Composable
 private fun DialogoFormulario(
     titulo: String,

@@ -18,11 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-// =====================================================================
-//  LiquidadorViewModel.kt  —  Lo que hace el liquidador (RF-10, RF-11, RF-12)
-//  Cada acción:  1) valida   2) guarda en la BD   3) deja la gestión en el historial
-//                4) si corresponde, crea un aviso y una notificación (Aclaración 5)
-// =====================================================================
 class LiquidadorViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = SiniestroDbHelper.obtener(application)
@@ -36,46 +31,40 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
     private val _acciones = MutableStateFlow(AccionesUiState())
     val acciones: StateFlow<AccionesUiState> = _acciones.asStateFlow()
 
-    // Lo escrito en el buscador de la pantalla de casos
     private val _busqueda = MutableStateFlow("")
     val busqueda: StateFlow<String> = _busqueda.asStateFlow()
 
-    // ----------------------------- CARGAR -----------------------------
 
-    // Sin texto -> todos sus casos.  Con texto -> solo los que coinciden (número, RUT o nombre).
+
     fun cargarCasos(idLiquidador: Long) {
         val texto = _busqueda.value.trim()
         _casos.value =
             if (texto.isEmpty()) db.listarSiniestrosAsignados(idLiquidador)
-            else db.buscarCasos(idLiquidador, texto, texto.replace(".", "").replace("-", "").uppercase())   // RUT sin puntos ni guion
+            else db.buscarCasos(idLiquidador, texto, texto.replace(".", "").replace("-", "").uppercase())
     }
 
-    // Cada letra escrita en el buscador vuelve a consultar la BD (con LIKE)
     fun onBusquedaCambia(texto: String, idLiquidador: Long) {
         _busqueda.value = texto
         cargarCasos(idLiquidador)
     }
 
-    // Al cerrar sesión: el próximo liquidador que entre no ve la búsqueda ni los casos del anterior
     fun limpiar() {
         _busqueda.value = ""
         _casos.value = emptyList()
     }
 
-    // HU-09 CA2: si el caso no es suyo, buscarSiniestroDeLiquidador devuelve null y no se muestra
     fun cargarDetalle(idSiniestro: Long, idLiquidador: Long) {
         val siniestro = db.buscarSiniestroDeLiquidador(idSiniestro, idLiquidador)
         _detalle.value = if (siniestro == null) DetalleUiState() else DetalleUiState(
             siniestro = siniestro,
-            gestiones = db.listarGestiones(idSiniestro, soloVisibles = false),   // ve también las internas
+            gestiones = db.listarGestiones(idSiniestro, soloVisibles = false),
             solicitudes = db.listarSolicitudes(idSiniestro),
             adjuntos = db.listarAdjuntos(idSiniestro)
         )
     }
 
-    // ----------------------------- EVENTOS DE LOS DIÁLOGOS -----------------------------
 
-    // Al abrir un diálogo se parte con los campos limpios
+
     fun abrirDialogo(dialogo: DialogoLiquidador) {
         _acciones.value = AccionesUiState(dialogo = dialogo)
     }
@@ -103,9 +92,7 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
 
     fun mensajeMostrado() = _acciones.update { it.copy(mensaje = null) }
 
-    // ----------------------------- ACCIONES -----------------------------
 
-    // HU-09: registrar una gestión. Las gestiones comunes NO generan aviso (Aclaración 5).
     fun registrarGestion(liquidador: Usuario) {
         val siniestro = _detalle.value.siniestro ?: return
         val estado = _acciones.value
@@ -128,7 +115,6 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
         terminar(siniestro, liquidador, "Gestión registrada")
     }
 
-    // HU-11: pedir un documento al asegurado. Queda "Pendiente" y SÍ genera aviso.
     fun solicitarDocumento(liquidador: Usuario) {
         val siniestro = _detalle.value.siniestro ?: return
         val estado = _acciones.value
@@ -157,7 +143,6 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
         terminar(siniestro, liquidador, "Documento solicitado")
     }
 
-    // HU-10: avanzar de "En evaluación" a "En liquidación"
     fun avanzarEtapa(liquidador: Usuario) {
         val siniestro = _detalle.value.siniestro ?: return
         val siguiente = siniestro.etapa.siguiente()
@@ -165,7 +150,6 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
             _acciones.update { it.copy(mensaje = "Este caso no se puede avanzar desde su etapa actual") }
             return
         }
-        // RN-09: no se pasa a liquidación con documentos pendientes (HU-10 CA2)
         if (db.contarPendientes(siniestro.id) > 0) {
             _acciones.update { it.copy(mensaje = "Primero deben estar entregados todos los documentos pendientes") }
             return
@@ -184,7 +168,6 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
         terminar(siniestro, liquidador, "El caso avanzó a $nombreEtapa")
     }
 
-    // HU-10 CA3 / RN-02: cerrar con resultado y mensaje para el asegurado
     fun cerrarCaso(liquidador: Usuario) {
         val siniestro = _detalle.value.siniestro ?: return
         val estado = _acciones.value
@@ -217,15 +200,12 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
         terminar(siniestro, liquidador, "Caso cerrado")
     }
 
-    // ----------------------------- AYUDANTES -----------------------------
 
-    // Aviso en la BD (pantalla Avisos del asegurado) + notificación del sistema (recurso nativo)
     private fun avisar(siniestro: Siniestro, ahora: String, motivo: String, mensaje: String) {
         db.insertarAviso(siniestro.id, ahora, motivo, mensaje)
         Notificador.mostrar(getApplication(), siniestro.id, motivo, mensaje)
     }
 
-    // Cierra el diálogo, muestra el mensaje y recarga para ver los cambios
     private fun terminar(siniestro: Siniestro, liquidador: Usuario, mensaje: String) {
         _acciones.value = AccionesUiState(mensaje = mensaje)
         cargarDetalle(siniestro.id, liquidador.id)

@@ -45,7 +45,6 @@ private val EsquemaClaro = lightColorScheme(
     error = ErrorClaro
 )
 
-// Esquinas redondeadas (equivale a border-radius)
 private val Formas = Shapes(
     small = RoundedCornerShape(8.dp),
     medium = RoundedCornerShape(12.dp),
@@ -55,7 +54,6 @@ private val Formas = Shapes(
 @Composable
 fun BPOSegurosTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Se deja en false para que se vea siempre nuestra paleta azul
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -75,4 +73,4 @@ fun BPOSegurosTheme(
         shapes = Formas,
         content = content
     )
-}
+}

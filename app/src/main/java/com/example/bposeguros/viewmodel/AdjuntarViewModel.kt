@@ -16,13 +16,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.text.Normalizer
 
-// =====================================================================
-//  AdjuntarViewModel.kt  —  LÓGICA DE "ADJUNTAR DOCUMENTO" (RF-07, RF-08, HU-05, HU-06)
-//  La pantalla toma la foto (cámara) o la elige (galería) y se la entrega aquí.
-//  Este ViewModel valida, guarda el archivo, lo registra en la BD y deja la gestión
-//  en el historial (RF-12).
-// =====================================================================
 class AdjuntarViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = SiniestroDbHelper.obtener(application)
@@ -33,25 +28,28 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
 
     fun cargar(idSiniestro: Long, idAsegurado: Long) {
         this.idSiniestro = idSiniestro
-        val siniestro = db.buscarSiniestroDeAsegurado(idSiniestro, idAsegurado)   // RNF-07
+        val siniestro = db.buscarSiniestroDeAsegurado(idSiniestro, idAsegurado)
 
-        // Primero los documentos que le pidieron (HU-06) y después los tipos comunes
-        val pedidos = db.listarSolicitudes(idSiniestro).filter { !it.entregado }.map {
+        val pendientes = db.listarSolicitudes(idSiniestro).filter { !it.entregado }
+        val pedidos = pendientes.map {
             OpcionDocumento(texto = "Documento pedido: ${it.tipoDocumento}", tipoDocumento = it.tipoDocumento, solicitudId = it.id)
         }
-        val comunes = TipoDocumento.lista.map { OpcionDocumento(texto = it, tipoDocumento = it) }
+
+        val comunes = TipoDocumento.lista
+            .filter { tipo -> pendientes.none { mismoDocumento(it.tipoDocumento, tipo) } }
+            .map { OpcionDocumento(texto = it, tipoDocumento = it) }
 
         val errorGeneral = when {
             siniestro == null -> "No encontramos este siniestro"
-            siniestro.estaCerrado -> "Tu caso está cerrado, por eso ya no se pueden adjuntar documentos"  // RN-11
-            db.contarAdjuntos(idSiniestro) >= 15 -> "Este caso ya tiene el máximo de 15 documentos"        // RN-10
+            siniestro.estaCerrado -> "Tu caso está cerrado, por eso ya no se pueden adjuntar documentos"
+            db.contarAdjuntos(idSiniestro) >= 15 -> "Este caso ya tiene el máximo de 15 documentos"
             else -> null
         }
 
         _uiState.value = AdjuntarUiState(
             numeroSiniestro = siniestro?.numero ?: "",
             opciones = pedidos + comunes,
-            opcionElegida = if (pedidos.isNotEmpty()) 0 else null,   // si le pidieron algo, se propone eso
+            opcionElegida = if (pedidos.isNotEmpty()) 0 else null,
             errorGeneral = errorGeneral
         )
     }
@@ -64,16 +62,14 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
         _uiState.update { it.copy(comentario = valor.take(300)) }
     }
 
-    // Cámara: llega un Bitmap
     fun onFotoTomada(foto: Bitmap) {
         _uiState.update { it.copy(foto = foto, errorFoto = null) }
     }
 
-    // Galería: llega un Uri y se convierte a Bitmap
     fun onImagenElegida(uri: Uri) {
         val foto = ConvertidorImagen.desdeUri(getApplication(), uri)
         _uiState.update {
-            if (foto == null) it.copy(errorFoto = "No pudimos abrir esa imagen. Prueba con otra")   // HU-05 CA3
+            if (foto == null) it.copy(errorFoto = "No pudimos abrir esa imagen. Prueba con otra")
             else it.copy(foto = foto, errorFoto = null)
         }
     }
@@ -91,7 +87,6 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
         val nombre = "adjunto_${estado.numeroSiniestro}_${System.currentTimeMillis()}.jpg"
         val archivo = ConvertidorImagen.guardar(getApplication(), estado.foto, nombre)
 
-        // RN-10: cada adjunto hasta 5 MB
         if (archivo == null || archivo.length() / 1024 > ConvertidorImagen.MAXIMO_KB) {
             archivo?.delete()
             _uiState.update { it.copy(errorFoto = "La imagen es muy pesada (máximo 5 MB)") }
@@ -99,6 +94,10 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
         }
 
         val ahora = Fechas.ahora()
+
+        val solicitudId = opcion.solicitudId ?: db.listarSolicitudes(idSiniestro)
+            .firstOrNull { !it.entregado && mismoDocumento(it.tipoDocumento, opcion.tipoDocumento) }?.id
+
         db.insertarAdjunto(
             DocumentoAdjunto(
                 siniestroId = idSiniestro,
@@ -108,13 +107,11 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
                 fechaCarga = ahora,
                 cargadoPor = "Asegurado",
                 comentario = estado.comentario.trim(),
-                solicitudId = opcion.solicitudId
+                solicitudId = solicitudId
             )
         )
-        // HU-06 CA2: si responde a lo que pidió el liquidador, la solicitud pasa a "Entregado"
-        if (opcion.solicitudId != null) db.marcarSolicitudEntregada(opcion.solicitudId, ahora)
+        if (solicitudId != null) db.marcarSolicitudEntregada(solicitudId, ahora)
 
-        // RF-12: queda en el historial
         db.insertarGestion(
             Gestion(
                 siniestroId = idSiniestro, fechaHora = ahora, tipo = "Documento recibido",
@@ -124,4 +121,13 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
         )
         _uiState.update { it.copy(guardado = true) }
     }
+
+    private fun mismoDocumento(pedido: String, enviado: String): Boolean {
+        val a = sinTildes(pedido)
+        val b = sinTildes(enviado)
+        return a == b || a.startsWith(b) || b.startsWith(a)
+    }
+
+    private fun sinTildes(texto: String): String =
+        Normalizer.normalize(texto.trim().lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
 }

@@ -16,14 +16,6 @@ import com.example.bposeguros.ui.styles.EstilosTarjeta
 import com.example.bposeguros.ui.theme.BPOSegurosTheme
 import com.example.bposeguros.ui.theme.Dimens
 
-// =====================================================================
-//  TarjetaSeccion.kt  —  CONTENEDOR CARD CON TÍTULO + "SLOT"
-//  Card = contenedor con fondo, esquinas redondeadas y sombra.
-//  Recibe su contenido como PARÁMETRO (slot):
-//      contenido: @Composable ColumnScope.() -> Unit
-//  Quien lo usa decide qué va adentro:
-//      TarjetaSeccion(titulo = "Datos") { CampoTexto(...) }
-// =====================================================================
 @Composable
 fun TarjetaSeccion(
     titulo: String,
@@ -45,7 +37,7 @@ fun TarjetaSeccion(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            contenido()  // <- aquí se dibuja lo que venga entre llaves
+            contenido()
         }
     }
 }
@@ -58,4 +50,4 @@ private fun TarjetaSeccionPreview() {
             Text("Cualquier contenido puede ir aquí dentro.")
         }
     }
-}
+}

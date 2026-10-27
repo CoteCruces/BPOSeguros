@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Shape
 import com.example.bposeguros.ui.theme.Dimens
 
-// Estilos de las tarjetas
 object EstilosTarjeta {
     val forma: Shape = RoundedCornerShape(Dimens.radioTarjeta)
 
@@ -22,4 +21,4 @@ object EstilosTarjeta {
     fun elevacion(): CardElevation = CardDefaults.cardElevation(
         defaultElevation = Dimens.elevacionTarjeta
     )
-}
+}

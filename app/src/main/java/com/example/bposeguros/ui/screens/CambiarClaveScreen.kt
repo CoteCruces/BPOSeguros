@@ -25,12 +25,6 @@ import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.CambiarClaveViewModel
 
-// =====================================================================
-//  CambiarClaveScreen.kt  —  Cambiar la contraseña
-//  obligatorio = true  -> entró con una contraseña temporal: debe cambiarla para seguir.
-//                         La flecha de volver CIERRA LA SESIÓN (no puede saltarse este paso).
-//  obligatorio = false -> viene desde "Mi perfil": la flecha vuelve al perfil.
-// =====================================================================
 @Composable
 fun CambiarClaveScreen(
     idUsuario: Long,
@@ -41,7 +35,6 @@ fun CambiarClaveScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Cuando el ViewModel avisa "cambiada", AppNavegacion decide a dónde ir
     LaunchedEffect(uiState.cambiada) { if (uiState.cambiada) onCambiada() }
 
     Scaffold(

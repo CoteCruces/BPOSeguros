@@ -56,14 +56,7 @@ import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.util.Fechas
 import kotlinx.coroutines.launch
 
-// =====================================================================
-//  MisSiniestrosScreen.kt  —  Pantalla principal del asegurado (RF-04 / HU-02)
-//  Por sugerencia del profesor muestra SOLO los 2 últimos siniestros registrados.
-//  Para ver otros: "Buscar por fechas" (calendario con un RANGO desde-hasta) o "Ver todos",
-//  que abren la pantalla Resultados. Se usa rango porque muchas personas no recuerdan el día exacto.
-//  También pide el permiso de NOTIFICACIONES (Android 13+) para avisarle los cambios.
-// =====================================================================
-@OptIn(ExperimentalMaterial3Api::class)     // DateRangePicker todavía es "experimental" en Material 3
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisSiniestrosScreen(
     usuario: Usuario,
@@ -73,7 +66,7 @@ fun MisSiniestrosScreen(
     onReportar: () -> Unit,
     onVerAvisos: () -> Unit,
     onVerPerfil: () -> Unit,
-    onBuscarPorFechas: (String, String) -> Unit,   // recibe desde y hasta, "aaaa-mm-dd"
+    onBuscarPorFechas: (String, String) -> Unit,
     onVerTodos: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
@@ -83,14 +76,11 @@ fun MisSiniestrosScreen(
     val textoDenegado = stringResource(R.string.permiso_notificaciones_denegado)
     val textoAjustes = stringResource(R.string.btn_ajustes)
 
-    // Estados SOLO visuales (no son datos de la app): ¿está abierto el calendario? ¿y el diálogo de salir?
     var mostrarCalendario by remember { mutableStateOf(false) }
     var preguntarSalida by remember { mutableStateOf(false) }
 
-    // PERMISOS paso 2: VERIFICAR. Se guarda en un estado para ocultar la tarjeta al concederlo.
     var puedeNotificar by remember { mutableStateOf(Permisos.puedeNotificar(context)) }
 
-    // PERMISOS paso 3 y 4: PEDIR y REACCIONAR
     val pedirPermiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
         puedeNotificar = concedido
         if (!concedido) {
@@ -103,17 +93,14 @@ fun MisSiniestrosScreen(
 
     Scaffold(
         topBar = {
-            // Si todavía no completa su nombre, el saludo es solo "¡Hola!"
             val saludo = if (usuario.nombre.isBlank()) stringResource(R.string.saludo_sin_nombre)
                          else stringResource(R.string.saludo, usuario.primerNombre())
             BarraSuperior(titulo = saludo) {
-                // Campana con un globito que cuenta los avisos sin leer
                 IconButton(onClick = onVerAvisos) {
                     BadgedBox(badge = { if (avisosSinLeer > 0) Badge { Text("$avisosSinLeer") } }) {
                         Icon(painterResource(R.drawable.ic_campana), contentDescription = stringResource(R.string.titulo_avisos))
                     }
                 }
-                // Mini foto de perfil: al tocarla se abre "Mi perfil"
                 IconButton(onClick = onVerPerfil) {
                     AvatarUsuario(ruta = usuario.foto, tamano = 32.dp, conBorde = false)
                 }
@@ -140,14 +127,12 @@ fun MisSiniestrosScreen(
             verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
         ) {
             item {
-                // RNF-10: el RUT se muestra parcialmente oculto
                 Text(
                     stringResource(R.string.texto_rut_oculto, usuario.rutOculto()),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            // Cuenta recién creada por el liquidador: se le invita a completar su perfil
             if (usuario.nombre.isBlank()) {
                 item {
                     TarjetaSeccion(titulo = stringResource(R.string.titulo_completa_perfil)) {
@@ -178,11 +163,9 @@ fun MisSiniestrosScreen(
             }
             if (ultimos.isEmpty()) {
                 item {
-                    Text(stringResource(R.string.sin_siniestros), style = MaterialTheme.typography.bodyLarge)  // HU-02 CA2
+                    Text(stringResource(R.string.sin_siniestros), style = MaterialTheme.typography.bodyLarge)
                 }
             }
-            // key = id: Compose sabe qué tarjeta es cuál.
-            // ANIMACIÓN: animateItem() hace que las tarjetas se deslicen al cambiar la lista.
             items(ultimos, key = { it.id }) { siniestro ->
                 TarjetaSiniestro(
                     siniestro = siniestro,
@@ -191,7 +174,6 @@ fun MisSiniestrosScreen(
                 )
             }
 
-            // Buscar otros siniestros: por fecha (calendario) o ver la lista completa
             item {
                 TarjetaSeccion(titulo = stringResource(R.string.titulo_buscar_siniestros)) {
                     Text(stringResource(R.string.texto_buscar_fecha), style = MaterialTheme.typography.bodyMedium)
@@ -208,15 +190,12 @@ fun MisSiniestrosScreen(
                     )
                 }
             }
-            item { Spacer(Modifier.height(72.dp)) }     // espacio para que el botón flotante no tape la última
+            item { Spacer(Modifier.height(72.dp)) }
         }
     }
 
-    // ---------- CALENDARIO DE RANGO (DateRangePicker de Material 3) ----------
-    // Se toca un día para el INICIO y otro para el FIN; el calendario pinta los días del medio.
     if (mostrarCalendario) {
         val estadoCalendario = rememberDateRangePickerState(
-            // Solo se pueden elegir días hasta hoy: un siniestro no puede haber ocurrido en el futuro
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= System.currentTimeMillis()
             }
@@ -226,8 +205,6 @@ fun MisSiniestrosScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // Fechas elegidas en milisegundos (null si no tocó ninguna).
-                        // Si eligió solo el inicio, se busca ese único día (desde = hasta).
                         val inicio = estadoCalendario.selectedStartDateMillis
                         val fin = estadoCalendario.selectedEndDateMillis ?: inicio
                         if (inicio != null && fin != null) {
@@ -235,7 +212,6 @@ fun MisSiniestrosScreen(
                         }
                         mostrarCalendario = false
                     },
-                    // El botón se activa recién cuando hay al menos una fecha elegida
                     enabled = estadoCalendario.selectedStartDateMillis != null
                 ) { Text(stringResource(R.string.btn_buscar)) }
             },
@@ -243,7 +219,6 @@ fun MisSiniestrosScreen(
                 TextButton(onClick = { mostrarCalendario = false }) { Text(stringResource(R.string.btn_cancelar)) }
             }
         ) {
-            // weight(1f): el calendario ocupa el espacio que queda en el diálogo y se puede desplazar
             DateRangePicker(state = estadoCalendario, modifier = Modifier.weight(1f))
         }
     }
