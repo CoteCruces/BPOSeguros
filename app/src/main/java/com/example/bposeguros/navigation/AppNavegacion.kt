@@ -1,128 +1,194 @@
 package com.example.bposeguros.navigation
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.bposeguros.model.Rol
-import com.example.bposeguros.model.Siniestro
-import com.example.bposeguros.ui.components.BotonPrincipal
+import com.example.bposeguros.model.Usuario
+import com.example.bposeguros.ui.screens.AdjuntarScreen
 import com.example.bposeguros.ui.screens.AvisosScreen
+import com.example.bposeguros.ui.screens.CambiarClaveScreen
+import com.example.bposeguros.ui.screens.CasoLiquidadorScreen
+import com.example.bposeguros.ui.screens.CasosLiquidadorScreen
 import com.example.bposeguros.ui.screens.DetalleSiniestroScreen
-import com.example.bposeguros.ui.screens.FormularioScreen
 import com.example.bposeguros.ui.screens.LoginScreen
-import com.example.bposeguros.ui.theme.Dimens
-import com.example.bposeguros.viewmodel.SesionViewModel
 import com.example.bposeguros.ui.screens.MisSiniestrosScreen
+import com.example.bposeguros.ui.screens.FormularioScreen
+import com.example.bposeguros.ui.screens.PerfilScreen
+import com.example.bposeguros.ui.screens.RecuperarClaveScreen
 import com.example.bposeguros.ui.screens.ReportarScreen
+import com.example.bposeguros.ui.screens.ResultadosScreen
 import com.example.bposeguros.viewmodel.AseguradoViewModel
+import com.example.bposeguros.viewmodel.LiquidadorViewModel
+import com.example.bposeguros.viewmodel.SesionViewModel
 
-
+// =====================================================================
+//  AppNavegacion.kt — el ÚNICO lugar que decide a dónde se va.
+//  Las pantallas no navegan solas: solo avisan "pasó esto" (onIngresoExitoso...)
+//  y aquí se decide el destino.
+//
+//   Bienvenida ─┬─▶ ¿Olvidaste tu contraseña?
+//               ├─ (clave temporal) ─▶ Cambiar contraseña (obligatorio)
+//               ├─ asegurado ─▶ MisSiniestros ─┬─▶ Detalle ─▶ Adjuntar
+//               │                              ├─▶ Resultados (entre fechas / todos) ─▶ Detalle
+//               │                              ├─▶ Reportar
+//               │                              ├─▶ Avisos ─▶ Detalle
+//               │                              └─▶ Mi perfil ─▶ Cambiar contraseña
+//               └─ liquidador ▶ Casos ─┬─▶ Caso
+//                                      ├─▶ Nuevo cliente
+//                                      └─▶ Mi perfil ─▶ Cambiar contraseña
+//
+//  Todas las pantallas que no son "principales" tienen flecha de volver (navigateUp).
+//  Las principales (MisSiniestros y Casos) tienen "Cerrar sesión", que vuelve a la bienvenida.
+// =====================================================================
 @Composable
 fun AppNavegacion() {
     val navController = rememberNavController()
+
+    // ViewModels compartidos: se crean UNA vez aquí y viven mientras la app está abierta
     val sesionViewModel: SesionViewModel = viewModel()
     val aseguradoViewModel: AseguradoViewModel = viewModel()
-    val usuarioActual by sesionViewModel.usuarioActual.collectAsStateWithLifecycle()
+    val liquidadorViewModel: LiquidadorViewModel = viewModel()
 
+    val usuario by sesionViewModel.usuarioActual.collectAsStateWithLifecycle()
 
-    val destinoInicial = remember {
-        val usuario = usuarioActual
-        when {
-            usuario == null -> Ruta.Login.ruta
-            usuario.rolId == Rol.ID_ASEGURADO -> Ruta.MisSiniestros.ruta
-            else -> Ruta.Casos.ruta
-        }
-    }
+    // Si ya hay una sesión guardada (SharedPreferences) se entra directo, sin pasar por la bienvenida.
+    // remember { } sin claves: se calcula solo al abrir la app.
+    val inicio = remember { rutaInicial(sesionViewModel.usuarioActual.value) }
 
-
+    // Cierra la sesión y vuelve a la bienvenida borrando todo el historial de pantallas
     val cerrarSesion = {
         sesionViewModel.cerrarSesion()
-        navController.navigate(Ruta.Login.crear()) {
-            popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
-        }
+        liquidadorViewModel.limpiar()                              // no queda la búsqueda del anterior
+        navController.navigate(Ruta.Login.ruta) { popUpTo(0) }    // popUpTo(0) = vacía la pila
     }
 
-    NavHost(navController = navController, startDestination = destinoInicial) {
+    NavHost(
+        navController = navController,
+        startDestination = inicio,
+        // ANIMACIÓN entre pantallas: la nueva entra deslizándose desde la derecha
+        enterTransition = { slideInHorizontally { ancho -> ancho / 3 } + fadeIn() },
+        exitTransition = { fadeOut() },
+        popEnterTransition = { fadeIn() },
+        popExitTransition = { slideOutHorizontally { ancho -> ancho / 3 } + fadeOut() }
+    ) {
 
-        composable(
-            route = Ruta.Login.ruta,
-            arguments = listOf(navArgument("rut") {
-                type = NavType.StringType
-                defaultValue = ""
-            })
-        ) { entrada ->
+        // ------------------------------ CUENTA ------------------------------
+
+        composable(Ruta.Login.ruta) {
             LoginScreen(
-                rutInicial = entrada.arguments?.getString("rut").orEmpty(),
-                onIngresoExitoso = { usuario ->
-                    sesionViewModel.iniciarSesion(usuario)          // guarda el id en SharedPreferences
-                    val destino = if (usuario.rolId == Rol.ID_ASEGURADO)
-                        Ruta.MisSiniestros.ruta else Ruta.Casos.ruta
-                    navController.navigate(destino) {
-                        popUpTo(Ruta.Login.ruta) { inclusive = true }  // "atrás" no vuelve al login
+                onIngresoExitoso = { usuarioIngresado ->
+                    sesionViewModel.iniciarSesion(usuarioIngresado)        // guarda el id en SharedPreferences
+                    // popUpTo(Login) inclusive: al apretar "atrás" no se vuelve a la bienvenida
+                    navController.navigate(rutaInicial(usuarioIngresado)) {
+                        popUpTo(Ruta.Login.ruta) { inclusive = true }
                     }
                 },
-                onIrARegistro = { navController.navigate(Ruta.Registro.ruta) }
+                onOlvideClave = { navController.navigate(Ruta.RecuperarClave.ruta) }
             )
         }
 
-        composable(Ruta.Registro.ruta) {
-            FormularioScreen(
-                onVolver = { navController.popBackStack() },
-                onIrAIngresar = {
-                    navController.navigate(Ruta.Login.ruta) {
-                        popUpTo(Ruta.Login.ruta) { inclusive = true }
+        composable(Ruta.RecuperarClave.ruta) {
+            RecuperarClaveScreen(onVolver = { navController.navigateUp() })
+        }
+
+        composable(
+            route = Ruta.CambiarClave.ruta,
+            arguments = listOf(navArgument("obligatorio") {
+                type = NavType.BoolType
+                defaultValue = false
+            })
+        ) { entrada ->
+            val actual = usuario ?: return@composable
+            val obligatorio = entrada.arguments?.getBoolean("obligatorio") ?: false
+            CambiarClaveScreen(
+                idUsuario = actual.id,
+                obligatorio = obligatorio,
+                // Obligatorio: no puede saltarse el cambio -> la flecha cierra la sesión
+                onVolver = { if (obligatorio) cerrarSesion() else navController.navigateUp() },
+                onCambiada = {
+                    sesionViewModel.refrescar()                            // ahora claveTemporal = false
+                    if (obligatorio) {
+                        navController.navigate(rutaPrincipal(actual)) { popUpTo(0) }
+                    } else {
+                        navController.navigateUp()
                     }
                 }
             )
         }
 
-
-        composable(Ruta.MisSiniestros.ruta) {
-
-            val aseguradoViewModel: AseguradoViewModel = viewModel()
-            val siniestros by aseguradoViewModel.siniestros.collectAsStateWithLifecycle()
-            val avisos by aseguradoViewModel.avisos.collectAsStateWithLifecycle()
-
-
-            usuarioActual?.let { usuario ->
-
-                LaunchedEffect(usuario.id) { aseguradoViewModel.cargar(usuario.id) }
-                MisSiniestrosScreen(
-                    usuario = usuario,
-                    siniestros = siniestros,
-                    avisosSinLeer = avisos.count{!it.leido},  // cuenta cuántos avisos no se han leído
-                    onAbrir = { id -> navController.navigate(Ruta.Detalle.crear(id)) },
-                    onReportar = { navController.navigate(Ruta.Reportar.ruta) },
-                    onVerAvisos = { navController.navigate(Ruta.Avisos.ruta) },
-                    onCerrarSesion = cerrarSesion
-                )
-            }
+        composable(Ruta.Perfil.ruta) {
+            val actual = usuario ?: return@composable
+            PerfilScreen(
+                usuario = actual,
+                onVolver = { navController.navigateUp() },
+                onGuardado = { sesionViewModel.refrescar() },              // nombre y foto nuevos en toda la app
+                onCambiarClave = { navController.navigate(Ruta.CambiarClave.crear(obligatorio = false)) },
+                onCerrarSesion = cerrarSesion
+            )
         }
 
+        // ------------------------------ ASEGURADO ------------------------------
+
+        composable(Ruta.MisSiniestros.ruta) {
+            // ?: return: si la sesión se cerró (usuario null) no se dibuja nada mientras se vuelve
+            val actual = usuario ?: return@composable
+            val ultimos by aseguradoViewModel.ultimos.collectAsStateWithLifecycle()
+            val avisos by aseguradoViewModel.avisos.collectAsStateWithLifecycle()
+            // Se recarga cada vez que la pantalla aparece (por ejemplo al volver de "Reportar")
+            LaunchedEffect(Unit) { aseguradoViewModel.cargar(actual.id) }
+
+            MisSiniestrosScreen(
+                usuario = actual,
+                ultimos = ultimos,
+                avisosSinLeer = avisos.count { !it.leido },   // cuenta cuántos avisos no se han leído
+                onAbrir = { id -> navController.navigate(Ruta.Detalle.crear(id)) },
+                onReportar = { navController.navigate(Ruta.Reportar.ruta) },
+                onVerAvisos = { navController.navigate(Ruta.Avisos.ruta) },
+                onVerPerfil = { navController.navigate(Ruta.Perfil.ruta) },
+                onBuscarPorFechas = { desde, hasta -> navController.navigate(Ruta.Resultados.crear(desde, hasta)) },
+                onVerTodos = { navController.navigate(Ruta.Resultados.crear()) },
+                onCerrarSesion = cerrarSesion
+            )
+        }
 
         composable(
-            Ruta.Detalle.ruta,
-            arguments = listOf(navArgument("id") { type = NavType.LongType })
+            route = Ruta.Resultados.ruta,
+            arguments = listOf(
+                navArgument("desde") { type = NavType.StringType; defaultValue = "" },
+                navArgument("hasta") { type = NavType.StringType; defaultValue = "" }
+            )
         ) { entrada ->
-            val actual = usuarioActual ?: return@composable
-            val id = entrada.arguments?.getLong("id") ?: 0L
+            val actual = usuario ?: return@composable
+            val desde = entrada.arguments?.getString("desde").orEmpty()
+            val hasta = entrada.arguments?.getString("hasta").orEmpty()
+            val resultados by aseguradoViewModel.resultados.collectAsStateWithLifecycle()
+            LaunchedEffect(desde, hasta) { aseguradoViewModel.buscar(actual.id, desde, hasta) }
+
+            ResultadosScreen(
+                desde = desde,
+                hasta = hasta,
+                siniestros = resultados,
+                onVolver = { navController.navigateUp() },
+                onAbrir = { id -> navController.navigate(Ruta.Detalle.crear(id)) }
+            )
+        }
+
+        composable(Ruta.Detalle.ruta, arguments = listOf(navArgument("id") { type = NavType.LongType })) { entrada ->
+            val actual = usuario ?: return@composable
+            val id = idDe(entrada)
             val detalle by aseguradoViewModel.detalle.collectAsStateWithLifecycle()
             LaunchedEffect(id) { aseguradoViewModel.cargarDetalle(id, actual.id) }
 
@@ -134,18 +200,30 @@ fun AppNavegacion() {
         }
 
         composable(Ruta.Reportar.ruta) {
-            usuarioActual?.let { actual ->
-                ReportarScreen(
-                    idAsegurado = actual.id,
-                    onVolver = { navController.navigateUp() },
-                    onTerminar = { navController.navigateUp() }
-                )
-            }
+            val actual = usuario ?: return@composable
+            ReportarScreen(
+                idAsegurado = actual.id,
+                onVolver = { navController.navigateUp() },
+                onTerminar = { navController.navigateUp() }
+            )
         }
-        composable(Ruta.Adjuntar.ruta) { Proximamente("Adjuntar documento") }
+
+        composable(Ruta.Adjuntar.ruta, arguments = listOf(navArgument("id") { type = NavType.LongType })) { entrada ->
+            val actual = usuario ?: return@composable
+            val id = idDe(entrada)
+            AdjuntarScreen(
+                idSiniestro = id,
+                idAsegurado = actual.id,
+                onVolver = { navController.navigateUp() },
+                onGuardado = {
+                    aseguradoViewModel.cargarDetalle(id, actual.id)   // el detalle muestra el documento nuevo
+                    navController.navigateUp()
+                }
+            )
+        }
 
         composable(Ruta.Avisos.ruta) {
-            val actual = usuarioActual ?: return@composable
+            val actual = usuario ?: return@composable
             val avisos by aseguradoViewModel.avisos.collectAsStateWithLifecycle()
             LaunchedEffect(Unit) { aseguradoViewModel.cargar(actual.id) }
 
@@ -159,23 +237,51 @@ fun AppNavegacion() {
             )
         }
 
-        composable(Ruta.Casos.ruta) { Proximamente("Casos del liquidador", cerrarSesion) }
-        composable(Ruta.Caso.ruta) { Proximamente("Caso del liquidador") }
-    }
-}
+        // ------------------------------ LIQUIDADOR ------------------------------
 
+        composable(Ruta.Casos.ruta) {
+            val actual = usuario ?: return@composable
+            val casos by liquidadorViewModel.casos.collectAsStateWithLifecycle()
+            val busqueda by liquidadorViewModel.busqueda.collectAsStateWithLifecycle()
+            LaunchedEffect(Unit) { liquidadorViewModel.cargarCasos(actual.id) }
 
-@Composable
-private fun Proximamente(titulo: String, onCerrarSesion: (() -> Unit)? = null) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(Dimens.espacioPantalla),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = titulo, style = MaterialTheme.typography.titleLarge)
-        Text(text = "Próximamente", style = MaterialTheme.typography.bodyMedium)
-        if (onCerrarSesion != null) {
-            BotonPrincipal(texto = "Cerrar sesión", onClick = onCerrarSesion)
+            CasosLiquidadorScreen(
+                usuario = actual,
+                casos = casos,
+                busqueda = busqueda,
+                onBusquedaCambia = { texto -> liquidadorViewModel.onBusquedaCambia(texto, actual.id) },
+                onAbrir = { id -> navController.navigate(Ruta.Caso.crear(id)) },
+                onNuevoCliente = { navController.navigate(Ruta.Registro.ruta) },
+                onVerPerfil = { navController.navigate(Ruta.Perfil.ruta) },
+                onCerrarSesion = cerrarSesion
+            )
+        }
+
+        composable(Ruta.Caso.ruta, arguments = listOf(navArgument("id") { type = NavType.LongType })) { entrada ->
+            val actual = usuario ?: return@composable
+            CasoLiquidadorScreen(
+                idSiniestro = idDe(entrada),
+                liquidador = actual,
+                viewModel = liquidadorViewModel,
+                onVolver = { navController.navigateUp() }
+            )
+        }
+
+        composable(Ruta.Registro.ruta) {
+            FormularioScreen(onVolver = { navController.navigateUp() })
         }
     }
 }
+
+// Al abrir la app: sin sesión -> bienvenida; con clave temporal -> cambiarla; si no, su pantalla principal
+private fun rutaInicial(usuario: Usuario?): String = when {
+    usuario == null -> Ruta.Login.ruta
+    usuario.claveTemporal -> Ruta.CambiarClave.crear(obligatorio = true)
+    else -> rutaPrincipal(usuario)
+}
+
+// Cada perfil tiene su propia pantalla principal
+private fun rutaPrincipal(usuario: Usuario): String =
+    if (usuario.esAsegurado) Ruta.MisSiniestros.ruta else Ruta.Casos.ruta
+
+private fun idDe(entrada: NavBackStackEntry): Long = entrada.arguments?.getLong("id") ?: 0L
