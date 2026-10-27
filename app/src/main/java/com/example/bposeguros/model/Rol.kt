@@ -9,4 +9,4 @@ data class Rol(
         const val ID_LIQUIDADOR = 2L
         const val ID_ANALISTA = 3L
     }
-}
+}

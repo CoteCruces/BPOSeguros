@@ -22,4 +22,4 @@ object EstilosCampo {
         errorBorderColor = MaterialTheme.colorScheme.error,
         cursorColor = MaterialTheme.colorScheme.primary
     )
-}
+}

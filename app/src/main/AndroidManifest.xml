@@ -2,6 +2,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- PERMISOS (paso 1 de 4: DECLARAR lo que la app necesita) -->
+
+    <!-- Cámara: para fotografiar el daño y adjuntarlo al siniestro (HU-05) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Galería: Android 13+ usa READ_MEDIA_IMAGES; Android 12 o menos, READ_EXTERNAL_STORAGE -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- Notificaciones: desde Android 13 hay que pedir permiso para mostrarlas (RF-09) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- La app usa la cámara, pero también funciona en equipos sin cámara (galería) -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

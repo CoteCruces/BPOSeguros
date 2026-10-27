@@ -70,4 +70,4 @@ private fun BotonPrincipalPreview() {
             BotonPrincipal(texto = "Deshabilitado", onClick = {}, habilitado = false, modifier = Modifier.fillMaxWidth())
         }
     }
-}
+}

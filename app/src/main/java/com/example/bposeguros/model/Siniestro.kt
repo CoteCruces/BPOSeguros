@@ -7,8 +7,7 @@ data class Siniestro(
     val numero: String,
     val aseguradoId: Long,
     val aseguradoNombre: String = "",
-    val aseguradoRut: String = "",
-
+    val aseguradoRut: String = "",            // para que el liquidador reconozca al cliente
     val companiaId: Long,
     val companiaNombre: String = "",
     val tipoId: Long,
@@ -27,7 +26,10 @@ data class Siniestro(
     val mensajeCierre: String? = null,
     val ultimaActualizacion: String? = null
 ) {
+    val estaCerrado: Boolean get() = etapa == Etapa.CERRADO
 
+    // RN-14: al asegurado solo se le muestra "Paulina F. – Equipo Vehículos" (nunca correo ni teléfono).
+    // Supone el formato "Nombre Apellido Apellido" de los datos de ejemplo.
     fun liquidadorVisible(): String? {
         val nombre = liquidadorNombre ?: return null
         val partes = nombre.trim().split(" ")
@@ -35,8 +37,14 @@ data class Siniestro(
         return if (liquidadorEquipo.isNullOrBlank()) abreviado else "$abreviado – Equipo $liquidadorEquipo"
     }
 
-    val estaCerrado: Boolean get() = etapa == Etapa.CERRADO
+    // El RUT del cliente con puntos y guion, para la lista del liquidador: "158423715" -> "15.842.371-5"
+    fun rutAseguradoFormateado(): String {
+        if (aseguradoRut.length < 2) return aseguradoRut
+        val cuerpo = aseguradoRut.dropLast(1).reversed().chunked(3).joinToString(".").reversed()
+        return "$cuerpo-${aseguradoRut.last()}"
+    }
 
+    // "¿Qué viene ahora?": el texto depende de la etapa y de si faltan documentos
     fun proximoPaso(hayPendientes: Boolean): Int = when (etapa) {
         Etapa.RECIBIDO -> R.string.paso_recibido
         Etapa.EN_EVALUACION ->

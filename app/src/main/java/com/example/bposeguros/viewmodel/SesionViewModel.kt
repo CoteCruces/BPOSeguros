@@ -24,12 +24,19 @@ class SesionViewModel(application: Application) : AndroidViewModel(application) 
     private val _usuarioActual = MutableStateFlow(db.buscarUsuarioPorId(sesion.leer()))
     val usuarioActual: StateFlow<Usuario?> = _usuarioActual.asStateFlow()
 
-    // Es el "registrar" del profesor, pero SIN INSERT: el usuario ya existe en la BD
-    // (FA-01: el caso no pide crear cuentas). Solo se deja como usuario actual y se recuerda.
+    // El usuario ya existe en la BD (lo creó el liquidador o viene en los datos de ejemplo).
+    // Aquí solo se deja como usuario actual y se recuerda.
     fun iniciarSesion(usuario: Usuario) {
         _usuarioActual.value = usuario
         // NUEVO (SharedPreferences): se recuerda quién inició sesión
         sesion.guardar(usuario.id)
+    }
+
+    // Vuelve a leer al usuario desde la BD (después de editar el perfil o cambiar la contraseña),
+    // así el nombre y la foto nuevos se ven al tiro en todas las pantallas.
+    fun refrescar() {
+        val actual = _usuarioActual.value ?: return
+        _usuarioActual.value = db.buscarUsuarioPorId(actual.id)
     }
 
     fun cerrarSesion() {

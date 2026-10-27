@@ -4,13 +4,21 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.example.bposeguros.data.SiniestroDbHelper
 import com.example.bposeguros.model.LoginUiState
+import com.example.bposeguros.model.Rol
 import com.example.bposeguros.model.Usuario
+import com.example.bposeguros.ui.util.Seguridad
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-
+// =====================================================================
+//  LoginViewModel.kt  —  PANTALLA DE BIENVENIDA (ingreso con RUT + contraseña)
+//  - Clientes y liquidadores entran IGUAL: con su RUT y su contraseña.
+//  - El interruptor "Soy liquidador de Andes" es un FILTRO: la fila encontrada en la BD
+//    trae el id_rol y debe coincidir con lo elegido. Luego AppNavegacion decide a qué pantalla ir.
+//  - No navega: onIngresar() devuelve el Usuario (o null si algo falló).
+// =====================================================================
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = SiniestroDbHelper.obtener(application)
@@ -18,80 +26,75 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+    // ----- Eventos -----
 
-
+    // Interruptor cliente / liquidador. Se borran los errores porque cambió lo que se está pidiendo.
     fun onModoCambia(esLiquidador: Boolean) {
-        _uiState.update { it.copy(esLiquidador = esLiquidador, errorRut = null, errorCodigo = null) }
+        _uiState.update { it.copy(esLiquidador = esLiquidador, errorRut = null, errorClave = null) }
     }
 
     fun onRutCambia(valor: String) {
         _uiState.update { it.copy(rut = valor, errorRut = null) }
     }
 
-    fun onCodigoCambia(valor: String) {
-        _uiState.update { it.copy(clave = valor, errorCodigo = null) }
+    fun onClaveCambia(valor: String) {
+        _uiState.update { it.copy(clave = valor, errorClave = null) }
     }
 
     fun onAlternarVisibilidad() {
         _uiState.update { it.copy(claveVisible = !it.claveVisible) }
     }
 
-
+    /** Botón "Ingresar": valida el formato, busca RUT + clave en la BD y entrega el Usuario (o null). */
     fun onIngresar(): Usuario? {
         val estado = _uiState.value
-        return if (estado.esLiquidador) ingresarColaborador(estado) else ingresarAsegurado(estado)
-    }
 
-    private fun ingresarAsegurado(estado: LoginUiState): Usuario? {
-        val errorFormato = when {
+        // 1) Formato
+        val errorRut = when {
             estado.rut.isBlank() -> "El RUT es obligatorio"
             !rutValido(estado.rut) -> "El RUT no es válido. Revisa el dígito verificador"
             else -> null
         }
-        if (errorFormato != null) {
-            _uiState.update { it.copy(errorRut = errorFormato) }
+        val errorClave = if (estado.clave.isBlank()) "Escribe tu contraseña" else null
+        if (errorRut != null || errorClave != null) {
+            _uiState.update { it.copy(errorRut = errorRut, errorClave = errorClave) }
             return null
         }
 
-        val usuario = db.buscarAseguradoPorRut(limpiarRut(estado.rut))
-        if (usuario == null) {
-            _uiState.update { it.copy(errorRut = "No encontramos un asegurado con ese RUT") }
+        // 2) ¿Existe alguien con ese RUT y esa contraseña?
+        // Se compara la HUELLA de lo escrito con la huella guardada (la clave real nunca se guarda).
+        val usuario = db.buscarPorRutYClave(limpiarRut(estado.rut), Seguridad.huella(estado.clave))
+
+        // Por seguridad NO se dice cuál de los dos está mal: así nadie puede averiguar
+        // si un RUT tiene cuenta probando contraseñas al azar.
+        val error = when {
+            usuario == null -> "RUT o contraseña incorrectos"
+            !usuario.activo -> "Tu cuenta no está activa. Comunícate con Andes"
+            usuario.rolId == Rol.ID_ANALISTA -> "Por ahora solo asegurados y liquidadores usan la app"
+            // Filtro del interruptor (solo se llega aquí si el RUT y la contraseña ya estaban bien)
+            estado.esLiquidador && usuario.esAsegurado ->
+                "Esta cuenta es de cliente. Desactiva \"Soy liquidador de Andes\""
+            !estado.esLiquidador && !usuario.esAsegurado ->
+                "Esta cuenta es de liquidador. Activa \"Soy liquidador de Andes\""
+            else -> null
         }
+        if (error != null) {
+            _uiState.update { it.copy(errorClave = error) }
+            return null
+        }
+        // Se borra la contraseña del estado: no queda escrita al volver a esta pantalla
+        // (el interruptor se mantiene como estaba)
+        _uiState.value = LoginUiState(esLiquidador = estado.esLiquidador)
         return usuario
     }
 
-    private fun ingresarColaborador(estado: LoginUiState): Usuario? {
-        val codigo = estado.clave.trim().uppercase()
-        val errorFormato = when {
-            codigo.isBlank() -> "El código es obligatorio"
-            !Regex("^LIQ-\\d{2}$").matches(codigo) -> "El código debe tener el formato LIQ-01"
-            else -> null
-        }
-        if (errorFormato != null) {
-            _uiState.update { it.copy(errorCodigo = errorFormato) }
-            return null
-        }
+    // ----- Validación del RUT (RN-03) -----
 
-        val usuario = db.buscarColaboradorPorCodigo(codigo)
-        return when {
-            usuario == null -> {
-                _uiState.update { it.copy(errorCodigo = "No encontramos ese código") }
-                null
-            }
-            !usuario.activo -> {
-                _uiState.update { it.copy(errorCodigo = "Ese código no está activo") }
-                null
-            }
-            else -> usuario
-        }
-    }
-
-
-
+    // "15.842.371-5" -> "158423715"  (sin puntos, sin guion, K en mayúscula)
     private fun limpiarRut(valor: String): String =
         valor.replace(".", "").replace("-", "").trim().uppercase()
 
-
+    // Algoritmo módulo 11: multiplica los dígitos de derecha a izquierda por 2,3,4,5,6,7,2,3...
     private fun rutValido(valor: String): Boolean {
         val limpio = limpiarRut(valor)
         if (limpio.length < 8 || limpio.length > 9) return false

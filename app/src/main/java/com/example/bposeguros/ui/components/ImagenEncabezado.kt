@@ -94,8 +94,8 @@ private fun ImagenEncabezadoPreview() {
         ImagenEncabezado(
             imagen = R.drawable.banner_registro_bpo,
             descripcion = "",
-            titulo = "Únete a BPO Seguros y Sigue tu siniesto",
-            subtitulo = "Regístrate completando tus datos"
+            titulo = "Crea la cuenta de un cliente",
+            subtitulo = "El cliente completará el resto de sus datos al entrar"
         )
     }
 }

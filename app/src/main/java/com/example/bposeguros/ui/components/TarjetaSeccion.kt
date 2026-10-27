@@ -58,4 +58,4 @@ private fun TarjetaSeccionPreview() {
             Text("Cualquier contenido puede ir aquí dentro.")
         }
     }
-}
+}

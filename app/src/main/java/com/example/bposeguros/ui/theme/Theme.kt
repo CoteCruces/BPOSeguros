@@ -75,4 +75,4 @@ fun BPOSegurosTheme(
         shapes = Formas,
         content = content
     )
-}
+}

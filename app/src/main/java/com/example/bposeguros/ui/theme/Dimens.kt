@@ -36,4 +36,4 @@ object Dimens {
     // íconos y zonas táctiles
     val tamanoIcono = 24.dp
     val tamanoTactil = 48.dp
-}
+}

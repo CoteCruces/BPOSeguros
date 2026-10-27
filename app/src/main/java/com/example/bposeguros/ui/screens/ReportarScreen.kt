@@ -31,6 +31,11 @@ import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.ReportarViewModel
 
+// =====================================================================
+//  ReportarScreen.kt  —  FORMULARIO "REPORTAR UN SINIESTRO" (RF-02, RF-03 / HU-01)
+//  Cada campo tiene ícono y su propio mensaje de error (las reglas están en el ViewModel).
+//  Dos diálogos: advertencia de posible duplicado y número de siniestro entregado.
+// =====================================================================
 @Composable
 fun ReportarScreen(
     idAsegurado: Long,
@@ -70,6 +75,7 @@ fun ReportarScreen(
                     onSeleccionar = viewModel::onTipoElegido,
                     icono = R.drawable.ic_documento,
                     error = uiState.errorTipo,
+                    // hasta elegir compañía no se sabe qué tipos corresponden (no todas tienen vehículo y hogar)
                     habilitado = uiState.companiaElegida != null
                 )
             }
@@ -84,9 +90,11 @@ fun ReportarScreen(
                     ayuda = stringResource(R.string.ayuda_fecha),
                     tipoTeclado = KeyboardType.Number
                 )
+                // Lista de comunas de la BD: no se puede escribir una comuna inventada
                 CampoSeleccion(
                     etiqueta = stringResource(R.string.campo_comuna),
                     opciones = uiState.comunas,
+                    // indexOf da -1 si todavía no elige ninguna; takeIf lo convierte en null
                     seleccionada = uiState.comunas.indexOf(uiState.comuna).takeIf { it >= 0 },
                     onSeleccionar = viewModel::onComunaElegida,
                     icono = R.drawable.ic_ubicacion,
@@ -119,6 +127,7 @@ fun ReportarScreen(
         }
     }
 
+    // Aclaración 3: posible duplicado -> se advierte, pero se puede continuar
     uiState.posibleDuplicado?.let { numero ->
         AlertDialog(
             onDismissRequest = viewModel::onCancelarDuplicado,
@@ -136,6 +145,7 @@ fun ReportarScreen(
         )
     }
 
+    // RF-03: al terminar se entrega el número de siniestro
     uiState.numeroCreado?.let { numero ->
         AlertDialog(
             onDismissRequest = onTerminar,

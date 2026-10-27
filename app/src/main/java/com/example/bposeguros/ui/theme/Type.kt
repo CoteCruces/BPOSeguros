@@ -38,4 +38,4 @@ val Tipografia = Typography(
         fontSize = 16.sp,
         letterSpacing = 0.3.sp
     )
-)
+)

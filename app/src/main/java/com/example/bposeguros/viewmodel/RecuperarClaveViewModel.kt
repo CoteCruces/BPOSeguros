@@ -1,76 +1,77 @@
 package com.example.bposeguros.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import com.example.bposeguros.data.SiniestroDbHelper
 import com.example.bposeguros.model.RecuperarClaveUiState
+import com.example.bposeguros.ui.util.Seguridad
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.random.Random
 
-class RecuperarClaveViewModel : ViewModel() {
+// =====================================================================
+//  RecuperarClaveViewModel.kt  —  "¿Olvidaste tu contraseña?"
+//  1) La persona escribe su RUT y el correo de su cuenta.
+//  2) Si coinciden con la BD, se crea una contraseña TEMPORAL y se guarda (su huella).
+//  3) Se "envía" al correo. Mandar un correo de verdad necesita un servidor,
+//     que este proyecto no tiene; por eso la pantalla muestra el correo SIMULADO.
+//  4) Al entrar con la temporal, la app obliga a cambiarla (clave_temporal = 1).
+// =====================================================================
+class RecuperarClaveViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val db = SiniestroDbHelper.obtener(application)
 
     private val _uiState = MutableStateFlow(RecuperarClaveUiState())
     val uiState: StateFlow<RecuperarClaveUiState> = _uiState.asStateFlow()
 
     fun onRutCambia(valor: String) {
-        _uiState.update {
-            it.copy(
-                rut = valor,
-                errorRut = null,
-                claveTemporal = null
-            )
-        }
+        _uiState.update { it.copy(rut = valor, errorRut = null) }
     }
 
     fun onCorreoCambia(valor: String) {
-        _uiState.update {
-            it.copy(
-                correo = valor.trim(),
-                errorCorreo = null,
-                claveTemporal = null
-            )
-        }
+        _uiState.update { it.copy(correo = valor.trim(), errorCorreo = null) }
     }
 
     fun onEnviar() {
         val estado = _uiState.value
-
-
         val errorRut = when {
             estado.rut.isBlank() -> "El RUT es obligatorio"
             !rutValido(estado.rut) -> "El RUT no es válido. Revisa el dígito verificador"
             else -> null
         }
-
-
         val errorCorreo = when {
             estado.correo.isBlank() -> "El correo es obligatorio"
             !estado.correo.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")) ->
                 "Ingresa un correo válido (ejemplo: usuario@dominio.com)"
             else -> null
         }
-
-        val hayErrores = errorRut != null || errorCorreo != null
-
-        _uiState.update {
-            it.copy(
-                errorRut = errorRut,
-                errorCorreo = errorCorreo,
-                claveTemporal = if (hayErrores) null else generarClaveTemporal()
-            )
+        if (errorRut != null || errorCorreo != null) {
+            _uiState.update { it.copy(errorRut = errorRut, errorCorreo = errorCorreo) }
+            return
         }
+
+        // El correo debe ser EL de esa cuenta (ignoreCase = true: no importan mayúsculas)
+        val usuario = db.buscarUsuarioPorRut(limpiarRut(estado.rut))
+        if (usuario == null || !usuario.correo.equals(estado.correo, ignoreCase = true)) {
+            _uiState.update { it.copy(errorCorreo = "El RUT y el correo no coinciden con ninguna cuenta") }
+            return
+        }
+
+        val temporal = Seguridad.claveTemporal()
+        db.cambiarClave(usuario.id, Seguridad.huella(temporal), temporal = true)
+        _uiState.update { it.copy(correo = usuario.correo, claveTemporal = temporal) }
     }
 
-    private fun generarClaveTemporal(): String {
-        val caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#"
-        return (1..8)
-            .map { caracteres[Random.nextInt(caracteres.length)] }
-            .joinToString("")
-    }
+    // ----- Validación del RUT (RN-03) -----
 
+    // "15.842.371-5" -> "158423715"  (sin puntos, sin guion, K en mayúscula)
+    private fun limpiarRut(valor: String): String =
+        valor.replace(".", "").replace("-", "").trim().uppercase()
+
+    // Algoritmo módulo 11: multiplica los dígitos de derecha a izquierda por 2,3,4,5,6,7,2,3...
     private fun rutValido(valor: String): Boolean {
-        val limpio = valor.replace(".", "").replace("-", "").trim().uppercase()
+        val limpio = limpiarRut(valor)
         if (limpio.length < 8 || limpio.length > 9) return false
         val cuerpo = limpio.dropLast(1)
         val digitoVerificador = limpio.last()

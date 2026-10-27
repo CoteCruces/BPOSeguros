@@ -23,15 +23,21 @@ import com.example.bposeguros.model.Siniestro
 import com.example.bposeguros.ui.styles.EstilosTarjeta
 import com.example.bposeguros.ui.theme.BPOSegurosTheme
 import com.example.bposeguros.ui.theme.Dimens
-import com.example.bposeguros.util.Fechas
+import com.example.bposeguros.ui.util.Fechas
 
+// =====================================================================
+//  TarjetaSiniestro.kt  —  Un siniestro dentro de una lista (HU-02 CA1)
+//  Muestra: número, etapa (lo más visible), compañía, tipo y última actualización.
+//  "extra" permite agregar una línea más (ej. el nombre del asegurado para el liquidador).
+//  Card(onClick = ...) hace que toda la tarjeta sea presionable.
+// =====================================================================
 @Composable
 fun TarjetaSiniestro(
     siniestro: Siniestro,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     extra: String? = null,
-    alerta: String? = null
+    alerta: String? = null           // texto de advertencia (ej. "7 días sin gestión visible")
 ) {
     Card(
         onClick = onClick,
@@ -52,7 +58,7 @@ fun TarjetaSiniestro(
                 )
                 EtiquetaEtapa(siniestro.etapa)
             }
-            FilaDato(R.drawable.ic_compania, siniestro.companiaNombre)
+            FilaDato(R.drawable.ic_compania, siniestro.companiaNombre)      // S-01: siempre la compañía
             FilaDato(R.drawable.ic_documento, siniestro.tipoNombre)
             if (extra != null) FilaDato(R.drawable.ic_persona, extra)
             FilaDato(
@@ -75,6 +81,7 @@ fun TarjetaSiniestro(
     }
 }
 
+// Una línea "ícono + texto". Se usa también en el detalle.
 @Composable
 fun FilaDato(@DrawableRes icono: Int, texto: String, modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
