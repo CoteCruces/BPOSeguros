@@ -37,4 +37,4 @@ private fun BotonSecundarioPreview() {
     BPOSegurosTheme {
         BotonSecundario(texto = "Limpiar", onClick = {}, modifier = Modifier.padding(16.dp))
     }
-}
+}

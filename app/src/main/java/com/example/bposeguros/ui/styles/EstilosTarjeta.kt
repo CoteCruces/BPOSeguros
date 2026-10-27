@@ -22,4 +22,4 @@ object EstilosTarjeta {
     fun elevacion(): CardElevation = CardDefaults.cardElevation(
         defaultElevation = Dimens.elevacionTarjeta
     )
-}
+}

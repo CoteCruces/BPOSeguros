@@ -55,4 +55,4 @@ object EstilosBoton {
 }
 
 // Altura mínima: crece si el usuario aumenta el tamaño de letra del teléfono (RNF-04)
-fun Modifier.estiloAltoBoton(): Modifier = this.heightIn(min = Dimens.alturaBoton)
+fun Modifier.estiloAltoBoton(): Modifier = this.heightIn(min = Dimens.alturaBoton)

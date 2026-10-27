@@ -13,6 +13,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.bposeguros.R
 
+// =====================================================================
+//  BarraSuperior.kt  —  la barra azul de arriba, para usar en todas las pantallas
+//   - onVolver != null  -> muestra la flecha de volver
+//   - acciones          -> íconos a la derecha (campana, salir...), los pone cada pantalla
+// =====================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraSuperior(
@@ -40,4 +45,4 @@ fun BarraSuperior(
             actionIconContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
-}
+}
