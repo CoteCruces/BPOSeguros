@@ -34,14 +34,6 @@ import com.example.bposeguros.ui.components.TarjetaSiniestro
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.util.Fechas
 
-// =====================================================================
-//  CasosLiquidadorScreen.kt  —  Casos asignados al liquidador (RF-10)
-//  - BUSCADOR (sugerencia del profesor): por N° de siniestro, RUT o nombre del cliente.
-//    Buscar por número es lo más directo: un número identifica UN solo caso.
-//  - Botón flotante "Nuevo cliente": aquí se crean las cuentas de los clientes.
-//  Aclaración 8 (deseable): se marcan los casos abiertos que llevan más de
-//  7 días sin una gestión visible, porque incumplen RN-16.
-// =====================================================================
 @Composable
 fun CasosLiquidadorScreen(
     usuario: Usuario,
@@ -104,7 +96,6 @@ fun CasosLiquidadorScreen(
             }
             items(casos, key = { it.id }) { caso ->
                 val dias = Fechas.diasEntre(caso.ultimaActualizacion ?: caso.fechaCambioEtapa, Fechas.hoy())
-                // Nombre del cliente + su RUT (un cliente nuevo puede no tener nombre todavía)
                 val cliente = caso.aseguradoNombre.ifBlank { stringResource(R.string.texto_cliente_sin_nombre) } +
                         " · " + caso.rutAseguradoFormateado()
                 TarjetaSiniestro(
@@ -115,7 +106,7 @@ fun CasosLiquidadorScreen(
                     modifier = Modifier.animateItem()
                 )
             }
-            item { Spacer(Modifier.height(72.dp)) }     // espacio para que el botón flotante no tape la última
+            item { Spacer(Modifier.height(72.dp)) }
         }
     }
 

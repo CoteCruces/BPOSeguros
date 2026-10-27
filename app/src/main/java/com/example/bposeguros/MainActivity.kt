@@ -12,7 +12,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        // El canal de notificaciones debe existir antes de mostrar la primera
         Notificador.crearCanal(this)
         setContent {
             BPOSegurosTheme { AppNavegacion() }

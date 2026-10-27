@@ -10,20 +10,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-// =====================================================================
-//  AseguradoViewModel.kt  —  Datos que ve la persona asegurada
-//  Se crea UNA vez en AppNavegacion y lo comparten: Mis siniestros, Resultados, Detalle y Avisos.
-//  Todas las consultas reciben el id del asegurado (RNF-07: nunca ve casos de otra persona).
-// =====================================================================
 class AseguradoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = SiniestroDbHelper.obtener(application)
 
-    // Pantalla principal: SOLO los 2 últimos registrados (sugerencia del profesor)
     private val _ultimos = MutableStateFlow<List<Siniestro>>(emptyList())
     val ultimos: StateFlow<List<Siniestro>> = _ultimos.asStateFlow()
 
-    // Pantalla "Resultados": los de un rango de fechas o todos
     private val _resultados = MutableStateFlow<List<Siniestro>>(emptyList())
     val resultados: StateFlow<List<Siniestro>> = _resultados.asStateFlow()
 
@@ -33,13 +26,11 @@ class AseguradoViewModel(application: Application) : AndroidViewModel(applicatio
     private val _detalle = MutableStateFlow(DetalleUiState())
     val detalle: StateFlow<DetalleUiState> = _detalle.asStateFlow()
 
-    // Se llama cada vez que se entra a "Mis siniestros" (así se ve lo recién reportado)
     fun cargar(idAsegurado: Long) {
         _ultimos.value = db.listarUltimosSiniestros(idAsegurado, cantidad = 2)
         _avisos.value = db.listarAvisos(idAsegurado)
     }
 
-    // desde y hasta = "aaaa-mm-dd" -> los que ocurrieron entre esas fechas.  Vacías -> todos.
     fun buscar(idAsegurado: Long, desde: String, hasta: String) {
         _resultados.value =
             if (desde.isBlank() || hasta.isBlank()) db.listarSiniestrosDeAsegurado(idAsegurado)
@@ -50,7 +41,7 @@ class AseguradoViewModel(application: Application) : AndroidViewModel(applicatio
         val siniestro = db.buscarSiniestroDeAsegurado(idSiniestro, idAsegurado)
         _detalle.value = if (siniestro == null) DetalleUiState() else DetalleUiState(
             siniestro = siniestro,
-            gestiones = db.listarGestiones(idSiniestro, soloVisibles = true),   // RN-13
+            gestiones = db.listarGestiones(idSiniestro, soloVisibles = true),
             solicitudes = db.listarSolicitudes(idSiniestro),
             adjuntos = db.listarAdjuntos(idSiniestro)
         )

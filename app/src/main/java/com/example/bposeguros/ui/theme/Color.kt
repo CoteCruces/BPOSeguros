@@ -2,10 +2,9 @@ package com.example.bposeguros.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Tonos para Tema Oscuro (Variaciones de azul claro/pastel)
-val Blue80 = Color(0xFF90CAF9)      // Azul principal claro
-val BlueGrey80 = Color(0xFFB0BEC5)  // Azul grisáceo claro
-val Cyan80 = Color(0xFF80DEEA)      // Azul complementario (Cian pastel)
+val Blue80 = Color(0xFF90CAF9)
+val BlueGrey80 = Color(0xFFB0BEC5)
+val Cyan80 = Color(0xFF80DEEA)
 val ContenedorOscuro = Color(0xFF0F3D66)
 val SobreContenedorOscuro = Color(0xFFD1E4FF)
 val SobrePrimarioOscuro = Color(0xFF00325A)
@@ -13,11 +12,10 @@ val FondoOscuro = Color(0xFF111418)
 val SuperficieOscura = Color(0xFF1A1E23)
 val TextoClaro = Color(0xFFE3E7EB)
 
-// Tonos para Tema Claro (Variaciones de azul oscuro/intenso)
-val Blue40 = Color(0xFF1976D2)      // Azul principal fuerte
-val BlueGrey40 = Color(0xFF546E7A)  // Azul grisáceo oscuro
-val Cyan40 = Color(0xFF00727F)      // Azul complementario oscuro
-val ContenedorClaro = Color(0xFFD6E8FB)     // fondo de tarjetas destacadas
+val Blue40 = Color(0xFF1976D2)
+val BlueGrey40 = Color(0xFF546E7A)
+val Cyan40 = Color(0xFF00727F)
+val ContenedorClaro = Color(0xFFD6E8FB)
 val SobreContenedorClaro = Color(0xFF0D3B66)
 val FondoClaro = Color(0xFFF5F8FC)
 val SuperficieClara = Color(0xFFFFFFFF)
@@ -34,10 +32,8 @@ val ErrorOscuro = Color(0xFFF2B8B5)
 val BordeCampo = Color(0xFF6B7782)
 
 
-// Colores de las etapas: tonos suaves (Aclaración 10: estilo sobrio, sin transmitir urgencia).
-// Siempre van junto a un ícono y un texto, nunca solos (RNF-04).
-val EtapaRecibido = Color(0xFFCFD8E3)      // gris azulado
-val EtapaEvaluacion = Color(0xFFFFE0A3)    // ámbar claro
-val EtapaLiquidacion = Color(0xFFB9D7F5)   // azul claro
-val EtapaCerrado = Color(0xFFBFE6CC)       // verde claro
+val EtapaRecibido = Color(0xFFCFD8E3)
+val EtapaEvaluacion = Color(0xFFFFE0A3)
+val EtapaLiquidacion = Color(0xFFB9D7F5)
+val EtapaCerrado = Color(0xFFBFE6CC)
 

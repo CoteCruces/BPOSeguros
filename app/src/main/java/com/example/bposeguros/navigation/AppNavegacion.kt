@@ -34,64 +34,38 @@ import com.example.bposeguros.viewmodel.AseguradoViewModel
 import com.example.bposeguros.viewmodel.LiquidadorViewModel
 import com.example.bposeguros.viewmodel.SesionViewModel
 
-// =====================================================================
-//  AppNavegacion.kt — el ÚNICO lugar que decide a dónde se va.
-//  Las pantallas no navegan solas: solo avisan "pasó esto" (onIngresoExitoso...)
-//  y aquí se decide el destino.
-//
-//   Bienvenida ─┬─▶ ¿Olvidaste tu contraseña?
-//               ├─ (clave temporal) ─▶ Cambiar contraseña (obligatorio)
-//               ├─ asegurado ─▶ MisSiniestros ─┬─▶ Detalle ─▶ Adjuntar
-//               │                              ├─▶ Resultados (entre fechas / todos) ─▶ Detalle
-//               │                              ├─▶ Reportar
-//               │                              ├─▶ Avisos ─▶ Detalle
-//               │                              └─▶ Mi perfil ─▶ Cambiar contraseña
-//               └─ liquidador ▶ Casos ─┬─▶ Caso
-//                                      ├─▶ Nuevo cliente
-//                                      └─▶ Mi perfil ─▶ Cambiar contraseña
-//
-//  Todas las pantallas que no son "principales" tienen flecha de volver (navigateUp).
-//  Las principales (MisSiniestros y Casos) tienen "Cerrar sesión", que vuelve a la bienvenida.
-// =====================================================================
 @Composable
 fun AppNavegacion() {
     val navController = rememberNavController()
 
-    // ViewModels compartidos: se crean UNA vez aquí y viven mientras la app está abierta
     val sesionViewModel: SesionViewModel = viewModel()
     val aseguradoViewModel: AseguradoViewModel = viewModel()
     val liquidadorViewModel: LiquidadorViewModel = viewModel()
 
     val usuario by sesionViewModel.usuarioActual.collectAsStateWithLifecycle()
 
-    // Si ya hay una sesión guardada (SharedPreferences) se entra directo, sin pasar por la bienvenida.
-    // remember { } sin claves: se calcula solo al abrir la app.
     val inicio = remember { rutaInicial(sesionViewModel.usuarioActual.value) }
 
-    // Cierra la sesión y vuelve a la bienvenida borrando todo el historial de pantallas
     val cerrarSesion = {
         sesionViewModel.cerrarSesion()
-        liquidadorViewModel.limpiar()                              // no queda la búsqueda del anterior
-        navController.navigate(Ruta.Login.ruta) { popUpTo(0) }    // popUpTo(0) = vacía la pila
+        liquidadorViewModel.limpiar()
+        navController.navigate(Ruta.Login.ruta) { popUpTo(0) }
     }
 
     NavHost(
         navController = navController,
         startDestination = inicio,
-        // ANIMACIÓN entre pantallas: la nueva entra deslizándose desde la derecha
         enterTransition = { slideInHorizontally { ancho -> ancho / 3 } + fadeIn() },
         exitTransition = { fadeOut() },
         popEnterTransition = { fadeIn() },
         popExitTransition = { slideOutHorizontally { ancho -> ancho / 3 } + fadeOut() }
     ) {
 
-        // ------------------------------ CUENTA ------------------------------
 
         composable(Ruta.Login.ruta) {
             LoginScreen(
                 onIngresoExitoso = { usuarioIngresado ->
-                    sesionViewModel.iniciarSesion(usuarioIngresado)        // guarda el id en SharedPreferences
-                    // popUpTo(Login) inclusive: al apretar "atrás" no se vuelve a la bienvenida
+                    sesionViewModel.iniciarSesion(usuarioIngresado)
                     navController.navigate(rutaInicial(usuarioIngresado)) {
                         popUpTo(Ruta.Login.ruta) { inclusive = true }
                     }
@@ -116,10 +90,9 @@ fun AppNavegacion() {
             CambiarClaveScreen(
                 idUsuario = actual.id,
                 obligatorio = obligatorio,
-                // Obligatorio: no puede saltarse el cambio -> la flecha cierra la sesión
                 onVolver = { if (obligatorio) cerrarSesion() else navController.navigateUp() },
                 onCambiada = {
-                    sesionViewModel.refrescar()                            // ahora claveTemporal = false
+                    sesionViewModel.refrescar()
                     if (obligatorio) {
                         navController.navigate(rutaPrincipal(actual)) { popUpTo(0) }
                     } else {
@@ -134,26 +107,23 @@ fun AppNavegacion() {
             PerfilScreen(
                 usuario = actual,
                 onVolver = { navController.navigateUp() },
-                onGuardado = { sesionViewModel.refrescar() },              // nombre y foto nuevos en toda la app
+                onGuardado = { sesionViewModel.refrescar() },
                 onCambiarClave = { navController.navigate(Ruta.CambiarClave.crear(obligatorio = false)) },
                 onCerrarSesion = cerrarSesion
             )
         }
 
-        // ------------------------------ ASEGURADO ------------------------------
 
         composable(Ruta.MisSiniestros.ruta) {
-            // ?: return: si la sesión se cerró (usuario null) no se dibuja nada mientras se vuelve
             val actual = usuario ?: return@composable
             val ultimos by aseguradoViewModel.ultimos.collectAsStateWithLifecycle()
             val avisos by aseguradoViewModel.avisos.collectAsStateWithLifecycle()
-            // Se recarga cada vez que la pantalla aparece (por ejemplo al volver de "Reportar")
             LaunchedEffect(Unit) { aseguradoViewModel.cargar(actual.id) }
 
             MisSiniestrosScreen(
                 usuario = actual,
                 ultimos = ultimos,
-                avisosSinLeer = avisos.count { !it.leido },   // cuenta cuántos avisos no se han leído
+                avisosSinLeer = avisos.count { !it.leido },
                 onAbrir = { id -> navController.navigate(Ruta.Detalle.crear(id)) },
                 onReportar = { navController.navigate(Ruta.Reportar.ruta) },
                 onVerAvisos = { navController.navigate(Ruta.Avisos.ruta) },
@@ -216,7 +186,7 @@ fun AppNavegacion() {
                 idAsegurado = actual.id,
                 onVolver = { navController.navigateUp() },
                 onGuardado = {
-                    aseguradoViewModel.cargarDetalle(id, actual.id)   // el detalle muestra el documento nuevo
+                    aseguradoViewModel.cargarDetalle(id, actual.id)
                     navController.navigateUp()
                 }
             )
@@ -237,7 +207,6 @@ fun AppNavegacion() {
             )
         }
 
-        // ------------------------------ LIQUIDADOR ------------------------------
 
         composable(Ruta.Casos.ruta) {
             val actual = usuario ?: return@composable
@@ -273,14 +242,12 @@ fun AppNavegacion() {
     }
 }
 
-// Al abrir la app: sin sesión -> bienvenida; con clave temporal -> cambiarla; si no, su pantalla principal
 private fun rutaInicial(usuario: Usuario?): String = when {
     usuario == null -> Ruta.Login.ruta
     usuario.claveTemporal -> Ruta.CambiarClave.crear(obligatorio = true)
     else -> rutaPrincipal(usuario)
 }
 
-// Cada perfil tiene su propia pantalla principal
 private fun rutaPrincipal(usuario: Usuario): String =
     if (usuario.esAsegurado) Ruta.MisSiniestros.ruta else Ruta.Casos.ruta
 

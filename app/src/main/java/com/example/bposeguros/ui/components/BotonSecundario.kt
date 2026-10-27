@@ -11,8 +11,6 @@ import com.example.bposeguros.ui.styles.EstilosBoton
 import com.example.bposeguros.ui.styles.estiloAltoBoton
 import com.example.bposeguros.ui.theme.BPOSegurosTheme
 
-// Acción de menor importancia (Limpiar, Cancelar, Volver).
-// Parte de OutlinedButton (solo borde) y aplica NUESTROS estilos.
 @Composable
 fun BotonSecundario(
     texto: String,
@@ -37,4 +35,4 @@ private fun BotonSecundarioPreview() {
     BPOSegurosTheme {
         BotonSecundario(texto = "Limpiar", onClick = {}, modifier = Modifier.padding(16.dp))
     }
-}
+}

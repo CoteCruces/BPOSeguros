@@ -9,7 +9,6 @@ import androidx.compose.ui.graphics.Shape
 import com.example.bposeguros.ui.theme.BordeCampo
 import com.example.bposeguros.ui.theme.Dimens
 
-// Estilos de los campos de texto
 object EstilosCampo {
     val forma: Shape = RoundedCornerShape(Dimens.radioCampo)
 
@@ -22,4 +21,4 @@ object EstilosCampo {
         errorBorderColor = MaterialTheme.colorScheme.error,
         cursorColor = MaterialTheme.colorScheme.primary
     )
-}
+}

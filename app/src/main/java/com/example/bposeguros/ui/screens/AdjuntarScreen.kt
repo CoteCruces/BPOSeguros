@@ -59,11 +59,6 @@ import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.AdjuntarViewModel
 import kotlinx.coroutines.launch
 
-// =====================================================================
-//  AdjuntarScreen.kt  —  ADJUNTAR EVIDENCIA (RF-07 / HU-05)
-//  RECURSOS NATIVOS: CÁMARA y GALERÍA, con los 4 pasos de permisos (igual que el
-//  avatar del profesor). La pantalla consigue la imagen; el ViewModel la valida y guarda.
-// =====================================================================
 @Composable
 fun AdjuntarScreen(
     idSiniestro: Long,
@@ -75,13 +70,10 @@ fun AdjuntarScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // Se carga una vez al entrar (LaunchedEffect con la llave idSiniestro)
     LaunchedEffect(idSiniestro) { viewModel.cargar(idSiniestro, idAsegurado) }
 
-    // Cuando el ViewModel avisa "guardado", se vuelve al detalle
     LaunchedEffect(uiState.guardado) { if (uiState.guardado) onGuardado() }
 
-    // ---------- Permisos rechazados: Snackbar con botón "Ajustes" (paso 4) ----------
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val textoCamara = stringResource(R.string.permiso_camara_denegado)
@@ -94,8 +86,6 @@ fun AdjuntarScreen(
         }
     }
 
-    // ---------- CÁMARA ----------
-    // TakePicturePreview abre la cámara y devuelve un Bitmap (o null si el usuario canceló)
     val lanzadorCamara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { foto: Bitmap? ->
         if (foto != null) viewModel.onFotoTomada(foto)
     }
@@ -106,7 +96,6 @@ fun AdjuntarScreen(
         if (ok) abrirCamara() else avisarDenegado(textoCamara)
     }
 
-    // ---------- GALERÍA ----------
     val lanzadorGaleria = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { resultado ->
         val uri = resultado.data?.data
         if (resultado.resultCode == Activity.RESULT_OK && uri != null) viewModel.onImagenElegida(uri)
@@ -137,7 +126,6 @@ fun AdjuntarScreen(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            // RN-10 / RN-11: si no se puede adjuntar, se explica por qué y no se muestra el formulario
             uiState.errorGeneral?.let { mensaje ->
                 TarjetaSeccion(titulo = stringResource(R.string.titulo_no_se_puede)) {
                     Text(mensaje, style = MaterialTheme.typography.bodyLarge)
@@ -167,7 +155,6 @@ fun AdjuntarScreen(
             TarjetaSeccion(titulo = stringResource(R.string.seccion_imagen)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Dimens.espacioChico)) {
                     BotonConIcono(R.drawable.ic_camara, stringResource(R.string.btn_tomar_foto), Modifier.weight(1f)) {
-                        // PERMISOS paso 2: ¿ya está concedido? -> usar. ¿No? -> pedir (paso 3)
                         if (Permisos.tiene(context, Permisos.CAMARA)) abrirCamara()
                         else pedirPermisoCamara.launch(Permisos.CAMARA)
                     }
@@ -179,7 +166,6 @@ fun AdjuntarScreen(
                 uiState.errorFoto?.let {
                     Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }
-                // ANIMACIÓN: la vista previa aparece creciendo y con fundido
                 AnimatedVisibility(visible = uiState.foto != null, enter = scaleIn() + fadeIn()) {
                     uiState.foto?.let { foto ->
                         Image(

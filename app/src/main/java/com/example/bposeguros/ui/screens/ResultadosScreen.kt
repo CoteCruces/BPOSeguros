@@ -19,12 +19,6 @@ import com.example.bposeguros.ui.components.TarjetaSiniestro
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.util.Fechas
 
-// =====================================================================
-//  ResultadosScreen.kt  —  Siniestros encontrados por el asegurado
-//  desde y hasta = "aaaa-mm-dd" -> los que OCURRIERON entre esas dos fechas (incluidas)
-//  desde y hasta vacías         -> todos sus siniestros (botón "Ver todos")
-//  LazyColumn solo dibuja las tarjetas que se ven: funciona bien aunque sean muchas.
-// =====================================================================
 @Composable
 fun ResultadosScreen(
     desde: String,
@@ -36,7 +30,7 @@ fun ResultadosScreen(
     val verTodos = desde.isBlank() || hasta.isBlank()
     val titulo = when {
         verTodos -> stringResource(R.string.titulo_todos)
-        desde == hasta -> stringResource(R.string.titulo_por_fecha, Fechas.paraMostrar(desde))   // un solo día
+        desde == hasta -> stringResource(R.string.titulo_por_fecha, Fechas.paraMostrar(desde))
         else -> stringResource(R.string.titulo_entre_fechas, Fechas.paraMostrar(desde), Fechas.paraMostrar(hasta))
     }
 

@@ -25,26 +25,6 @@ import com.example.bposeguros.ui.theme.BPOSegurosTheme
 import com.example.bposeguros.ui.theme.Blanco
 import com.example.bposeguros.ui.theme.Dimens
 
-// =====================================================================
-//  ImagenEncabezado.kt  —  IMAGEN DE res/drawable + TEXTO ENCIMA
-//  ---------------------------------------------------------------------
-//  1) IMÁGENES DESDE res:
-//     - Copiar el .png/.jpg a app/src/main/res/drawable
-//     - Nombre SOLO en minúsculas, números y guion bajo: banner_registro.png
-//     - Android genera la constante R.drawable.banner_registro
-//     - Se dibuja con:  Image(painter = painterResource(R.drawable.banner_registro), ...)
-//
-//  2) ContentScale (equivale a object-fit en CSS):
-//     - Crop  -> llena el espacio y recorta lo que sobra   (object-fit: cover)
-//     - Fit   -> se ve completa, puede dejar bordes vacíos (object-fit: contain)
-//
-//  3) BOX = contenedor que APILA sus hijos uno ENCIMA del otro (eje Z):
-//        primer hijo  -> abajo  (la imagen)
-//        segundo hijo -> encima (el degradado oscuro)
-//        tercer hijo  -> arriba (los textos)
-//     Es como position:relative + position:absolute en CSS.
-//     Modifier.align(...) ubica cada hijo dentro del Box.
-// =====================================================================
 
 @Composable
 fun ImagenEncabezado(
@@ -54,7 +34,6 @@ fun ImagenEncabezado(
     subtitulo: String,
     modifier: Modifier = Modifier
 ) {
-    // Color leído desde res/values/colors.xml (forma "clásica" de Android)
     val sombra = colorResource(R.color.sombra_imagen)
 
     Box(
@@ -62,23 +41,20 @@ fun ImagenEncabezado(
             .fillMaxWidth()
             .height(Dimens.altoBanner)
     ) {
-        //  la imagen
         Image(
             painter = painterResource(id = imagen),
-            contentDescription = descripcion,          // accesibilidad
-            contentScale = ContentScale.Crop,          // object-fit: cover
+            contentDescription = descripcion,
+            contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-        //  degradado transparente -> oscuro, para que el texto se lea
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Brush.verticalGradient(listOf(Color.Transparent, sombra)))
         )
-        //  textos abajo a la izquierda
         Column(
             modifier = Modifier
-                .align(Alignment.BottomStart)          // position:absolute; bottom:0; left:0
+                .align(Alignment.BottomStart)
                 .padding(Dimens.espacioPantalla)
         ) {
             Text(text = titulo, style = MaterialTheme.typography.titleLarge, color = Blanco)

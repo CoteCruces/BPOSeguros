@@ -20,14 +20,6 @@ import com.example.bposeguros.ui.styles.EstilosBoton
 import com.example.bposeguros.ui.styles.estiloAltoBoton
 import com.example.bposeguros.ui.theme.BPOSegurosTheme
 
-// =====================================================================
-//  BotonPrincipal.kt  —  COMPONENTE REUTILIZABLE
-//  Una función @Composable que:
-//   1) recibe DATOS por parámetro (texto, habilitado, ícono)
-//   2) recibe EVENTOS por parámetro (onClick: () -> Unit)
-//   3) NO conoce el ViewModel: solo dibuja.
-//  "modifier" permite que la pantalla decida el ancho (fillMaxWidth, etc.)
-// =====================================================================
 @Composable
 fun BotonPrincipal(
     texto: String,
@@ -48,7 +40,7 @@ fun BotonPrincipal(
         if (icono != null) {
             Icon(
                 painter = painterResource(id = icono),
-                contentDescription = null,              // decorativo: el texto ya lo describe
+                contentDescription = null,
                 modifier = Modifier.size(ButtonDefaults.IconSize)
             )
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
@@ -57,7 +49,6 @@ fun BotonPrincipal(
     }
 }
 
-// @Preview: ver el componente en Android Studio SIN ejecutar la app (vista Split).
 @Preview(showBackground = true)
 @Composable
 private fun BotonPrincipalPreview() {
@@ -70,4 +61,4 @@ private fun BotonPrincipalPreview() {
             BotonPrincipal(texto = "Deshabilitado", onClick = {}, habilitado = false, modifier = Modifier.fillMaxWidth())
         }
     }
-}
+}

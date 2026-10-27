@@ -20,18 +20,6 @@ import com.example.bposeguros.ui.styles.EstilosCampo
 import com.example.bposeguros.ui.theme.BPOSegurosTheme
 import com.example.bposeguros.ui.theme.Dimens
 
-// =====================================================================
-//  CampoTexto.kt  —  CAMPO DE TEXTO REUTILIZABLE (el <input> de HTML)
-//  IMPORTANTE: en Compose un campo NO guarda su propio texto.
-//   - "valor" es lo que se muestra (viene del estado del ViewModel).
-//   - "onValorCambia" avisa cada vez que el usuario escribe una letra.
-//  Si no se actualiza el estado en onValorCambia, el campo NO cambia.
-//  Esto se llama "estado elevado" (state hoisting).
-//
-//  error: mensaje bajo el campo; null = sin error.
-//  ayuda: texto de ejemplo bajo el campo; se muestra solo si no hay error.
-//  El error se comunica con TEXTO y con borde rojo, no solo con color.
-// =====================================================================
 @Composable
 fun CampoTexto(
     valor: String,
@@ -43,10 +31,7 @@ fun CampoTexto(
     ayuda: String? = null,
     tipoTeclado: KeyboardType = KeyboardType.Text,
     lineas: Int = 1,
-    //soloMarcador: Boolean = false
 ) {
-    // Si hay error se muestra el error; si no, el texto de ayuda (ejemplo)
-    //val textoApoyo = error ?: ayuda
 
     OutlinedTextField(
         value = valor,
@@ -92,4 +77,4 @@ private fun CampoTextoPreview() {
             
         )
     }
-}
+}

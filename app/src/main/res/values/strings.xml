@@ -27,7 +27,7 @@
     <string name="banner_bienvenida_subtitulo">Sigue tu siniestro sin llamar ni escribir</string>
     <string name="ayuda_rut">Ejemplo: 15.842.371-5</string>
     <string name="btn_olvide_clave">¿Olvidaste tu contraseña?</string>
-    <string name="texto_datos_prueba">Datos de prueba (ficticios), todos con la contraseña Andes2026! · asegurada Camila Rojas, RUT 15.842.371-5 · asegurada Daniela Vergara, RUT 17.552.093-7 · liquidadora Paulina Fernández, RUT 16.234.567-2 (activa \"Soy liquidador de Andes\").</string>
+    <string name="texto_datos_prueba">Datos de prueba (ficticios), todos con la contraseña Tem_sin2026% · asegurada Camila Rojas, RUT 15.842.371-5 · asegurada Daniela Vergara, RUT 17.552.093-7 · liquidadora Paulina Fernández, RUT 16.234.567-2 (activa \"Soy liquidador de Andes\").</string>
     <string name="opcion_soy_liquidador">Soy liquidador de Andes</string>
     <string name="texto_ingreso_cliente">Ingresa con el RUT y la contraseña que te entregó tu liquidador.</string>
     <string name="texto_ingreso_liquidador">Ingreso para el equipo de Andes: usa tu RUT y tu contraseña de liquidador.</string>

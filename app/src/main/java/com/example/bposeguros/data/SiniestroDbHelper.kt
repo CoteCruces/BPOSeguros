@@ -19,40 +19,16 @@ import com.example.bposeguros.model.TipoSiniestro
 import com.example.bposeguros.model.Usuario
 import com.example.bposeguros.ui.util.Seguridad
 
-// =====================================================================
-//  UNA base de datos (bposeguros.db) con DIEZ tablas:
-//
-//   roles 1───N usuarios 1───N siniestros N───1 companias
-//                  │               │      N───1 tipos_siniestro
-//                  │               ├──1───N gestiones
-//                  │               ├──1───N solicitudes_documento
-//                  │               ├──1───N documentos_adjuntos
-//                  │               └──1───N avisos
-//                  └─ "usuarios" aparece DOS veces en siniestros:
-//                     id_asegurado (quien reportó) e id_liquidador (quien lo gestiona, puede ser NULL)
-//
-//   comunas: tabla "catálogo" (solo una lista de nombres). Sirve para que la comuna del perfil
-//   y la del siniestro se ELIJAN de una lista y no se pueda escribir cualquier cosa.
-//
-//  Regla: UN helper por base de datos. Todas las tablas se crean en el MISMO onCreate().
-//  Los datos precargados son el Anexo 9 (ficticios, S-07). Las descripciones de los siniestros
-//  y algunas fechas de cambio de etapa NO vienen en el Anexo: se inventaron coherentes con él.
-// =====================================================================
 
 class SiniestroDbHelper(context: Context) :
     SQLiteOpenHelper(context, NOMBRE_BD, null, VERSION_BD) {
 
     companion object {
         private const val NOMBRE_BD = "bposeguros.db"
-        // Versión 2: la tabla usuarios ahora tiene contraseña, teléfono, fecha de nacimiento y foto.
-        // Versión 3: nueva tabla comunas.
-        // Al subir el número, onUpgrade() vuelve a crear la base con los datos de ejemplo.
         private const val VERSION_BD = 3
 
-        // Contraseña de TODAS las cuentas de ejemplo (datos de prueba, se ve en la pantalla de bienvenida)
-        const val CLAVE_EJEMPLO = "Andes2026!"
+        const val CLAVE_EJEMPLO = "Tem_sin2026%"
 
-        // Varios ViewModels comparten UN solo helper (una sola conexión)
         @Volatile private var instancia: SiniestroDbHelper? = null
 
         fun obtener(context: Context): SiniestroDbHelper =
@@ -60,17 +36,17 @@ class SiniestroDbHelper(context: Context) :
                 instancia ?: SiniestroDbHelper(context.applicationContext).also { instancia = it }
             }
 
-        // ---- comunas (catálogo) ----
+
         private const val TABLA_COMUNAS = "comunas"
         private const val CMN_ID = "id_comuna"
         private const val CMN_NOMBRE = "nombre_comuna"
 
-        // ---- roles ----
+
         private const val TABLA_ROLES = "roles"
         private const val ROL_ID = "id_rol"
         private const val ROL_NOMBRE = "nombre_rol"
 
-        // ---- usuarios: asegurados, liquidadores y analistas ----
+
         private const val TABLA_USUARIOS = "usuarios"
         private const val USU_ID = "id_usuario"
         private const val USU_NOMBRE = "nombre"
@@ -81,13 +57,13 @@ class SiniestroDbHelper(context: Context) :
         private const val USU_EQUIPO = "equipo"
         private const val USU_ACTIVO = "activo"
         private const val USU_ROL = "id_rol"
-        private const val USU_CLAVE = "clave"                       // huella (hash), nunca la contraseña real
-        private const val USU_CLAVE_TEMPORAL = "clave_temporal"     // 1 = debe cambiarla al entrar
+        private const val USU_CLAVE = "clave"
+        private const val USU_CLAVE_TEMPORAL = "clave_temporal"
         private const val USU_TELEFONO = "telefono"
         private const val USU_F_NACIMIENTO = "fecha_nacimiento"
-        private const val USU_FOTO = "foto"                         // ruta del archivo ('' = avatar por defecto)
+        private const val USU_FOTO = "foto"
 
-        // ---- companias ----
+
         private const val TABLA_COMPANIAS = "companias"
         private const val COM_ID = "id_compania"
         private const val COM_CODIGO = "codigo_compania"
@@ -97,14 +73,14 @@ class SiniestroDbHelper(context: Context) :
         private const val COM_PLAZO = "plazo_dias"
         private const val COM_ACTIVA = "activa"
 
-        // ---- tipos_siniestro ----
+
         private const val TABLA_TIPOS = "tipos_siniestro"
         private const val TIP_ID = "id_tipo"
         private const val TIP_CODIGO = "codigo_tipo"
         private const val TIP_NOMBRE = "nombre_tipo"
         private const val TIP_LINEA = "linea"
 
-        // ---- siniestros ----
+
         private const val TABLA_SINIESTROS = "siniestros"
         private const val SIN_ID = "id_siniestro"
         private const val SIN_NUMERO = "numero"
@@ -127,7 +103,7 @@ class SiniestroDbHelper(context: Context) :
         private const val ALIAS_ASE_RUT = "rut_asegurado"
         private const val ALIAS_ULTIMA = "ultima_actualizacion"
 
-        // ---- gestiones ----
+
         private const val TABLA_GESTIONES = "gestiones"
         private const val GES_ID = "id_gestion"
         private const val GES_SINIESTRO = "id_siniestro"
@@ -137,7 +113,7 @@ class SiniestroDbHelper(context: Context) :
         private const val GES_RESP = "responsable"
         private const val GES_VISIBLE = "visible_asegurado"
 
-        // ---- solicitudes_documento ----
+
         private const val TABLA_SOLICITUDES = "solicitudes_documento"
         private const val SOL_ID = "id_solicitud"
         private const val SOL_SINIESTRO = "id_siniestro"
@@ -147,7 +123,7 @@ class SiniestroDbHelper(context: Context) :
         private const val SOL_ENTREGADO = "entregado"
         private const val SOL_F_ENT = "fecha_entrega"
 
-        // ---- documentos_adjuntos ----
+
         private const val TABLA_ADJUNTOS = "documentos_adjuntos"
         private const val ADJ_ID = "id_adjunto"
         private const val ADJ_SINIESTRO = "id_siniestro"
@@ -159,7 +135,7 @@ class SiniestroDbHelper(context: Context) :
         private const val ADJ_COMENTARIO = "comentario"
         private const val ADJ_SOLICITUD = "id_solicitud"
 
-        // ---- avisos ----
+
         private const val TABLA_AVISOS = "avisos"
         private const val AVI_ID = "id_aviso"
         private const val AVI_SINIESTRO = "id_siniestro"
@@ -168,8 +144,7 @@ class SiniestroDbHelper(context: Context) :
         private const val AVI_MENSAJE = "mensaje"
         private const val AVI_LEIDO = "leido"
 
-        // ------------------------- CREAR TABLAS -------------------------
-        // Primero las tablas "padre", después las que las referencian (REFERENCES = clave foránea).
+
 
         private const val SQL_CREAR_COMUNAS =
             "CREATE TABLE $TABLA_COMUNAS (" +
@@ -181,9 +156,6 @@ class SiniestroDbHelper(context: Context) :
                     "$ROL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "$ROL_NOMBRE TEXT NOT NULL UNIQUE)"
 
-        // RUT, correo y clave son OBLIGATORIOS (NOT NULL, sin valor por defecto).
-        // UNIQUE en el RUT: la propia base impide crear dos cuentas con el mismo RUT.
-        // nombre, comuna, teléfono, fecha y foto parten vacíos: los completa cada persona en "Mi perfil".
         private const val SQL_CREAR_USUARIOS =
             "CREATE TABLE $TABLA_USUARIOS (" +
                     "$USU_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -218,9 +190,6 @@ class SiniestroDbHelper(context: Context) :
                     "$TIP_NOMBRE TEXT NOT NULL, " +
                     "$TIP_LINEA TEXT NOT NULL CHECK ($TIP_LINEA IN ('VEHICULO','HOGAR')))"
 
-        // CHECK. la propia base rechaza una etapa fuera de 1..4 o un resultado inventado.
-
-        // id_liquidador NO lleva NOT NULL: un siniestro "Recibido" aún no tiene liquidador (RN-07).
         private const val SQL_CREAR_SINIESTROS =
             "CREATE TABLE $TABLA_SINIESTROS (" +
                     "$SIN_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -280,15 +249,7 @@ class SiniestroDbHelper(context: Context) :
                     "$AVI_MENSAJE TEXT NOT NULL, " +
                     "$AVI_LEIDO INTEGER NOT NULL DEFAULT 0)"
 
-        // ------------------------- PRECARGA (Anexo 9) -------------------------
-        // Los ids van explícitos para que las claves foráneas apunten siempre al mismo registro
-        //Los usuarios 1..15 vienen de los datos de ejemplo.
-        // Ahora TODOS tienen RUT y correo (antes los liquidadores entraban solo con el código LIQ-01).
-        // Los RUT de los liquidadores y analistas son inventados, pero con dígito verificador válido.
-        // La clave se inserta vacía y en onCreate() se reemplaza por la huella de CLAVE_EJEMPLO.
 
-        // Comunas en orden alfabético (la lista se muestra en el mismo orden en que se insertan).
-        // Están todas las que aparecen en los datos de ejemplo, más otras de Santiago y regiones.
         private const val SQL_PRECARGAR_COMUNAS =
             "INSERT INTO $TABLA_COMUNAS ($CMN_NOMBRE) VALUES " +
                     "('Cerrillos'), ('Cerro Navia'), ('Colina'), ('Concepción'), ('Conchalí'), ('El Bosque'), " +
@@ -340,8 +301,6 @@ class SiniestroDbHelper(context: Context) :
                     "(5, 'TS-05', 'Hogar – robo', 'HOGAR'), " +
                     "(6, 'TS-06', 'Hogar – incendio', 'HOGAR')"
 
-        // Orden de columnas: id, número, asegurado, compañía, tipo, f.ocurrencia, f.reporte, comuna,
-        // descripción, etapa, f.cambio etapa, liquidador, fuera de plazo, resultado, mensaje de cierre
         private const val SQL_PRECARGAR_SINIESTROS =
             "INSERT INTO $TABLA_SINIESTROS ($SIN_ID, $SIN_NUMERO, $SIN_ASEGURADO, $SIN_COMPANIA, $SIN_TIPO, " +
                     "$SIN_F_OCURRENCIA, $SIN_F_REPORTE, $SIN_COMUNA, $SIN_DESCRIPCION, $SIN_ETAPA, $SIN_F_ETAPA, " +
@@ -394,7 +353,6 @@ class SiniestroDbHelper(context: Context) :
                     "(5, 5, 'Constancia de denuncia policial', '2026-09-23', 0, NULL), " +
                     "(6, 5, 'Padrón del vehículo', '2026-09-23', 0, NULL)"
 
-        // Archivos sintéticos (S-07): no existen en el teléfono, por eso la ruta va vacía
         private const val SQL_PRECARGAR_ADJUNTOS =
             "INSERT INTO $TABLA_ADJUNTOS ($ADJ_SINIESTRO, $ADJ_ARCHIVO, $ADJ_TIPO, $ADJ_FECHA, $ADJ_POR, $ADJ_SOLICITUD) VALUES " +
                     "(1, 'foto_parachoques_1.jpg', 'Fotografía del daño', '2026-09-02', 'Asegurado', NULL), " +
@@ -415,9 +373,7 @@ class SiniestroDbHelper(context: Context) :
                     "(5, '2026-09-23 14:10', 'Solicitud de documento', 'Necesitamos 2 documentos para tu siniestro SIN-26-004838.', 0), " +
                     "(10, '2026-08-19 11:00', 'Cierre', 'Tu siniestro SIN-26-004745 fue cerrado. Revisa el detalle de la resolución.', 1)"
 
-        // ------------------------- SELECT BASE (con JOIN) -------------------------
-        // LEFT JOIN. usuarios (l) se une con LEFT porque el liquidador puede ser NULL.
-        // Con INNER JOIN, los siniestros "por asignar" desaparecerían de la lista.
+
         private const val SQL_SELECT_USUARIOS =
             "SELECT u.*, r.$ROL_NOMBRE AS $ROL_NOMBRE " +
                     "FROM $TABLA_USUARIOS u " +
@@ -436,13 +392,11 @@ class SiniestroDbHelper(context: Context) :
                     "LEFT JOIN $TABLA_USUARIOS l ON s.$SIN_LIQUIDADOR = l.$USU_ID"
     }
 
-    // Se ejecuta CADA VEZ que se abre la conexión: SQLite trae las claves foráneas APAGADAS.
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
         db.setForeignKeyConstraintsEnabled(true)
     }
 
-    // Una sola vez, cuando bposeguros.db no existe. Orden: tablas "padre" primero.
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(SQL_CREAR_COMUNAS)
         db.execSQL(SQL_CREAR_ROLES)
@@ -458,8 +412,6 @@ class SiniestroDbHelper(context: Context) :
         db.execSQL(SQL_PRECARGAR_COMUNAS)
         db.execSQL(SQL_PRECARGAR_ROLES)
         db.execSQL(SQL_PRECARGAR_USUARIOS)
-        // Todas las cuentas de ejemplo quedan con la contraseña CLAVE_EJEMPLO (guardada como huella).
-        // Se hace aquí porque Seguridad.huella() es una función y no se puede usar dentro de un "const val".
         db.execSQL("UPDATE $TABLA_USUARIOS SET $USU_CLAVE = ?", arrayOf(Seguridad.huella(CLAVE_EJEMPLO)))
         db.execSQL(SQL_PRECARGAR_COMPANIAS)
         db.execSQL(SQL_PRECARGAR_TIPOS)
@@ -470,7 +422,6 @@ class SiniestroDbHelper(context: Context) :
         db.execSQL(SQL_PRECARGAR_AVISOS)
     }
 
-    // Si sube VERSION_BD: borra y recrea (se pierden los datos). Orden inverso: primero las "hijas".
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLA_AVISOS")
         db.execSQL("DROP TABLE IF EXISTS $TABLA_ADJUNTOS")
@@ -485,33 +436,24 @@ class SiniestroDbHelper(context: Context) :
         onCreate(db)
     }
 
-    // ---------------------------- USUARIOS (cuentas) ----------------------------
 
-    // INGRESO: busca por RUT Y huella de la clave al mismo tiempo. Sirve para clientes y liquidadores:
-    // el rol viene en la fila encontrada, así la app sabe sola a qué pantalla ir.
-    // RUT ya normalizado: sin puntos ni guion (ej: 158423715).
+
     fun buscarPorRutYClave(rut: String, huellaClave: String): Usuario? =
         consultar("$SQL_SELECT_USUARIOS WHERE u.$USU_RUT = ? AND u.$USU_CLAVE = ?",
             arrayOf(rut, huellaClave)) { leerUsuario(it) }.firstOrNull()
 
-    // Para "¿Olvidaste tu contraseña?" y para no crear dos cuentas con el mismo RUT
     fun buscarUsuarioPorRut(rut: String): Usuario? =
         consultar("$SQL_SELECT_USUARIOS WHERE u.$USU_RUT = ?", arrayOf(rut)) { leerUsuario(it) }.firstOrNull()
 
-    // Para recuperar la sesión guardada (SesionPreferencias guarda solo el id)
     fun buscarUsuarioPorId(id: Long): Usuario? =
         consultar("$SQL_SELECT_USUARIOS WHERE u.$USU_ID = ?", arrayOf(id.toString())) { leerUsuario(it) }
             .firstOrNull()
 
-    // ¿La clave escrita es la de esta persona? (al cambiar la contraseña se pide la actual)
     fun claveCorrecta(idUsuario: Long, huellaClave: String): Boolean = contar(
         "SELECT COUNT(*) FROM $TABLA_USUARIOS WHERE $USU_ID = ? AND $USU_CLAVE = ?",
         arrayOf(idUsuario.toString(), huellaClave)
     ) == 1
 
-    // INSERT. El liquidador crea la cuenta de un cliente: solo RUT, correo y clave (obligatorios).
-    // clave_temporal = 1 -> al entrar por primera vez, el cliente debe cambiarla.
-    // Devuelve el id nuevo, o -1 si falla (por ejemplo, si el RUT ya existe: UNIQUE).
     fun insertarAsegurado(rut: String, correo: String, huellaClave: String): Long =
         writableDatabase.insert(TABLA_USUARIOS, null, ContentValues().apply {
             put(USU_RUT, rut)
@@ -521,7 +463,6 @@ class SiniestroDbHelper(context: Context) :
             put(USU_ROL, Rol.ID_ASEGURADO)
         })
 
-    // UPDATE. "Mi perfil": se cambia todo MENOS el RUT (no aparece aquí)
     fun actualizarPerfil(usuario: Usuario): Int =
         writableDatabase.update(
             TABLA_USUARIOS,
@@ -536,7 +477,6 @@ class SiniestroDbHelper(context: Context) :
             "$USU_ID = ?", arrayOf(usuario.id.toString())
         )
 
-    // UPDATE. Nueva clave. temporal = true cuando se generó en "¿Olvidaste tu contraseña?"
     fun cambiarClave(idUsuario: Long, huellaClave: String, temporal: Boolean): Int =
         writableDatabase.update(
             TABLA_USUARIOS,
@@ -547,9 +487,8 @@ class SiniestroDbHelper(context: Context) :
             "$USU_ID = ?", arrayOf(idUsuario.toString())
         )
 
-    // ---------------------------- CATÁLOGOS ----------------------------
 
-    // Nombres de todas las comunas, para las listas desplegables y para validar
+
     fun listarComunas(): List<String> =
         consultar("SELECT $CMN_NOMBRE FROM $TABLA_COMUNAS ORDER BY $CMN_ID", null) { it.texto(CMN_NOMBRE) }
 
@@ -578,10 +517,8 @@ class SiniestroDbHelper(context: Context) :
             )
         }
 
-    // ---------------------------- SINIESTROS ----------------------------
 
-    // RNF-07: SIEMPRE se filtra por el asegurado. Abiertos primero y luego los más recientes (HU-02).
-    // ORDER BY (id_etapa = 4): da 0 para abiertos y 1 para cerrados, así los abiertos quedan arriba.
+
     fun listarSiniestrosDeAsegurado(idAsegurado: Long): List<Siniestro> =
         consultar(
             "$SQL_SELECT_SINIESTROS WHERE s.$SIN_ASEGURADO = ? " +
@@ -589,8 +526,6 @@ class SiniestroDbHelper(context: Context) :
             arrayOf(idAsegurado.toString())
         ) { leerSiniestro(it) }
 
-    // Pantalla principal del asegurado: SOLO los últimos registrados (por defecto 2).
-    // LIMIT = "trae como máximo N filas". Así no se carga toda la lista si tiene 100 casos.
     fun listarUltimosSiniestros(idAsegurado: Long, cantidad: Int = 2): List<Siniestro> =
         consultar(
             "$SQL_SELECT_SINIESTROS WHERE s.$SIN_ASEGURADO = ? " +
@@ -598,9 +533,6 @@ class SiniestroDbHelper(context: Context) :
             arrayOf(idAsegurado.toString())
         ) { leerSiniestro(it) }
 
-    // Búsqueda del asegurado por un RANGO de fechas en que OCURRIÓ ("aaaa-mm-dd"). Siempre con su id (RNF-07).
-    // BETWEEN desde AND hasta = "entre las dos fechas, incluyendo ambas".
-    // Funciona con texto porque el formato aaaa-mm-dd se ordena igual que las fechas.
     fun listarSiniestrosEntreFechas(idAsegurado: Long, desde: String, hasta: String): List<Siniestro> =
         consultar(
             "$SQL_SELECT_SINIESTROS WHERE s.$SIN_ASEGURADO = ? AND s.$SIN_F_OCURRENCIA BETWEEN ? AND ? " +
@@ -608,7 +540,6 @@ class SiniestroDbHelper(context: Context) :
             arrayOf(idAsegurado.toString(), desde, hasta)
         ) { leerSiniestro(it) }
 
-    // Casos del liquidador: los abiertos más antiguos primero
     fun listarSiniestrosAsignados(idLiquidador: Long): List<Siniestro> =
         consultar(
             "$SQL_SELECT_SINIESTROS WHERE s.$SIN_LIQUIDADOR = ? " +
@@ -616,9 +547,6 @@ class SiniestroDbHelper(context: Context) :
             arrayOf(idLiquidador.toString())
         ) { leerSiniestro(it) }
 
-    // Buscador del liquidador: por número de siniestro, RUT o nombre del cliente (solo en SUS casos).
-    // LIKE '%texto%' = "que contenga el texto". Así "4801" encuentra "SIN-26-004801".
-    // El RUT llega limpio (sin puntos ni guion) porque así está guardado.
     fun buscarCasos(idLiquidador: Long, texto: String, rutLimpio: String): List<Siniestro> =
         consultar(
             "$SQL_SELECT_SINIESTROS WHERE s.$SIN_LIQUIDADOR = ? AND " +
@@ -627,21 +555,18 @@ class SiniestroDbHelper(context: Context) :
             arrayOf(idLiquidador.toString(), "%$texto%", "%$rutLimpio%", "%$texto%")
         ) { leerSiniestro(it) }
 
-    // RNF-07: pide también el id del asegurado, así NO se puede abrir el siniestro de otra persona
     fun buscarSiniestroDeAsegurado(idSiniestro: Long, idAsegurado: Long): Siniestro? =
         consultar(
             "$SQL_SELECT_SINIESTROS WHERE s.$SIN_ID = ? AND s.$SIN_ASEGURADO = ?",
             arrayOf(idSiniestro.toString(), idAsegurado.toString())
         ) { leerSiniestro(it) }.firstOrNull()
 
-    // HU-09 CA2: el liquidador solo puede abrir (y gestionar) los siniestros asignados a él
     fun buscarSiniestroDeLiquidador(idSiniestro: Long, idLiquidador: Long): Siniestro? =
         consultar(
             "$SQL_SELECT_SINIESTROS WHERE s.$SIN_ID = ? AND s.$SIN_LIQUIDADOR = ?",
             arrayOf(idSiniestro.toString(), idLiquidador.toString())
         ) { leerSiniestro(it) }.firstOrNull()
 
-    // UPDATE. cambia la etapa y guarda la fecha del cambio (RN-17: los días se cuentan desde aquí)
     fun actualizarEtapa(idSiniestro: Long, etapa: Etapa, fecha: String): Int =
         writableDatabase.update(
             TABLA_SINIESTROS,
@@ -652,7 +577,6 @@ class SiniestroDbHelper(context: Context) :
             "$SIN_ID = ?", arrayOf(idSiniestro.toString())
         )
 
-    // UPDATE. RN-02 -> todo cierre lleva resultado y mensaje para el asegurado
     fun cerrarSiniestro(idSiniestro: Long, resultado: Resultado, mensaje: String, fecha: String): Int =
         writableDatabase.update(
             TABLA_SINIESTROS,
@@ -665,8 +589,6 @@ class SiniestroDbHelper(context: Context) :
             "$SIN_ID = ?", arrayOf(idSiniestro.toString())
         )
 
-    // RN-06: SIN-AA-NNNNNN. Toma el correlativo más alto de ese año y suma 1 (nunca se reutiliza).
-    // SUBSTR(numero, 8) = lo que va después de "SIN-26-"
     fun siguienteNumeroSiniestro(anio: Int): String {
         val aa = (anio % 100).toString().padStart(2, '0')
         var ultimo = 0
@@ -677,8 +599,6 @@ class SiniestroDbHelper(context: Context) :
         return "SIN-$aa-" + (ultimo + 1).toString().padStart(6, '0')
     }
 
-    // Aclaración 3: misma compañía + mismo tipo + misma fecha de ocurrencia en un siniestro NO cerrado.
-    // Devuelve el número del existente (o null si no hay posible duplicado).
     fun buscarPosibleDuplicado(idAsegurado: Long, idCompania: Long, idTipo: Long, fechaOcurrencia: String): String? {
         var numero: String? = null
         readableDatabase.rawQuery(
@@ -689,14 +609,12 @@ class SiniestroDbHelper(context: Context) :
         return numero
     }
 
-    // Transacción. guarda el siniestro Y su primera gestión ("Recibimos tu reporte").
-    // O se guardan las dos cosas o ninguna. Devuelve el id generado (o -1 si falla).
     fun insertarSiniestro(siniestro: Siniestro, fechaHora: String): Long {
         val db = writableDatabase
         db.beginTransaction()
         try {
             val id = db.insert(TABLA_SINIESTROS, null, valoresDe(siniestro))
-            if (id == -1L) return -1L   // sin setTransactionSuccessful -> se deshace todo
+            if (id == -1L) return -1L
             insertarGestion(
                 Gestion(
                     siniestroId = id, fechaHora = fechaHora, tipo = "Reporte",
@@ -711,9 +629,7 @@ class SiniestroDbHelper(context: Context) :
         }
     }
 
-    // ---------------------------- GESTIONES, DOCUMENTOS Y AVISOS ----------------------------
 
-    // RN-13: el asegurado pide soloVisibles = true y NUNCA recibe las internas. Orden cronológico.
     fun listarGestiones(idSiniestro: Long, soloVisibles: Boolean): List<Gestion> {
         val filtro = if (soloVisibles) " AND $GES_VISIBLE = 1" else ""
         return consultar(
@@ -738,7 +654,6 @@ class SiniestroDbHelper(context: Context) :
             put(GES_VISIBLE, if (gestion.visible) 1 else 0)
         })
 
-    // Pendientes primero (para que el asegurado vea lo que falta)
     fun listarSolicitudes(idSiniestro: Long): List<SolicitudDocumento> =
         consultar(
             "SELECT * FROM $TABLA_SOLICITUDES WHERE $SOL_SINIESTRO = ? ORDER BY $SOL_ENTREGADO, $SOL_F_SOL, $SOL_ID",
@@ -764,7 +679,6 @@ class SiniestroDbHelper(context: Context) :
             )
         }
 
-    // El liquidador pide un documento -> queda "Pendiente" (entregado = 0)
     fun insertarSolicitud(solicitud: SolicitudDocumento): Long =
         writableDatabase.insert(TABLA_SOLICITUDES, null, ContentValues().apply {
             put(SOL_SINIESTRO, solicitud.siniestroId)
@@ -774,7 +688,6 @@ class SiniestroDbHelper(context: Context) :
             put(SOL_ENTREGADO, 0)
         })
 
-    // Al adjuntar el documento pedido, la solicitud pasa a "Entregado"
     fun marcarSolicitudEntregada(idSolicitud: Long, fecha: String): Int =
         writableDatabase.update(
             TABLA_SOLICITUDES,
@@ -790,7 +703,6 @@ class SiniestroDbHelper(context: Context) :
         arrayOf(idSiniestro.toString())
     )
 
-    // RN-10: máximo 15 adjuntos por siniestro
     fun contarAdjuntos(idSiniestro: Long): Int = contar(
         "SELECT COUNT(*) FROM $TABLA_ADJUNTOS WHERE $ADJ_SINIESTRO = ?",
         arrayOf(idSiniestro.toString())
@@ -808,7 +720,6 @@ class SiniestroDbHelper(context: Context) :
             if (adjunto.solicitudId != null) put(ADJ_SOLICITUD, adjunto.solicitudId) else putNull(ADJ_SOLICITUD)
         })
 
-    // INSERT. Aviso para el asegurado (RF-09). Lo genera el ViewModel del liquidador.
     fun insertarAviso(idSiniestro: Long, fechaHora: String, motivo: String, mensaje: String): Long =
         writableDatabase.insert(TABLA_AVISOS, null, ContentValues().apply {
             put(AVI_SINIESTRO, idSiniestro)
@@ -818,7 +729,6 @@ class SiniestroDbHelper(context: Context) :
             put(AVI_LEIDO, 0)
         })
 
-    // Update. Al tocar un aviso queda como leído
     fun marcarAvisoLeido(idAviso: Long): Int =
         writableDatabase.update(
             TABLA_AVISOS,
@@ -827,8 +737,6 @@ class SiniestroDbHelper(context: Context) :
         )
 
 
-
-    // INNER JOIN avisos + siniestros: trae el número del siniestro y filtra por asegurado (RNF-07)
     fun listarAvisos(idAsegurado: Long): List<Aviso> =
         consultar(
             "SELECT a.*, s.$SIN_NUMERO AS $SIN_NUMERO FROM $TABLA_AVISOS a " +
@@ -843,9 +751,8 @@ class SiniestroDbHelper(context: Context) :
             )
         }
 
-    // ---------------------------- AYUDANTES ----------------------------
 
-    // NUEVO (genérico): una sola función ejecuta cualquier SELECT y convierte cada fila con "leer".
+
     private fun <T> consultar(sql: String, args: Array<String>?, leer: (Cursor) -> T): List<T> {
         val lista = mutableListOf<T>()
         readableDatabase.rawQuery(sql, args).use { cursor ->
@@ -864,7 +771,6 @@ class SiniestroDbHelper(context: Context) :
         return total
     }
 
-    // ContentValues = mapa columna -> valor (para INSERT). Los NULL se escriben con putNull.
     private fun valoresDe(s: Siniestro) = ContentValues().apply {
         put(SIN_NUMERO, s.numero)
         put(SIN_ASEGURADO, s.aseguradoId)
@@ -896,10 +802,9 @@ class SiniestroDbHelper(context: Context) :
         equipo = c.texto(USU_EQUIPO),
         activo = c.entero(USU_ACTIVO) == 1,
         rolId = c.largo(USU_ROL),
-        rolNombre = c.texto(ROL_NOMBRE)      // viene de roles gracias al JOIN
+        rolNombre = c.texto(ROL_NOMBRE)
     )
 
-    // nombre_compania, nombre_tipo y los datos del liquidador vienen de los JOIN
     private fun leerSiniestro(c: Cursor) = Siniestro(
         id = c.largo(SIN_ID),
         numero = c.texto(SIN_NUMERO),
@@ -925,7 +830,6 @@ class SiniestroDbHelper(context: Context) :
         ultimaActualizacion = c.textoONull(ALIAS_ULTIMA)
     )
 
-    // Lectores cortos del Cursor (evitan repetir getColumnIndexOrThrow en cada columna)
     private fun Cursor.texto(col: String): String = getString(getColumnIndexOrThrow(col))
     private fun Cursor.largo(col: String): Long = getLong(getColumnIndexOrThrow(col))
     private fun Cursor.entero(col: String): Int = getInt(getColumnIndexOrThrow(col))
@@ -933,4 +837,4 @@ class SiniestroDbHelper(context: Context) :
         getColumnIndexOrThrow(col).let { if (isNull(it)) null else getString(it) }
     private fun Cursor.largoONull(col: String): Long? =
         getColumnIndexOrThrow(col).let { if (isNull(it)) null else getLong(it) }
-}
+}

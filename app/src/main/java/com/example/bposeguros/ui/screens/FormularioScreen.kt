@@ -46,19 +46,10 @@ import com.example.bposeguros.ui.theme.ExitoFondo
 import com.example.bposeguros.viewmodel.FormularioViewModel
 import kotlinx.coroutines.launch
 
-// =====================================================================
-//  FormularioScreen.kt  —  El LIQUIDADOR crea la cuenta de un cliente
-//  Es la antigua pantalla de registro (FormularioScreen), movida desde el inicio
-//  a la vista del liquidador. Pide solo RUT, correo y contraseña temporal.
-//   1) FormularioScreen  -> CON estado: conoce el ViewModel.
-//   2) FormularioContent -> SIN estado: recibe datos y lambdas (se ve en @Preview).
-//  Al terminar ofrece "Enviar datos por correo": abre la app de correo del
-//  teléfono con el RUT y la contraseña temporal ya escritos (intent implícito).
-// =====================================================================
 @Composable
 fun FormularioScreen(
     onVolver: () -> Unit,
-    viewModel: FormularioViewModel = viewModel()   // se crea una vez y sobrevive a la rotación
+    viewModel: FormularioViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -83,7 +74,6 @@ fun FormularioScreen(
         onCrear = viewModel::onCrear,
         onLimpiar = viewModel::onLimpiar,
         onEnviarCorreo = {
-            // Si el teléfono no tiene app de correo, se avisa en el Snackbar
             if (!Correo.abrir(context, uiState.correo, asunto, cuerpo)) {
                 scope.launch { snackbarHostState.showSnackbar(sinAppCorreo) }
             }
@@ -130,7 +120,6 @@ fun FormularioContent(
                 modifier = Modifier.padding(Dimens.espacioPantalla),
                 verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
             ) {
-                // Se muestra el formulario O el resultado (en Compose se muestra/oculta con un "if")
                 if (!uiState.cuentaCreada) {
                     TarjetaSeccion(titulo = stringResource(R.string.seccion_datos_obligatorios)) {
                         CampoTexto(
@@ -166,7 +155,6 @@ fun FormularioContent(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    //Botones
                     Row(horizontalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)) {
                         BotonSecundario(
                             texto = stringResource(R.string.btn_limpiar),
@@ -187,14 +175,12 @@ fun FormularioContent(
                         colors = CardDefaults.cardColors(containerColor = ExitoFondo)
                     ) {
                         Text(
-                            // Este segundo argumento reemplaza el %1$s del strings.xml
                             text = stringResource(R.string.cuenta_creada, uiState.rut),
                             style = MaterialTheme.typography.bodyLarge,
                             color = Exito,
                             modifier = Modifier.padding(Dimens.espacioMedio)
                         )
                     }
-                    // Vista previa de lo que recibirá el cliente
                     CorreoSimulado(
                         para = uiState.correo, asunto = asuntoCorreo, cuerpo = cuerpoCorreo,
                         titulo = stringResource(R.string.titulo_vista_previa_correo)

@@ -14,13 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-// =====================================================================
-//  PerfilViewModel.kt  —  "Mi perfil" (lo usan el cliente Y el liquidador)
-//  Se puede cambiar todo MENOS el RUT: nombre, correo, teléfono, comuna,
-//  fecha de nacimiento y la foto (cámara o galería, igual que "Adjuntar").
-//  Obligatorio: solo el correo (sin correo no se puede recuperar la contraseña).
-//  La comuna se elige de la lista de la BD y la fecha de nacimiento debe ser de alguien de 18 años o más.
-// =====================================================================
 class PerfilViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = SiniestroDbHelper.obtener(application)
@@ -30,8 +23,6 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
     private val _uiState = MutableStateFlow(PerfilUiState())
     val uiState: StateFlow<PerfilUiState> = _uiState.asStateFlow()
 
-    // Llena el formulario con lo que hay en la BD. Solo la primera vez:
-    // si se gira el teléfono no se pierde lo que la persona estaba escribiendo.
     fun cargar(usuario: Usuario) {
         if (idCargado == usuario.id) return
         idCargado = usuario.id
@@ -52,12 +43,10 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
     fun onComunaCambia(valor: String) = _uiState.update { it.copy(comuna = valor, errorComuna = null, guardado = false) }
     fun onFechaCambia(valor: String) = _uiState.update { it.copy(fechaNacimiento = valor, errorFecha = null, guardado = false) }
 
-    // Cámara: llega un Bitmap
     fun onFotoTomada(foto: Bitmap) {
         _uiState.update { it.copy(fotoNueva = foto, errorFoto = null, guardado = false) }
     }
 
-    // Galería: llega un Uri y se convierte a Bitmap
     fun onImagenElegida(uri: Uri) {
         val foto = ConvertidorImagen.desdeUri(getApplication(), uri)
         _uiState.update {
@@ -66,17 +55,14 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // "Quitar foto": vuelve al avatar por defecto
     fun onQuitarFoto() {
         _uiState.update { it.copy(fotoNueva = null, fotoActual = "", guardado = false) }
     }
 
     fun onGuardar(usuario: Usuario) {
         val estado = _uiState.value
-        val fechaBd = Fechas.desdeTextoUsuario(estado.fechaNacimiento)   // "14-05-1990" -> "1990-05-14"
+        val fechaBd = Fechas.desdeTextoUsuario(estado.fechaNacimiento)
 
-        // Fecha de nacimiento: opcional; si se escribe debe existir y la persona debe tener 18 años o más.
-        // Se compara como TEXTO "aaaa-mm-dd": así ordenado, el texto menor es la fecha más antigua.
         val errorFecha = when {
             estado.fechaNacimiento.isBlank() -> null
             fechaBd == null -> "Escribe la fecha como día-mes-año, por ejemplo 14-05-1990"
@@ -86,7 +72,6 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             else -> null
         }
 
-        // Nombre: opcional, pero si se escribe debe ser nombre y apellido sin números
         val palabrasNombre = estado.nombre.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
         val errorNombre = when {
             estado.nombre.isBlank() -> null
@@ -103,7 +88,6 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             else -> null
         }
 
-        // Teléfono: opcional; si se escribe, debe ser celular chileno válido (9 u 11 dígitos)
         val digitosTelefono = estado.telefono.filter { it.isDigit() }
         val telefonoValido = (digitosTelefono.length == 11 && digitosTelefono.startsWith("569")) ||
                 (digitosTelefono.length == 9 && digitosTelefono.startsWith("9"))
@@ -113,7 +97,6 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             else -> null
         }
 
-        // Comuna: opcional en el perfil; si se elige, debe ser una de la tabla comunas
         val errorComuna = when {
             estado.comuna.isBlank() -> null
             estado.comuna !in comunas -> "Esa comuna no está en la lista. Elige una de las opciones"
@@ -128,7 +111,6 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
         }
         if (listOf(errorNombre, errorCorreo, errorTelefono, errorComuna, errorFecha).any { it != null }) return
 
-        // Si eligió una foto nueva, se guarda como ARCHIVO y en la BD va solo su ruta (igual que los adjuntos)
         var rutaFoto = estado.fotoActual
         if (estado.fotoNueva != null) {
             val archivo = ConvertidorImagen.guardar(
@@ -141,7 +123,6 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             rutaFoto = archivo.absolutePath
         }
 
-        // copy(): el mismo usuario con los datos nuevos. El RUT no cambia.
         db.actualizarPerfil(
             usuario.copy(
                 nombre = estado.nombre.trim(),

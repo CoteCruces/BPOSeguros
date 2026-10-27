@@ -10,14 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-// =====================================================================
-//  CambiarClaveViewModel.kt  —  Cambiar la contraseña
-//  Se usa en dos casos:
-//   - OBLIGATORIO: la primera vez que el cliente entra (o después de "olvidé mi contraseña").
-//   - VOLUNTARIO: desde "Mi perfil".
-//  Siempre pide la contraseña actual: si alguien toma el teléfono desbloqueado,
-//  no puede cambiarla sin saberla.
-// =====================================================================
 class CambiarClaveViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = SiniestroDbHelper.obtener(application)
@@ -38,7 +30,6 @@ class CambiarClaveViewModel(application: Application) : AndroidViewModel(applica
             !db.claveCorrecta(idUsuario, Seguridad.huella(estado.actual)) -> "La contraseña actual no es correcta"
             else -> null
         }
-        // Mismas reglas que al crear la cuenta: mínimo 8, una mayúscula, un número y un carácter especial
         val errorNueva = when {
             estado.nueva.isBlank() -> "La contraseña es obligatoria"
             estado.nueva.length < 8 -> "Debe tener al menos 8 caracteres"
@@ -59,7 +50,6 @@ class CambiarClaveViewModel(application: Application) : AndroidViewModel(applica
             _uiState.update { it.copy(errorActual = errorActual, errorNueva = errorNueva, errorRepetir = errorRepetir) }
             return
         }
-        // temporal = false: ya no se le vuelve a pedir que la cambie
         db.cambiarClave(idUsuario, Seguridad.huella(estado.nueva), temporal = false)
         _uiState.value = CambiarClaveUiState(cambiada = true)
     }

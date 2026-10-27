@@ -6,7 +6,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Estilos de texto de la app. Tamaños generosos para facilitar la lectura.
 val Tipografia = Typography(
     titleLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
@@ -38,4 +37,4 @@ val Tipografia = Typography(
         fontSize = 16.sp,
         letterSpacing = 0.3.sp
     )
-)
+)

@@ -26,14 +26,7 @@ import com.example.bposeguros.data.ConvertidorImagen
 import com.example.bposeguros.ui.theme.BPOSegurosTheme
 import com.example.bposeguros.ui.theme.Dimens
 
-// =====================================================================
-//  AvatarUsuario.kt  —  Foto de perfil redonda
-//  Orden para elegir qué se muestra:
-//   1) fotoNueva  -> la que se acaba de tomar o elegir (aún sin guardar)
-//   2) ruta       -> la foto guardada en el teléfono
-//   3) si no hay ninguna -> el avatar POR DEFECTO (res/drawable/usuario.png)
-//  Así TODAS las cuentas tienen avatar desde que se crean, aunque nunca suban una foto.
-// =====================================================================
+
 @Composable
 fun AvatarUsuario(
     ruta: String,
@@ -42,7 +35,6 @@ fun AvatarUsuario(
     fotoNueva: Bitmap? = null,
     conBorde: Boolean = true
 ) {
-    // remember(ruta): el archivo se lee una sola vez, no cada vez que se dibuja la pantalla
     val guardada = remember(ruta) { ConvertidorImagen.leer(ruta) }
     val foto = fotoNueva ?: guardada
 
@@ -58,7 +50,7 @@ fun AvatarUsuario(
         Image(
             bitmap = foto.asImageBitmap(),
             contentDescription = stringResource(R.string.cd_avatar),
-            contentScale = ContentScale.Crop,       // recorta para llenar el círculo sin deformar
+            contentScale = ContentScale.Crop,
             modifier = forma
         )
     } else {
@@ -71,7 +63,6 @@ fun AvatarUsuario(
     }
 }
 
-// Diálogo "¿Quieres cerrar sesión?". Se pregunta antes para no salir por un toque accidental.
 @Composable
 fun DialogoCerrarSesion(onConfirmar: () -> Unit, onCancelar: () -> Unit) {
     AlertDialog(
@@ -88,6 +79,6 @@ fun DialogoCerrarSesion(onConfirmar: () -> Unit, onCancelar: () -> Unit) {
 @Composable
 private fun AvatarUsuarioPreview() {
     BPOSegurosTheme {
-        AvatarUsuario(ruta = "")      // sin foto -> avatar por defecto
+        AvatarUsuario(ruta = "")
     }
 }

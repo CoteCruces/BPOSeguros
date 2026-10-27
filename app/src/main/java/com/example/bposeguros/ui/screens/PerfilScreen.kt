@@ -53,13 +53,6 @@ import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.PerfilViewModel
 import kotlinx.coroutines.launch
 
-// =====================================================================
-//  PerfilScreen.kt  —  "Mi perfil" (cliente y liquidador)
-//  - Foto de perfil: cámara o galería, con los 4 pasos de permisos (igual que "Adjuntar").
-//    Si no hay foto, se ve el avatar por defecto.
-//  - El RUT se MUESTRA pero no se puede editar (no es un campo de texto).
-//  - Desde aquí también se cambia la contraseña y se cierra la sesión.
-// =====================================================================
 @Composable
 fun PerfilScreen(
     usuario: Usuario,
@@ -75,7 +68,6 @@ fun PerfilScreen(
 
     LaunchedEffect(usuario.id) { viewModel.cargar(usuario) }
 
-    // ---------- Snackbar: "cambios guardados" y permisos rechazados (paso 4) ----------
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val textoGuardado = stringResource(R.string.texto_perfil_guardado)
@@ -89,7 +81,6 @@ fun PerfilScreen(
         }
     }
 
-    // Cuando se guarda: se avisa a AppNavegacion (refresca la sesión) y se muestra el mensaje
     LaunchedEffect(uiState.guardado) {
         if (uiState.guardado) {
             onGuardado()
@@ -97,8 +88,6 @@ fun PerfilScreen(
         }
     }
 
-    // ---------- CÁMARA ----------
-    // TakePicturePreview abre la cámara y devuelve un Bitmap (o null si la persona canceló)
     val lanzadorCamara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { foto: Bitmap? ->
         if (foto != null) viewModel.onFotoTomada(foto)
     }
@@ -109,7 +98,6 @@ fun PerfilScreen(
         if (ok) abrirCamara() else avisarDenegado(textoCamara)
     }
 
-    // ---------- GALERÍA ----------
     val lanzadorGaleria = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { resultado ->
         val uri = resultado.data?.data
         if (resultado.resultCode == Activity.RESULT_OK && uri != null) viewModel.onImagenElegida(uri)
@@ -135,7 +123,6 @@ fun PerfilScreen(
                 .padding(Dimens.espacioPantalla),
             verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
         ) {
-            // ---------------- FOTO ----------------
             AvatarUsuario(
                 ruta = uiState.fotoActual,
                 fotoNueva = uiState.fotoNueva,
@@ -148,7 +135,6 @@ fun PerfilScreen(
                 BotonSecundario(
                     texto = stringResource(R.string.btn_tomar_foto),
                     onClick = {
-                        // PERMISOS paso 2: ¿ya está concedido? -> usar. ¿No? -> pedir (paso 3)
                         if (Permisos.tiene(context, Permisos.CAMARA)) abrirCamara()
                         else pedirPermisoCamara.launch(Permisos.CAMARA)
                     },
@@ -172,7 +158,6 @@ fun PerfilScreen(
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
 
-            // ---------------- DATOS QUE NO SE CAMBIAN ----------------
             TarjetaSeccion(titulo = stringResource(R.string.seccion_datos_cuenta)) {
                 FilaDato(R.drawable.ic_rut, stringResource(R.string.texto_rut_fijo, usuario.rutFormateado()))
                 if (!usuario.esAsegurado) {
@@ -180,7 +165,6 @@ fun PerfilScreen(
                 }
             }
 
-            // ---------------- DATOS QUE SÍ SE CAMBIAN ----------------
             TarjetaSeccion(titulo = stringResource(R.string.seccion_datos)) {
                 CampoTexto(
                     valor = uiState.nombre,
@@ -205,13 +189,10 @@ fun PerfilScreen(
                     error = uiState.errorTelefono,
                     tipoTeclado = KeyboardType.Phone
                 )
-                // La comuna se ELIGE de la lista de la BD (no se escribe). La primera opción, "Sin indicar",
-                // permite dejarla vacía porque en el perfil es opcional.
                 val opcionesComuna = listOf(stringResource(R.string.opcion_sin_indicar)) + uiState.comunas
                 CampoSeleccion(
                     etiqueta = stringResource(R.string.campo_comuna_perfil),
                     opciones = opcionesComuna,
-                    // indexOf da -1 si no está; +1 porque "Sin indicar" ocupa la posición 0
                     seleccionada = if (uiState.comuna.isBlank()) null else uiState.comunas.indexOf(uiState.comuna) + 1,
                     onSeleccionar = { posicion ->
                         viewModel.onComunaCambia(if (posicion == 0) "" else uiState.comunas[posicion - 1])
