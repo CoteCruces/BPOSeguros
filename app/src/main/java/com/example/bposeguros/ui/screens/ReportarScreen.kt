@@ -25,6 +25,7 @@ import com.example.bposeguros.R
 import com.example.bposeguros.ui.components.BarraSuperior
 import com.example.bposeguros.ui.components.BotonPrincipal
 import com.example.bposeguros.ui.components.BotonSecundario
+import com.example.bposeguros.ui.components.CampoFecha
 import com.example.bposeguros.ui.components.CampoSeleccion
 import com.example.bposeguros.ui.components.CampoTexto
 import com.example.bposeguros.ui.components.TarjetaSeccion
@@ -75,14 +76,14 @@ fun ReportarScreen(
             }
 
             TarjetaSeccion(titulo = stringResource(R.string.seccion_cuando_donde)) {
-                CampoTexto(
+                CampoFecha(
                     valor = uiState.fechaOcurrencia,
-                    onValorCambia = viewModel::onFechaCambia,
+                    onFechaElegida = viewModel::onFechaCambia,
                     etiqueta = stringResource(R.string.campo_fecha_ocurrencia),
                     icono = R.drawable.ic_calendario,
                     error = uiState.errorFecha,
-                    ayuda = stringResource(R.string.ayuda_fecha),
-                    tipoTeclado = KeyboardType.Number
+                    ayuda = stringResource(R.string.ayuda_fecha, ReportarViewModel.DIAS_MAXIMOS_REPORTE),
+                    diasAtras = ReportarViewModel.DIAS_MAXIMOS_REPORTE
                 )
                 CampoSeleccion(
                     etiqueta = stringResource(R.string.campo_comuna),

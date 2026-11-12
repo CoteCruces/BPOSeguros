@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.update
 
 class ReportarViewModel(application: Application) : AndroidViewModel(application) {
 
+    companion object {
+        const val DIAS_MAXIMOS_REPORTE = 180
+    }
     private val db = SiniestroDbHelper.obtener(application)
     private val todosLosTipos = db.listarTipos()
 
@@ -61,14 +64,16 @@ class ReportarViewModel(application: Application) : AndroidViewModel(application
         val estado = _uiState.value
         val fechaBd = Fechas.desdeTextoUsuario(estado.fechaOcurrencia)
         val hoy = Fechas.hoy()
+        val limiteReporte = Fechas.haceDias(DIAS_MAXIMOS_REPORTE)
 
         val errorCompania = if (estado.companiaElegida == null) "Elige tu compañía de seguros" else null
         val errorTipo = if (estado.tipoElegido == null) "Elige qué te pasó" else null
 
         val errorFecha = when {
-            estado.fechaOcurrencia.isBlank() -> "Escribe la fecha en que ocurrió"
-            fechaBd == null -> "Escribe la fecha como día-mes-año, por ejemplo 02-09-2026"
+            estado.fechaOcurrencia.isBlank() -> "Elige en el calendario la fecha en que ocurrió"
+            fechaBd == null -> "Elige la fecha en el calendario"
             fechaBd > hoy -> "La fecha no puede ser posterior a hoy"
+            fechaBd < limiteReporte -> "Solo puedes reportar siniestros ocurridos en los últimos $DIAS_MAXIMOS_REPORTE días"
             else -> null
         }
 
@@ -80,7 +85,7 @@ class ReportarViewModel(application: Application) : AndroidViewModel(application
 
         val errorDescripcion = when {
             estado.descripcion.isBlank() -> "Cuéntanos brevemente qué pasó"
-            estado.descripcion.trim().length < 10 -> "Escribe un poco más (mínimo 10 caracteres)"
+            estado.descripcion.trim().length < 20 -> "Escribe un poco más (mínimo 20 caracteres)"
             else -> null
         }
 
