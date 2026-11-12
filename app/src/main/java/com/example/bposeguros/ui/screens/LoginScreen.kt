@@ -134,11 +134,11 @@ fun LoginContent(
                         Text(stringResource(R.string.btn_olvide_clave))
                     }
                 }
-                Text(
+                /*Text(
                     text = stringResource(R.string.texto_datos_prueba),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                )*/
             }
         }
     }

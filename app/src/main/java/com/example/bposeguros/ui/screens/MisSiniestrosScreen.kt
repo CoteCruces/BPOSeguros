@@ -49,6 +49,7 @@ import com.example.bposeguros.ui.components.AvatarUsuario
 import com.example.bposeguros.ui.components.BarraSuperior
 import com.example.bposeguros.ui.components.BotonPrincipal
 import com.example.bposeguros.ui.components.BotonSecundario
+import com.example.bposeguros.ui.components.DialogoBuscarPorFecha
 import com.example.bposeguros.ui.components.DialogoCerrarSesion
 import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.components.TarjetaSiniestro
@@ -195,32 +196,13 @@ fun MisSiniestrosScreen(
     }
 
     if (mostrarCalendario) {
-        val estadoCalendario = rememberDateRangePickerState(
-            selectableDates = object : SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= System.currentTimeMillis()
-            }
-        )
-        DatePickerDialog(
-            onDismissRequest = { mostrarCalendario = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val inicio = estadoCalendario.selectedStartDateMillis
-                        val fin = estadoCalendario.selectedEndDateMillis ?: inicio
-                        if (inicio != null && fin != null) {
-                            onBuscarPorFechas(Fechas.desdeMilisegundos(inicio), Fechas.desdeMilisegundos(fin))
-                        }
-                        mostrarCalendario = false
-                    },
-                    enabled = estadoCalendario.selectedStartDateMillis != null
-                ) { Text(stringResource(R.string.btn_buscar)) }
+        DialogoBuscarPorFecha(
+            onBuscar = { desde, hasta ->
+                mostrarCalendario = false
+                onBuscarPorFechas(desde, hasta)
             },
-            dismissButton = {
-                TextButton(onClick = { mostrarCalendario = false }) { Text(stringResource(R.string.btn_cancelar)) }
-            }
-        ) {
-            DateRangePicker(state = estadoCalendario, modifier = Modifier.weight(1f))
-        }
+            onCancelar = { mostrarCalendario = false }
+        )
     }
 
     if (preguntarSalida) {

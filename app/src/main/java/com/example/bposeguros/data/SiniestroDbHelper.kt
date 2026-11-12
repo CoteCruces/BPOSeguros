@@ -25,7 +25,7 @@ class SiniestroDbHelper(context: Context) :
 
     companion object {
         private const val NOMBRE_BD = "bposeguros.db"
-        private const val VERSION_BD = 3
+        private const val VERSION_BD = 4
 
         const val CLAVE_EJEMPLO = "Tem_sin2026%"
 
@@ -301,6 +301,9 @@ class SiniestroDbHelper(context: Context) :
                     "(5, 'TS-05', 'Hogar – robo', 'HOGAR'), " +
                     "(6, 'TS-06', 'Hogar – incendio', 'HOGAR')"
 
+
+
+        /*
         private const val SQL_PRECARGAR_SINIESTROS =
             "INSERT INTO $TABLA_SINIESTROS ($SIN_ID, $SIN_NUMERO, $SIN_ASEGURADO, $SIN_COMPANIA, $SIN_TIPO, " +
                     "$SIN_F_OCURRENCIA, $SIN_F_REPORTE, $SIN_COMUNA, $SIN_DESCRIPCION, $SIN_ETAPA, $SIN_F_ETAPA, " +
@@ -328,6 +331,8 @@ class SiniestroDbHelper(context: Context) :
                     "(10, 'SIN-26-004745', 2, 4, 1, '2026-07-30', '2026-08-01', 'La Reina', " +
                     "'Choque en una rotonda con daños en la parte delantera.', 4, '2026-08-19', 13, 0, 'RECHAZADO', " +
                     "'Lamentamos informarte que el daño reportado no está cubierto por tu póliza. Si tienes dudas, puedes comunicarte con tu compañía de seguros.')"
+
+
 
         private const val SQL_PRECARGAR_GESTIONES =
             "INSERT INTO $TABLA_GESTIONES ($GES_SINIESTRO, $GES_FECHA, $GES_TIPO, $GES_DESC, $GES_RESP, $GES_VISIBLE) VALUES " +
@@ -373,6 +378,7 @@ class SiniestroDbHelper(context: Context) :
                     "(5, '2026-09-23 14:10', 'Solicitud de documento', 'Necesitamos 2 documentos para tu siniestro SIN-26-004838.', 0), " +
                     "(10, '2026-08-19 11:00', 'Cierre', 'Tu siniestro SIN-26-004745 fue cerrado. Revisa el detalle de la resolución.', 1)"
 
+*/
 
         private const val SQL_SELECT_USUARIOS =
             "SELECT u.*, r.$ROL_NOMBRE AS $ROL_NOMBRE " +
@@ -415,11 +421,11 @@ class SiniestroDbHelper(context: Context) :
         db.execSQL("UPDATE $TABLA_USUARIOS SET $USU_CLAVE = ?", arrayOf(Seguridad.huella(CLAVE_EJEMPLO)))
         db.execSQL(SQL_PRECARGAR_COMPANIAS)
         db.execSQL(SQL_PRECARGAR_TIPOS)
-        db.execSQL(SQL_PRECARGAR_SINIESTROS)
+        /*db.execSQL(SQL_PRECARGAR_SINIESTROS)
         db.execSQL(SQL_PRECARGAR_GESTIONES)
         db.execSQL(SQL_PRECARGAR_SOLICITUDES)
         db.execSQL(SQL_PRECARGAR_ADJUNTOS)
-        db.execSQL(SQL_PRECARGAR_AVISOS)
+        db.execSQL(SQL_PRECARGAR_AVISOS)*/
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
