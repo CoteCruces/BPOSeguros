@@ -6,7 +6,7 @@ data class AccionesUiState(
     val dialogo: DialogoLiquidador? = null,
 
     val descripcionGestion: String = "",
-    val gestionVisible: Boolean = true,
+
     val errorGestion: String? = null,
 
     val documentoElegido: Int? = null,

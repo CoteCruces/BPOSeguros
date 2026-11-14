@@ -85,6 +85,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             estado.correo.isBlank() -> "El correo es obligatorio"
             !estado.correo.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")) ->
                 "Ingresa un correo válido (ejemplo: usuario@dominio.com)"
+            db.correoEnUso(estado.correo, usuario.id) -> "Ya existe otra cuenta con ese correo"
             else -> null
         }
 

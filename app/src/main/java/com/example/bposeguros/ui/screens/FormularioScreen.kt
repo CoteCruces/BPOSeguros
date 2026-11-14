@@ -1,5 +1,12 @@
 package com.example.bposeguros.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,29 +19,20 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bposeguros.R
-import com.example.bposeguros.data.Correo
 import com.example.bposeguros.model.FormularioUiState
 import com.example.bposeguros.ui.components.BarraSuperior
 import com.example.bposeguros.ui.components.BotonPrincipal
 import com.example.bposeguros.ui.components.BotonSecundario
-import com.example.bposeguros.ui.components.CampoContrasena
 import com.example.bposeguros.ui.components.CampoTexto
 import com.example.bposeguros.ui.components.ImagenEncabezado
 import com.example.bposeguros.ui.components.TarjetaSeccion
@@ -44,7 +42,6 @@ import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.theme.Exito
 import com.example.bposeguros.ui.theme.ExitoFondo
 import com.example.bposeguros.viewmodel.FormularioViewModel
-import kotlinx.coroutines.launch
 
 @Composable
 fun FormularioScreen(
@@ -52,56 +49,28 @@ fun FormularioScreen(
     viewModel: FormularioViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-    val asunto = stringResource(R.string.correo_cuenta_asunto)
-    val cuerpo = stringResource(
-        R.string.correo_cuenta_cuerpo, uiState.rut, uiState.contrasena
-    )
-    val sinAppCorreo = stringResource(R.string.texto_sin_app_correo)
 
     FormularioContent(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
         onVolver = onVolver,
         onRutCambia = viewModel::onRutCambia,
         onCorreoCambia = viewModel::onCorreoCambia,
-        onContrasenaCambia = viewModel::onContrasenaCambia,
-        onAlternarVisibilidad = viewModel::onAlternarVisibilidad,
-        onSugerir = viewModel::onSugerirContrasena,
         onCrear = viewModel::onCrear,
-        onLimpiar = viewModel::onLimpiar,
-        onEnviarCorreo = {
-            if (!Correo.abrir(context, uiState.correo, asunto, cuerpo)) {
-                scope.launch { snackbarHostState.showSnackbar(sinAppCorreo) }
-            }
-        },
-        cuerpoCorreo = cuerpo,
-        asuntoCorreo = asunto
+        onLimpiar = viewModel::onLimpiar
     )
 }
 
 @Composable
 fun FormularioContent(
     uiState: FormularioUiState,
-    snackbarHostState: SnackbarHostState,
     onVolver: () -> Unit,
     onRutCambia: (String) -> Unit,
     onCorreoCambia: (String) -> Unit,
-    onContrasenaCambia: (String) -> Unit,
-    onAlternarVisibilidad: () -> Unit,
-    onSugerir: () -> Unit,
     onCrear: () -> Unit,
-    onLimpiar: () -> Unit,
-    onEnviarCorreo: () -> Unit,
-    cuerpoCorreo: String,
-    asuntoCorreo: String
+    onLimpiar: () -> Unit
 ) {
     Scaffold(
         topBar = { BarraSuperior(titulo = stringResource(R.string.titulo_nuevo_cliente), onVolver = onVolver) },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
@@ -116,86 +85,78 @@ fun FormularioContent(
                 titulo = stringResource(R.string.banner_nuevo_cliente),
                 subtitulo = stringResource(R.string.banner_nuevo_cliente_sub)
             )
-            Column(
-                modifier = Modifier.padding(Dimens.espacioPantalla),
-                verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
-            ) {
-                if (!uiState.cuentaCreada) {
-                    TarjetaSeccion(titulo = stringResource(R.string.seccion_datos_obligatorios)) {
-                        CampoTexto(
-                            valor = uiState.rut,
-                            onValorCambia = onRutCambia,
-                            etiqueta = stringResource(R.string.campo_rut),
-                            icono = R.drawable.ic_rut,
-                            error = uiState.errorRut,
-                            ayuda = stringResource(R.string.ayuda_rut)
-                        )
-                        CampoTexto(
-                            valor = uiState.correo,
-                            onValorCambia = onCorreoCambia,
-                            etiqueta = stringResource(R.string.campo_correo),
-                            icono = R.drawable.ic_correo,
-                            error = uiState.errorCorreo,
-                            tipoTeclado = KeyboardType.Email
-                        )
-                        CampoContrasena(
-                            valor = uiState.contrasena,
-                            onValorCambia = onContrasenaCambia,
-                            etiqueta = stringResource(R.string.campo_clave_temporal),
-                            visible = uiState.contrasenaVisible,
-                            onAlternarVisible = onAlternarVisibilidad,
-                            error = uiState.errorContrasena
-                        )
-                        TextButton(onClick = onSugerir, modifier = Modifier.align(Alignment.End)) {
-                            Text(stringResource(R.string.btn_sugerir_clave))
+            AnimatedContent(
+                targetState = uiState.cuentaCreada,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "formularioOExito"
+            ) { creada ->
+                Column(
+                    modifier = Modifier.padding(Dimens.espacioPantalla),
+                    verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
+                ) {
+                    if (!creada) {
+                        TarjetaSeccion(titulo = stringResource(R.string.seccion_datos_obligatorios)) {
+                            CampoTexto(
+                                valor = uiState.rut,
+                                onValorCambia = onRutCambia,
+                                etiqueta = stringResource(R.string.campo_rut),
+                                icono = R.drawable.ic_rut,
+                                error = uiState.errorRut,
+                                ayuda = stringResource(R.string.ayuda_rut)
+                            )
+                            CampoTexto(
+                                valor = uiState.correo,
+                                onValorCambia = onCorreoCambia,
+                                etiqueta = stringResource(R.string.campo_correo),
+                                icono = R.drawable.ic_correo,
+                                error = uiState.errorCorreo,
+                                tipoTeclado = KeyboardType.Email
+                            )
+                            AnimatedVisibility(
+                                visible = uiState.errorGeneral != null,
+                                enter = expandVertically() + fadeIn(),
+                                exit = shrinkVertically() + fadeOut()
+                            ) {
+                                Text(
+                                    text = uiState.errorGeneral.orEmpty(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
-                        Text(
-                            stringResource(R.string.texto_resto_perfil),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)) {
-                        BotonSecundario(
-                            texto = stringResource(R.string.btn_limpiar),
-                            onClick = onLimpiar,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)) {
+                            BotonSecundario(
+                                texto = stringResource(R.string.btn_limpiar),
+                                onClick = onLimpiar,
+                                modifier = Modifier.weight(1f)
+                            )
+                            BotonPrincipal(
+                                texto = stringResource(R.string.btn_crear_cuenta),
+                                onClick = onCrear,
+                                icono = R.drawable.ic_check,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    } else {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = EstilosTarjeta.forma,
+                            colors = CardDefaults.cardColors(containerColor = ExitoFondo)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.cuenta_creada, uiState.rut, uiState.correo),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Exito,
+                                modifier = Modifier.padding(Dimens.espacioMedio)
+                            )
+                        }
                         BotonPrincipal(
-                            texto = stringResource(R.string.btn_crear_cuenta),
-                            onClick = onCrear,
-                            icono = R.drawable.ic_check,
-                            modifier = Modifier.weight(1f)
+                            texto = stringResource(R.string.btn_crear_otra),
+                            onClick = onLimpiar,
+                            icono = R.drawable.ic_persona_agregar,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
-                } else {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = EstilosTarjeta.forma,
-                        colors = CardDefaults.cardColors(containerColor = ExitoFondo)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cuenta_creada, uiState.rut),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Exito,
-                            modifier = Modifier.padding(Dimens.espacioMedio)
-                        )
-                    }
-                    CorreoSimulado(
-                        para = uiState.correo, asunto = asuntoCorreo, cuerpo = cuerpoCorreo,
-                        titulo = stringResource(R.string.titulo_vista_previa_correo)
-                    )
-                    BotonPrincipal(
-                        texto = stringResource(R.string.btn_enviar_correo),
-                        onClick = onEnviarCorreo,
-                        icono = R.drawable.ic_correo,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    BotonSecundario(
-                        texto = stringResource(R.string.btn_crear_otra),
-                        onClick = onLimpiar,
-                        modifier = Modifier.fillMaxWidth()
-                    )
                 }
             }
         }
@@ -211,22 +172,13 @@ private fun FormularioPreview() {
                 rut = "15.842.371-R",
                 errorRut = "El RUT no es válido. Revisa el dígito verificador",
                 correo = "ana@",
-                errorCorreo = "Ingresa un correo válido (ejemplo: usuario@dominio.com)",
-                contrasena = "sdfr",
-                errorContrasena = "Debe tener al menos 8 caracteres"
+                errorCorreo = "Ingresa un correo válido (ejemplo: usuario@dominio.com)"
             ),
-            snackbarHostState = SnackbarHostState(),
             onVolver = {},
             onRutCambia = {},
             onCorreoCambia = {},
-            onContrasenaCambia = {},
-            onAlternarVisibilidad = {},
-            onSugerir = {},
             onCrear = {},
-            onLimpiar = {},
-            onEnviarCorreo = {},
-            cuerpoCorreo = "",
-            asuntoCorreo = ""
+            onLimpiar = {}
         )
     }
 }

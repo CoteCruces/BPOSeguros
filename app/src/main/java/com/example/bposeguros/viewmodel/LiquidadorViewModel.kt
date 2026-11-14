@@ -76,8 +76,6 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
     fun onDescripcionGestion(valor: String) =
         _acciones.update { it.copy(descripcionGestion = valor.take(300), errorGestion = null) }
 
-    fun onGestionVisible(valor: Boolean) = _acciones.update { it.copy(gestionVisible = valor) }
-
     fun onDocumentoElegido(posicion: Int) =
         _acciones.update { it.copy(documentoElegido = posicion, errorDocumento = null) }
 
@@ -107,9 +105,9 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
         }
         db.insertarGestion(
             Gestion(
-                siniestroId = siniestro.id, fechaHora = Fechas.ahora(), tipo = "Gestión del liquidador",
+                siniestroId = siniestro.id, fechaHora = Fechas.ahora(), tipo = Gestion.TIPO_NOTA_LIQUIDADOR,
                 descripcion = estado.descripcionGestion.trim(), responsable = liquidador.comoResponsable(),
-                visible = estado.gestionVisible
+                visible = false
             )
         )
         terminar(siniestro, liquidador, "Gestión registrada")
@@ -123,6 +121,10 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
             return
         }
         val documento = TipoDocumento.lista[estado.documentoElegido]
+        if (db.hayDocumentoPendiente(siniestro.id, documento)) {
+            _acciones.update { it.copy(errorDocumento = "Ya pediste este documento y el asegurado aún no lo entrega") }
+            return
+        }
         val ahora = Fechas.ahora()
         db.insertarSolicitud(
             SolicitudDocumento(

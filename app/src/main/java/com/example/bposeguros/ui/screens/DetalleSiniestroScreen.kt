@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import com.example.bposeguros.R
 import com.example.bposeguros.data.ConvertidorImagen
 import com.example.bposeguros.model.DetalleUiState
+import com.example.bposeguros.model.DialogoLiquidador
 import com.example.bposeguros.model.DocumentoAdjunto
 import com.example.bposeguros.model.Gestion
 import com.example.bposeguros.model.Siniestro
@@ -85,7 +86,7 @@ fun DetalleSiniestroScreen(
                 Text(stringResource(R.string.siniestro_no_encontrado))
                 return@Column
             }
-            SeccionEtapa(siniestro, hayPendientes = detalle.pendientes > 0)
+            SeccionEtapa(siniestro, pendientes = detalle.pendientes, esLiquidador = false)
             SeccionDocumentos(
                 solicitudes = detalle.solicitudes,
                 adjuntos = detalle.adjuntos
@@ -108,7 +109,7 @@ fun DetalleSiniestroScreen(
 }
 
 @Composable
-fun SeccionEtapa(siniestro: Siniestro, hayPendientes: Boolean) {
+fun SeccionEtapa(siniestro: Siniestro, pendientes: Int, esLiquidador: Boolean) {
     TarjetaSeccion(titulo = siniestro.numero) {
         IndicadorEtapas(siniestro.etapa)
         Card(
@@ -117,12 +118,15 @@ fun SeccionEtapa(siniestro: Siniestro, hayPendientes: Boolean) {
         ) {
             Column(Modifier.padding(Dimens.espacioMedio)) {
                 Text(
-                    stringResource(R.string.seccion_proximo_paso),
+                    stringResource(if (esLiquidador) R.string.seccion_proximo_paso_liquidador else R.string.seccion_proximo_paso),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    stringResource(siniestro.proximoPaso(hayPendientes)),
+                    stringResource(
+                        if (esLiquidador) siniestro.proximoPasoLiquidador(pendientes) else siniestro.proximoPasoAsegurado(pendientes > 0),
+                        pendientes
+                    ),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )

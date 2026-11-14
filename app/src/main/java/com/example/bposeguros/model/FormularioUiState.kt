@@ -5,22 +5,20 @@ import android.graphics.Bitmap
 data class FormularioUiState(
     val rut: String = "",
     val correo: String = "",
-    val contrasena: String = "",
-    val contrasenaVisible: Boolean = false,
+
 
     val errorRut: String? = null,
     val errorCorreo: String? = null,
-    val errorContrasena: String? = null,
+    val errorGeneral: String? = null,
 
     val cuentaCreada: Boolean = false
 )
 
 data class RecuperarClaveUiState(
-    val rut: String = "",
     val correo: String = "",
-    val errorRut: String? = null,
     val errorCorreo: String? = null,
-    val claveTemporal: String? = null
+    val errorGeneral: String? = null,
+    val solicitudEnviada: Boolean = false
 )
 
 data class CambiarClaveUiState(

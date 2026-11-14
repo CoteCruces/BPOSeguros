@@ -98,8 +98,8 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
         val solicitudId = opcion.solicitudId ?: db.listarSolicitudes(idSiniestro)
             .firstOrNull { !it.entregado && mismoDocumento(it.tipoDocumento, opcion.tipoDocumento) }?.id
 
-        db.insertarAdjunto(
-            DocumentoAdjunto(
+        val registrado = db.registrarEntregaDocumento(
+            adjunto = DocumentoAdjunto(
                 siniestroId = idSiniestro,
                 nombreArchivo = nombre,
                 rutaArchivo = archivo.absolutePath,
@@ -108,17 +108,20 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
                 cargadoPor = "Asegurado",
                 comentario = estado.comentario.trim(),
                 solicitudId = solicitudId
-            )
-        )
-        if (solicitudId != null) db.marcarSolicitudEntregada(solicitudId, ahora)
-
-        db.insertarGestion(
-            Gestion(
+            ),
+            solicitudId = solicitudId,
+            fechaHora = ahora,
+            gestion = Gestion(
                 siniestroId = idSiniestro, fechaHora = ahora, tipo = "Documento recibido",
                 descripcion = "Recibimos tu documento: ${opcion.tipoDocumento.lowercase()}.",
                 responsable = "Asegurado", visible = true
             )
         )
+        if (!registrado) {
+            archivo.delete()
+            _uiState.update { it.copy(errorFoto = "No pudimos guardar el documento. Inténtalo de nuevo") }
+            return
+        }
         _uiState.update { it.copy(guardado = true) }
     }
 
