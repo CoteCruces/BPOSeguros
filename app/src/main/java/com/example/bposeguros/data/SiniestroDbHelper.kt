@@ -456,6 +456,18 @@ class SiniestroDbHelper(context: Context) :
     fun buscarUsuarioPorRut(rut: String): Usuario? =
         consultar("$SQL_SELECT_USUARIOS WHERE u.$USU_RUT = ?", arrayOf(rut)) { leerUsuario(it) }.firstOrNull()
 
+    fun buscarUsuarioPorCorreo(correo: String): Usuario? =
+        consultar("$SQL_SELECT_USUARIOS WHERE LOWER(u.$USU_CORREO) = LOWER(?)", arrayOf(correo)) { leerUsuario(it) }
+            .firstOrNull()
+
+    fun correoEnUso(correo: String, exceptoUsuarioId: Long = 0): Boolean = contar(
+        "SELECT COUNT(*) FROM $TABLA_USUARIOS WHERE LOWER($USU_CORREO) = LOWER(?) AND $USU_ID <> ?",
+        arrayOf(correo, exceptoUsuarioId.toString())
+    ) > 0
+
+    fun eliminarUsuario(idUsuario: Long): Int =
+        writableDatabase.delete(TABLA_USUARIOS, "$USU_ID = ?", arrayOf(idUsuario.toString()))
+
     fun buscarUsuarioPorId(id: Long): Usuario? =
         consultar("$SQL_SELECT_USUARIOS WHERE u.$USU_ID = ?", arrayOf(id.toString())) { leerUsuario(it) }
             .firstOrNull()
@@ -597,7 +609,11 @@ class SiniestroDbHelper(context: Context) :
         try {
             val filas = db.update(
                 TABLA_SINIESTROS,
-                ContentValues().apply { put(SIN_LIQUIDADOR, candidato.id) },
+                ContentValues().apply {
+                    put(SIN_LIQUIDADOR, candidato.id)
+                    put(SIN_ETAPA, Etapa.EN_EVALUACION.id)
+                    put(SIN_F_ETAPA, fechaHora.take(10))
+                },
                 "$SIN_ID = ? AND $SIN_LIQUIDADOR IS NULL", arrayOf(idSiniestro.toString())
             )
             if (filas == 0) return false
@@ -608,9 +624,16 @@ class SiniestroDbHelper(context: Context) :
                     responsable = responsable, visible = true
                 )
             )
+            insertarGestion(
+                Gestion(
+                    siniestroId = idSiniestro, fechaHora = fechaHora, tipo = "Cambio de etapa",
+                    descripcion = "Tu caso pasó a \"En evaluación\".",
+                    responsable = responsable, visible = true
+                )
+            )
             insertarAviso(
                 idSiniestro, fechaHora, "Liquidador asignado",
-                "Tu caso ya tiene liquidador: ${candidato.nombreVisible()}."
+                "Tu caso ya tiene liquidador: ${candidato.nombreVisible()}. Pasó a \"En evaluación\"."
             )
             db.setTransactionSuccessful()
             return true
@@ -703,10 +726,13 @@ class SiniestroDbHelper(context: Context) :
 
 
     fun listarGestiones(idSiniestro: Long, soloVisibles: Boolean): List<Gestion> {
-        val filtro = if (soloVisibles) " AND $GES_VISIBLE = 1" else ""
+        val filtro = if (soloVisibles) " AND $GES_VISIBLE = 1 AND $GES_TIPO <> ?" else ""
+        val argumentos =
+            if (soloVisibles) arrayOf(idSiniestro.toString(), Gestion.TIPO_NOTA_LIQUIDADOR)
+            else arrayOf(idSiniestro.toString())
         return consultar(
             "SELECT * FROM $TABLA_GESTIONES WHERE $GES_SINIESTRO = ?$filtro ORDER BY $GES_FECHA, $GES_ID",
-            arrayOf(idSiniestro.toString())
+            argumentos
         ) { c ->
             Gestion(
                 id = c.largo(GES_ID), siniestroId = c.largo(GES_SINIESTRO), fechaHora = c.texto(GES_FECHA),
@@ -791,6 +817,25 @@ class SiniestroDbHelper(context: Context) :
             put(ADJ_COMENTARIO, adjunto.comentario)
             if (adjunto.solicitudId != null) put(ADJ_SOLICITUD, adjunto.solicitudId) else putNull(ADJ_SOLICITUD)
         })
+
+    fun registrarEntregaDocumento(adjunto: DocumentoAdjunto, solicitudId: Long?, fechaHora: String, gestion: Gestion): Boolean {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            if (insertarAdjunto(adjunto) == -1L) return false
+            if (solicitudId != null) marcarSolicitudEntregada(solicitudId, fechaHora)
+            insertarGestion(gestion)
+            db.setTransactionSuccessful()
+            return true
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun hayDocumentoPendiente(idSiniestro: Long, tipoDocumento: String): Boolean = contar(
+        "SELECT COUNT(*) FROM $TABLA_SOLICITUDES WHERE $SOL_SINIESTRO = ? AND $SOL_DOC = ? AND $SOL_ENTREGADO = 0",
+        arrayOf(idSiniestro.toString(), tipoDocumento)
+    ) > 0
 
     fun insertarAviso(idSiniestro: Long, fechaHora: String, motivo: String, mensaje: String): Long =
         writableDatabase.insert(TABLA_AVISOS, null, ContentValues().apply {

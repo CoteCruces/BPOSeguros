@@ -8,7 +8,11 @@ data class Gestion(
     val descripcion: String,
     val responsable: String,
     val visible: Boolean
-)
+){
+    companion object {
+        const val TIPO_NOTA_LIQUIDADOR = "Gestión del liquidador"
+    }
+}
 
 data class SolicitudDocumento(
     val id: Long = 0,
@@ -40,4 +44,4 @@ data class Aviso(
     val motivo: String,
     val mensaje: String,
     val leido: Boolean = false
-)
+)

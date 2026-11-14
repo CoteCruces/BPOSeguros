@@ -25,11 +25,8 @@
 
     <string name="banner_bienvenida_titulo">Te damos la bienvenida</string>
     <string name="banner_bienvenida_subtitulo">Sigue tu siniestro sin llamar ni escribir</string>
-    <string name="ayuda_rut">Ejemplo: 12.345.678-5</string>
+    <string name="ayuda_rut">Ejemplo: 15.842.371-5</string>
     <string name="btn_olvide_clave">¿Olvidaste tu contraseña?</string>
-    <!--
-    <string name="texto_datos_prueba">Datos de prueba (ficticios), todos con la contraseña Tem_sin2026% · asegurada Camila Rojas, RUT 15.842.371-5 · asegurada Daniela Vergara, RUT 17.552.093-7 · liquidadora Paulina Fernández, RUT 16.234.567-2 (activa \"Soy liquidador de Andes\").</string>
-    -->
 
     <string name="texto_ingreso">Ingresa con tu RUT y tu contraseña.</string>
     <string name="titulo_asignaciones">Casos por asignar</string>
@@ -42,15 +39,13 @@
     <string name="etiqueta_sugerido">Sugerido</string>
     <string name="btn_asignar">Asignar</string>
 
-    <string name="texto_recuperar">Escribe tu RUT y el correo de tu cuenta. Te enviaremos una contraseña temporal para que puedas entrar y elegir una nueva.</string>
+    <string name="texto_recuperar">Escribe el correo de tu cuenta. Te enviaremos una contraseña temporal desde BPO Seguros para que puedas entrar y elegir una nueva.</string>
     <string name="seccion_tu_cuenta">Tu cuenta</string>
     <string name="btn_enviar_clave">Enviar contraseña temporal</string>
     <string name="btn_volver_ingresar">Volver a ingresar</string>
-    <string name="titulo_correo_simulado">Correo enviado (simulación: no hay servidor de correo)</string>
-    <string name="titulo_vista_previa_correo">Vista previa del correo para el cliente</string>
-    <string name="correo_para">Para: %1$s</string>
-    <string name="correo_recuperar_asunto">BPO Seguros: tu contraseña temporal</string>
-    <string name="correo_recuperar_cuerpo">Hola. Tu contraseña temporal es:\n%1$s\n\nÚsala para entrar a la app; te pediremos que elijas una nueva.</string>
+
+
+
     <string name="texto_clave_obligatoria">Estás usando una contraseña temporal. Por seguridad, elige una nueva para continuar.</string>
     <string name="texto_clave_voluntaria">Escribe tu contraseña actual y elige una nueva.</string>
     <string name="seccion_contrasena">Contraseña</string>
@@ -107,15 +102,13 @@
     <string name="banner_nuevo_cliente">Crea la cuenta de un cliente</string>
     <string name="banner_nuevo_cliente_sub">El cliente completará el resto de sus datos al entrar</string>
     <string name="seccion_datos_obligatorios">Datos obligatorios</string>
-    <string name="btn_sugerir_clave">Sugerir contraseña temporal</string>
-    <string name="texto_resto_perfil">Nombre, teléfono, comuna, fecha de nacimiento y foto quedan vacíos: el cliente los completa en "Mi perfil". Al entrar por primera vez deberá cambiar la contraseña.</string>
+
     <string name="btn_crear_cuenta">Crear cuenta</string>
-    <string name="cuenta_creada">Cuenta creada para el RUT %1$s. Envíale sus datos de ingreso.</string>
-    <string name="btn_enviar_correo">Enviar datos por correo</string>
+    <string name="cuenta_creada">Cuenta creada para el RUT %1$s. Enviamos una contraseña temporal a %2$s. El cliente deberá cambiarla una vez que ingrese.</string>
+
     <string name="btn_crear_otra">Crear otra cuenta</string>
-    <string name="texto_sin_app_correo">No hay una app de correo instalada en este teléfono.</string>
-    <string name="correo_cuenta_asunto">Tu cuenta en BPO Seguros</string>
-    <string name="correo_cuenta_cuerpo">Hola. Creamos tu cuenta para que sigas tus siniestros desde la app BPO Seguros.\n\nRUT: %1$s\nContraseña temporal: %2$s\n\nAl entrar por primera vez te pediremos que elijas una contraseña nueva.</string>
+
+
 
 
 
@@ -134,6 +127,13 @@
 
     <string name="siniestro_no_encontrado">No encontramos este siniestro.</string>
     <string name="seccion_proximo_paso">¿Qué viene ahora?</string>
+    <string name="seccion_proximo_paso_liquidador">Tu próximo paso</string>
+    <string name="recuperar_solicitud_enviada">Listo. Si el correo está registrado, en unos minutos recibirás una contraseña temporal. Revisa también tu carpeta de spam.</string>
+    <string name="paso_liq_recibido">Este caso todavía no tiene liquidador asignado.</string>
+    <string name="paso_liq_evaluacion_pendientes">Esperando al asegurado: faltan %1$d documento(s) por entregar. No puedes avanzar a liquidación hasta que los envíe.</string>
+    <string name="paso_liq_evaluacion_sin_pendientes">Revisa los documentos recibidos. Si falta algo, pídelo; si todo está en orden, avanza el caso a liquidación.</string>
+    <string name="paso_liq_liquidacion">Define la resolución con la compañía y cierra el caso: elige el resultado y escribe un mensaje claro para el asegurado.</string>
+    <string name="paso_liq_cerrado">Caso cerrado. Ya no se pueden pedir ni recibir documentos.</string>
     <string name="seccion_datos_siniestro">Datos de tu siniestro</string>
     <string name="seccion_historial">Historial de tu caso</string>
     <string name="seccion_documentos">Tus documentos</string>
@@ -229,7 +229,7 @@
     <string name="btn_cerrar_caso">Cerrar caso</string>
     <string name="campo_que_hiciste">¿Qué hiciste?</string>
     <string name="ayuda_lenguaje_simple">Usa palabras simples: el asegurado lo leerá</string>
-    <string name="opcion_visible_asegurado">Visible para el asegurado</string>
+
     <string name="campo_resultado">Resultado</string>
     <string name="campo_mensaje_cierre">Mensaje para el asegurado</string>
 

@@ -1,6 +1,10 @@
 package com.example.bposeguros.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,9 +51,12 @@ fun CampoTexto(
         },
         isError = error != null,
         supportingText = {
-            when {
-                error != null -> Text(error)
-                ayuda != null -> Text(ayuda)
+            AnimatedContent(
+                targetState = error ?: ayuda,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "mensajeCampo"
+            ) { mensaje ->
+                if (mensaje != null) Text(mensaje)
             }
         },
         singleLine = lineas == 1,

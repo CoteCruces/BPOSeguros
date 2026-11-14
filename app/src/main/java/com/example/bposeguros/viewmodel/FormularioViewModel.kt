@@ -2,6 +2,8 @@ package com.example.bposeguros.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import com.example.bposeguros.data.EnvioCorreo
+import com.example.bposeguros.data.MotivoClave
 import com.example.bposeguros.data.SiniestroDbHelper
 import com.example.bposeguros.model.FormularioUiState
 import com.example.bposeguros.ui.util.Seguridad
@@ -19,25 +21,11 @@ class FormularioViewModel(application: Application) : AndroidViewModel(applicati
 
 
     fun onRutCambia(valor: String) {
-        _uiState.update { it.copy(rut = valor, errorRut = null) }
+        _uiState.update { it.copy(rut = valor, errorRut = null, errorGeneral = null) }
     }
 
     fun onCorreoCambia(valor: String) {
-        _uiState.update { it.copy(correo = valor.trim(), errorCorreo = null) }
-    }
-
-    fun onContrasenaCambia(valor: String) {
-        _uiState.update { it.copy(contrasena = valor, errorContrasena = null) }
-    }
-
-    fun onAlternarVisibilidad() {
-        _uiState.update { it.copy(contrasenaVisible = !it.contrasenaVisible) }
-    }
-
-    fun onSugerirContrasena() {
-        _uiState.update {
-            it.copy(contrasena = Seguridad.claveTemporal(), contrasenaVisible = true, errorContrasena = null)
-        }
+        _uiState.update { it.copy(correo = valor.trim(), errorCorreo = null, errorGeneral = null) }
     }
 
 
@@ -56,28 +44,30 @@ class FormularioViewModel(application: Application) : AndroidViewModel(applicati
             estado.correo.isBlank() -> "El correo es obligatorio"
             !estado.correo.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")) ->
                 "Ingresa un correo válido (ejemplo: usuario@dominio.com)"
+            db.correoEnUso(estado.correo) -> "Ya existe una cuenta con ese correo"
             else -> null
         }
 
-        val errorContrasena = when {
-            estado.contrasena.isBlank() -> "La contraseña es obligatoria"
-            estado.contrasena.length < 8 -> "Debe tener al menos 8 caracteres"
-            !estado.contrasena.any { it.isUpperCase() } -> "Debe incluir al menos una mayúscula"
-            !estado.contrasena.any { it.isDigit() } -> "Debe incluir al menos un número"
-            estado.contrasena.all { it.isLetterOrDigit() } ->
-                "Debe incluir al menos un carácter especial (por ejemplo @, # o !)"
-            else -> null
-        }
+        _uiState.update { it.copy(errorRut = errorRut, errorCorreo = errorCorreo, errorGeneral = null) }
+        if (errorRut != null || errorCorreo != null) return
 
-        val hayErrores = listOf(errorRut, errorCorreo, errorContrasena).any { it != null }
-        _uiState.update {
-            it.copy(errorRut = errorRut, errorCorreo = errorCorreo, errorContrasena = errorContrasena)
-        }
-        if (hayErrores) return
 
-        val id = db.insertarAsegurado(rutLimpio, estado.correo, Seguridad.huella(estado.contrasena))
+        val claveTemporal = Seguridad.claveTemporal()
+
+        val id = db.insertarAsegurado(rutLimpio, estado.correo, Seguridad.huella(claveTemporal))
         if (id == -1L) {
-            _uiState.update { it.copy(errorRut = "No se pudo crear la cuenta. Revisa el RUT") }
+            _uiState.update { it.copy(errorGeneral = "No se pudo crear la cuenta. Revisa los datos") }
+            return
+        }
+
+        val enviado = EnvioCorreo.enviarClaveTemporal(
+            getApplication(), estado.correo, claveTemporal, MotivoClave.CREACION
+        )
+        if (!enviado) {
+            db.eliminarUsuario(id)
+            _uiState.update {
+                it.copy(errorGeneral = "No pudimos enviar el correo al cliente. La cuenta no fue creada; inténtalo otra vez")
+            }
             return
         }
         _uiState.update { it.copy(rut = formatearRut(rutLimpio), cuentaCreada = true) }

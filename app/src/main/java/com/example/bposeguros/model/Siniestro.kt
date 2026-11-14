@@ -41,11 +41,19 @@ data class Siniestro(
         return "$cuerpo-${aseguradoRut.last()}"
     }
 
-    fun proximoPaso(hayPendientes: Boolean): Int = when (etapa) {
+    fun proximoPasoAsegurado(hayPendientes: Boolean): Int = when (etapa) {
         Etapa.RECIBIDO -> R.string.paso_recibido
         Etapa.EN_EVALUACION ->
             if (hayPendientes) R.string.paso_evaluacion_pendientes else R.string.paso_evaluacion_sin_pendientes
         Etapa.EN_LIQUIDACION -> R.string.paso_liquidacion
         Etapa.CERRADO -> R.string.paso_cerrado
+    }
+
+    fun proximoPasoLiquidador(pendientes: Int): Int = when (etapa) {
+        Etapa.RECIBIDO -> R.string.paso_liq_recibido
+        Etapa.EN_EVALUACION ->
+            if (pendientes > 0) R.string.paso_liq_evaluacion_pendientes else R.string.paso_liq_evaluacion_sin_pendientes
+        Etapa.EN_LIQUIDACION -> R.string.paso_liq_liquidacion
+        Etapa.CERRADO -> R.string.paso_liq_cerrado
     }
 }

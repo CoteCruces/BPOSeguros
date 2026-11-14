@@ -30,7 +30,6 @@ import com.example.bposeguros.ui.components.BotonPrincipal
 import com.example.bposeguros.ui.components.BotonSecundario
 import com.example.bposeguros.ui.components.CampoSeleccion
 import com.example.bposeguros.ui.components.CampoTexto
-import com.example.bposeguros.ui.components.InterruptorConTexto
 import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.LiquidadorViewModel
@@ -73,7 +72,7 @@ fun CasoLiquidadorScreen(
                 Text(stringResource(R.string.caso_no_asignado))
                 return@Column
             }
-            SeccionEtapa(siniestro, hayPendientes = detalle.pendientes > 0)
+            SeccionEtapa(siniestro, pendientes = detalle.pendientes, esLiquidador = true)
 
             if (!siniestro.estaCerrado) {
                 TarjetaSeccion(titulo = stringResource(R.string.seccion_acciones)) {
@@ -124,11 +123,7 @@ fun CasoLiquidadorScreen(
                 ayuda = stringResource(R.string.ayuda_lenguaje_simple),
                 lineas = 3
             )
-            InterruptorConTexto(
-                texto = stringResource(R.string.opcion_visible_asegurado),
-                activado = acciones.gestionVisible,
-                onCambio = viewModel::onGestionVisible
-            )
+
         }
 
         DialogoLiquidador.SOLICITUD -> DialogoFormulario(

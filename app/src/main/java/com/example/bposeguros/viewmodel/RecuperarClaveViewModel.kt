@@ -2,6 +2,8 @@ package com.example.bposeguros.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import com.example.bposeguros.data.EnvioCorreo
+import com.example.bposeguros.data.MotivoClave
 import com.example.bposeguros.data.SiniestroDbHelper
 import com.example.bposeguros.model.RecuperarClaveUiState
 import com.example.bposeguros.ui.util.Seguridad
@@ -17,65 +19,38 @@ class RecuperarClaveViewModel(application: Application) : AndroidViewModel(appli
     private val _uiState = MutableStateFlow(RecuperarClaveUiState())
     val uiState: StateFlow<RecuperarClaveUiState> = _uiState.asStateFlow()
 
-    fun onRutCambia(valor: String) {
-        _uiState.update { it.copy(rut = valor, errorRut = null) }
-    }
-
     fun onCorreoCambia(valor: String) {
-        _uiState.update { it.copy(correo = valor.trim(), errorCorreo = null) }
+        _uiState.update { it.copy(correo = valor.trim(), errorCorreo = null, errorGeneral = null) }
     }
 
     fun onEnviar() {
         val estado = _uiState.value
-        val errorRut = when {
-            estado.rut.isBlank() -> "El RUT es obligatorio"
-            !rutValido(estado.rut) -> "El RUT no es válido. Revisa el dígito verificador"
-            else -> null
-        }
         val errorCorreo = when {
             estado.correo.isBlank() -> "El correo es obligatorio"
             !estado.correo.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")) ->
                 "Ingresa un correo válido (ejemplo: usuario@dominio.com)"
             else -> null
         }
-        if (errorRut != null || errorCorreo != null) {
-            _uiState.update { it.copy(errorRut = errorRut, errorCorreo = errorCorreo) }
+        if (errorCorreo != null) {
+            _uiState.update { it.copy(errorCorreo = errorCorreo) }
             return
         }
 
-        val usuario = db.buscarUsuarioPorRut(limpiarRut(estado.rut))
-        if (usuario == null || !usuario.correo.equals(estado.correo, ignoreCase = true)) {
-            _uiState.update { it.copy(errorCorreo = "El RUT y el correo no coinciden con ninguna cuenta") }
-            return
+        val usuario = db.buscarUsuarioPorCorreo(estado.correo)
+        if (usuario != null && usuario.activo) {
+            val temporal = Seguridad.claveTemporal()
+            val enviado = EnvioCorreo.enviarClaveTemporal(
+                getApplication(), usuario.correo, temporal, MotivoClave.RECUPERACION
+            )
+            if (!enviado) {
+                _uiState.update { it.copy(errorGeneral = "No pudimos enviar el correo. Inténtalo de nuevo en unos minutos") }
+                return
+            }
+
+            db.cambiarClave(usuario.id, Seguridad.huella(temporal), temporal = true)
         }
 
-        val temporal = Seguridad.claveTemporal()
-        db.cambiarClave(usuario.id, Seguridad.huella(temporal), temporal = true)
-        _uiState.update { it.copy(correo = usuario.correo, claveTemporal = temporal) }
-    }
 
-
-    private fun limpiarRut(valor: String): String =
-        valor.replace(".", "").replace("-", "").trim().uppercase()
-
-    private fun rutValido(valor: String): Boolean {
-        val limpio = limpiarRut(valor)
-        if (limpio.length < 8 || limpio.length > 9) return false
-        val cuerpo = limpio.dropLast(1)
-        val digitoVerificador = limpio.last()
-        if (!cuerpo.all { it.isDigit() }) return false
-        var suma = 0
-        var multiplicador = 2
-        for (digito in cuerpo.reversed()) {
-            suma += digito.digitToInt() * multiplicador
-            multiplicador = if (multiplicador == 7) 2 else multiplicador + 1
-        }
-        val resto = 11 - (suma % 11)
-        val esperado = when (resto) {
-            11 -> '0'
-            10 -> 'K'
-            else -> resto.digitToChar()
-        }
-        return digitoVerificador == esperado
+        _uiState.update { it.copy(solicitudEnviada = true, errorGeneral = null) }
     }
 }
