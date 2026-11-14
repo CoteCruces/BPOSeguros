@@ -46,7 +46,7 @@ object Fechas {
     fun aMilisegundos(textoBd: String): Long? = try {
         formato("yyyy-MM-dd").apply { timeZone = TimeZone.getTimeZone("UTC") }
             .parse(textoBd.take(10))?.time
-    } catch (e: Exception){
+    } catch (e: Exception) {
         null
     }
 
@@ -56,6 +56,7 @@ object Fechas {
         return formato("yyyy-MM-dd").format(calendario.time)
     }
 
+    // Primer día (en UTC) de cada mes entre dos fechas año-mes-día, ambos meses incluidos.
     fun mesesEntre(desde: String, hasta: String): List<Long> {
         val inicio = aMilisegundos(desde.take(7) + "-01") ?: return emptyList()
         val fin = aMilisegundos(hasta.take(7) + "-01") ?: return emptyList()
@@ -74,6 +75,9 @@ object Fechas {
         return formatoMes.format(Date(milisegundosUtc)).replaceFirstChar { it.uppercase() }
     }
 
+    fun anioDe(milisegundosUtc: Long): Int = desdeMilisegundos(milisegundosUtc).take(4).toInt()
+
+    fun numeroDeMes(milisegundosUtc: Long): Int = desdeMilisegundos(milisegundosUtc).substring(5, 7).toInt()
 
     fun inicioDeMes(milisegundosUtc: Long): Long =
         aMilisegundos(desdeMilisegundos(milisegundosUtc).take(7) + "-01") ?: milisegundosUtc
@@ -88,7 +92,7 @@ object Fechas {
         return formatoMes.format(calendario.time).replaceFirstChar { it.uppercase() }
     }
 
-
+    // Primer y último día (año-mes-día) de un año completo o de un mes de ese año.
     fun rangoDelPeriodo(anio: Int, mes: Int?): Pair<String, String> {
         if (mes == null) {
             return String.format(Locale.US, "%04d-01-01", anio) to String.format(Locale.US, "%04d-12-31", anio)
@@ -101,7 +105,6 @@ object Fechas {
         return String.format(Locale.US, "%04d-%02d-01", anio, mes) to
                 String.format(Locale.US, "%04d-%02d-%02d", anio, mes, ultimoDia)
     }
-
 
     fun haceAnios(anios: Int): String {
         val calendario = Calendar.getInstance()
