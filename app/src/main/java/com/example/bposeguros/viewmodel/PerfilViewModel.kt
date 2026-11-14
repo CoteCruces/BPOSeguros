@@ -65,7 +65,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
 
         val errorFecha = when {
             estado.fechaNacimiento.isBlank() -> null
-            fechaBd == null -> "Escribe la fecha como día-mes-año, por ejemplo 14-05-1990"
+            fechaBd == null -> "Elige la fecha en el calendario"
             fechaBd > Fechas.hoy() -> "La fecha de nacimiento no puede ser futura"
             fechaBd > Fechas.haceAnios(18) -> "Debes tener al menos 18 años"
             fechaBd < Fechas.haceAnios(120) -> "Revisa el año: no puede ser de hace más de 120 años"

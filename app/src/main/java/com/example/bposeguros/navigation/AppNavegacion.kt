@@ -16,8 +16,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.bposeguros.model.Rol
 import com.example.bposeguros.model.Usuario
 import com.example.bposeguros.ui.screens.AdjuntarScreen
+import com.example.bposeguros.ui.screens.AsignacionesScreen
 import com.example.bposeguros.ui.screens.AvisosScreen
 import com.example.bposeguros.ui.screens.CambiarClaveScreen
 import com.example.bposeguros.ui.screens.CasoLiquidadorScreen
@@ -30,6 +32,7 @@ import com.example.bposeguros.ui.screens.PerfilScreen
 import com.example.bposeguros.ui.screens.RecuperarClaveScreen
 import com.example.bposeguros.ui.screens.ReportarScreen
 import com.example.bposeguros.ui.screens.ResultadosScreen
+import com.example.bposeguros.viewmodel.AnalistaViewModel
 import com.example.bposeguros.viewmodel.AseguradoViewModel
 import com.example.bposeguros.viewmodel.LiquidadorViewModel
 import com.example.bposeguros.viewmodel.SesionViewModel
@@ -41,6 +44,7 @@ fun AppNavegacion() {
     val sesionViewModel: SesionViewModel = viewModel()
     val aseguradoViewModel: AseguradoViewModel = viewModel()
     val liquidadorViewModel: LiquidadorViewModel = viewModel()
+    val analistaViewModel: AnalistaViewModel = viewModel()
 
     val usuario by sesionViewModel.usuarioActual.collectAsStateWithLifecycle()
 
@@ -49,6 +53,7 @@ fun AppNavegacion() {
     val cerrarSesion = {
         sesionViewModel.cerrarSesion()
         liquidadorViewModel.limpiar()
+        analistaViewModel.limpiar()
         navController.navigate(Ruta.Login.ruta) { popUpTo(0) }
     }
 
@@ -236,6 +241,23 @@ fun AppNavegacion() {
             )
         }
 
+        composable(Ruta.Asignaciones.ruta) {
+            val actual = usuario ?: return@composable
+            val estado by analistaViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(Unit) { analistaViewModel.cargar() }
+
+            AsignacionesScreen(
+                usuario = actual,
+                uiState = estado,
+                onElegirCaso = analistaViewModel::onElegirCaso,
+                onCerrarDialogo = analistaViewModel::onCerrarDialogo,
+                onAsignar = { candidato -> analistaViewModel.onAsignar(candidato, actual) },
+                onMensajeMostrado = analistaViewModel::onMensajeMostrado,
+                onVerPerfil = { navController.navigate(Ruta.Perfil.ruta) },
+                onCerrarSesion = cerrarSesion
+            )
+        }
+
         composable(Ruta.Registro.ruta) {
             FormularioScreen(onVolver = { navController.navigateUp() })
         }
@@ -248,7 +270,10 @@ private fun rutaInicial(usuario: Usuario?): String = when {
     else -> rutaPrincipal(usuario)
 }
 
-private fun rutaPrincipal(usuario: Usuario): String =
-    if (usuario.esAsegurado) Ruta.MisSiniestros.ruta else Ruta.Casos.ruta
+private fun rutaPrincipal(usuario: Usuario): String = when (usuario.rolId) {
+    Rol.ID_ASEGURADO -> Ruta.MisSiniestros.ruta
+    Rol.ID_LIQUIDADOR -> Ruta.Casos.ruta
+    else -> Ruta.Asignaciones.ruta
+}
 
 private fun idDe(entrada: NavBackStackEntry): Long = entrada.arguments?.getLong("id") ?: 0L

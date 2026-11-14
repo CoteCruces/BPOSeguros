@@ -48,7 +48,6 @@ fun LoginScreen(
 
     LoginContent(
         uiState = uiState,
-        onModoCambia = viewModel::onModoCambia,
         onRutCambia = viewModel::onRutCambia,
         onClaveCambia = viewModel::onClaveCambia,
         onAlternarVisibilidad = viewModel::onAlternarVisibilidad,
@@ -60,7 +59,6 @@ fun LoginScreen(
 @Composable
 fun LoginContent(
     uiState: LoginUiState,
-    onModoCambia: (Boolean) -> Unit,
     onRutCambia: (String) -> Unit,
     onClaveCambia: (String) -> Unit,
     onAlternarVisibilidad: () -> Unit,
@@ -88,34 +86,23 @@ fun LoginContent(
                 verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
             ) {
                 TarjetaSeccion(titulo = stringResource(R.string.titulo_ingreso)) {
-                    InterruptorConTexto(
-                        texto = stringResource(R.string.opcion_soy_liquidador),
-                        activado = uiState.esLiquidador,
-                        onCambio = onModoCambia
-                    )
-
-                    AnimatedContent(
-                        targetState = uiState.esLiquidador,
-                        transitionSpec = { fadeIn() togetherWith fadeOut() },
-                        label = "campoIngreso"
-                    ) { esLiquidador ->
                         Column(verticalArrangement = Arrangement.spacedBy(Dimens.espacioChico)) {
                             Text(
-                                text = stringResource(if (esLiquidador) R.string.texto_ingreso_liquidador else R.string.texto_ingreso_cliente),
+                                text = stringResource(R.string.texto_ingreso),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             CampoTexto(
                                 valor = uiState.rut,
                                 onValorCambia = onRutCambia,
-                                etiqueta = stringResource(if (esLiquidador) R.string.campo_rut_liquidador else R.string.campo_rut),
-                                icono = if (esLiquidador) R.drawable.ic_persona else R.drawable.ic_rut,
+                                etiqueta = stringResource( R.string.campo_rut),
+                                icono = R.drawable.ic_rut,
                                 error = uiState.errorRut,
-                                ayuda = stringResource(if (esLiquidador) R.string.ayuda_rut_liquidador else R.string.ayuda_rut),
+                                ayuda = stringResource(R.string.ayuda_rut),
                                 tipoTeclado = KeyboardType.Text
                             )
                         }
-                    }
+
                     CampoContrasena(
                         valor = uiState.clave,
                         onValorCambia = onClaveCambia,
@@ -134,11 +121,6 @@ fun LoginContent(
                         Text(stringResource(R.string.btn_olvide_clave))
                     }
                 }
-                /*Text(
-                    text = stringResource(R.string.texto_datos_prueba),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )*/
             }
         }
     }
@@ -149,8 +131,7 @@ fun LoginContent(
 private fun LoginPreview() {
     BPOSegurosTheme {
         LoginContent(
-            uiState = LoginUiState(rut = "15.842.371-5", errorClave = "RUT o contraseña incorrectos"),
-            onModoCambia = {},
+            uiState = LoginUiState(rut = "15.842.371-5", errorClave = "RUT o Contraseña incorrectos"),
             onRutCambia = {},
             onClaveCambia = {},
             onAlternarVisibilidad = {},

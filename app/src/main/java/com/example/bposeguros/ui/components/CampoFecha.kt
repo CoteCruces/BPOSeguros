@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -44,14 +43,14 @@ import java.util.Calendar
 import java.util.TimeZone
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampoFecha(
     valor: String,
     onFechaElegida: (String) -> Unit,
     etiqueta: String,
     @DrawableRes icono: Int,
-    diasAtras: Int,
+    desde: String,
+    hasta: String,
     modifier: Modifier = Modifier,
     error: String? = null,
     ayuda: String? = null,
@@ -95,11 +94,11 @@ fun CampoFecha(
     }
 
     if (mostrarCalendario) {
-        val hoy = Fechas.hoy()
-        val desde = Fechas.haceDias(diasAtras)
-        val limiteSuperior = Fechas.aMilisegundos(hoy) ?: System.currentTimeMillis()
+        val limiteSuperior = Fechas.aMilisegundos(hasta) ?: System.currentTimeMillis()
         val limiteInferior = Fechas.aMilisegundos(desde) ?: 0L
-        val meses = remember(hoy, desde) { Fechas.mesesEntre(desde, hoy).reversed() }
+        val todosLosMeses = remember(desde, hasta) { Fechas.mesesEntre(desde, hasta) }
+        val anios = remember(todosLosMeses) { todosLosMeses.map { Fechas.anioDe(it) }.distinct().reversed() }
+        val separarAnio = anios.size > 2
 
         val fechaInicial = Fechas.desdeTextoUsuario(valor)
             ?.let { Fechas.aMilisegundos(it) }
@@ -116,12 +115,39 @@ fun CampoFecha(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(Dimens.espacioChico)
                 ) {
-                    CampoDesplegable(
-                        valor = Fechas.nombreMes(mesMostrado),
-                        etiqueta = stringResource(R.string.campo_mes),
-                        opciones = meses.map { Fechas.nombreMes(it) },
-                        onElegir = { indice -> mesMostrado = meses[indice] }
-                    )
+                    val anioMostrado = Fechas.anioDe(mesMostrado)
+                    if (!separarAnio) {
+                        val mesesDesc = todosLosMeses.reversed()
+                        CampoDesplegable(
+                            valor = Fechas.nombreMes(mesMostrado),
+                            etiqueta = stringResource(R.string.campo_mes),
+                            opciones = mesesDesc.map { Fechas.nombreMes(it) },
+                            onElegir = { indice -> mesMostrado = mesesDesc[indice] }
+                        )
+                    } else {
+                        val mesesDelAnio = todosLosMeses.filter { Fechas.anioDe(it) == anioMostrado }.reversed()
+                        Row(horizontalArrangement = Arrangement.spacedBy(Dimens.espacioChico)) {
+                            CampoDesplegable(
+                                valor = anioMostrado.toString(),
+                                etiqueta = stringResource(R.string.campo_anio),
+                                opciones = anios.map { it.toString() },
+                                onElegir = { indice ->
+                                    val delAnio = todosLosMeses.filter { Fechas.anioDe(it) == anios[indice] }
+                                    mesMostrado = delAnio.firstOrNull {
+                                        Fechas.numeroDeMes(it) == Fechas.numeroDeMes(mesMostrado)
+                                    } ?: delAnio.last()
+                                },
+                                modifier = Modifier.weight(0.4f)
+                            )
+                            CampoDesplegable(
+                                valor = Fechas.nombreDelMes(Fechas.numeroDeMes(mesMostrado)),
+                                etiqueta = stringResource(R.string.campo_mes),
+                                opciones = mesesDelAnio.map { Fechas.nombreDelMes(Fechas.numeroDeMes(it)) },
+                                onElegir = { indice -> mesMostrado = mesesDelAnio[indice] },
+                                modifier = Modifier.weight(0.6f)
+                            )
+                        }
+                    }
                     CuadriculaMes(
                         mes = mesMostrado,
                         elegida = elegida,
@@ -149,7 +175,7 @@ fun CampoFecha(
     }
 }
 
-/** Los días de un mes en filas de lunes a domingo. Los días fuera de [minimo]..[maximo] no se pueden tocar. */
+
 @Composable
 private fun CuadriculaMes(
     mes: Long,

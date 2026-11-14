@@ -20,10 +20,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
 
-    fun onModoCambia(esLiquidador: Boolean) {
-        _uiState.update { it.copy(esLiquidador = esLiquidador, errorRut = null, errorClave = null) }
-    }
-
     fun onRutCambia(valor: String) {
         _uiState.update { it.copy(rut = valor, errorRut = null) }
     }
@@ -56,18 +52,13 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         val error = when {
             usuario == null -> "RUT o contraseña incorrectos"
             !usuario.activo -> "Tu cuenta no está activa. Comunícate con Andes"
-            usuario.rolId == Rol.ID_ANALISTA -> "Por ahora solo asegurados y liquidadores usan la app"
-            estado.esLiquidador && usuario.esAsegurado ->
-                "Esta cuenta es de cliente. Desactiva \"Soy liquidador de Andes\""
-            !estado.esLiquidador && !usuario.esAsegurado ->
-                "Esta cuenta es de liquidador. Activa \"Soy liquidador de Andes\""
             else -> null
         }
         if (error != null) {
             _uiState.update { it.copy(errorClave = error) }
             return null
         }
-        _uiState.value = LoginUiState(esLiquidador = estado.esLiquidador)
+        _uiState.value = LoginUiState()
         return usuario
     }
 

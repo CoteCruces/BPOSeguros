@@ -25,18 +25,22 @@
 
     <string name="banner_bienvenida_titulo">Te damos la bienvenida</string>
     <string name="banner_bienvenida_subtitulo">Sigue tu siniestro sin llamar ni escribir</string>
-    <string name="ayuda_rut">Ejemplo: 15.842.371-5</string>
+    <string name="ayuda_rut">Ejemplo: 12.345.678-5</string>
     <string name="btn_olvide_clave">¿Olvidaste tu contraseña?</string>
     <!--
     <string name="texto_datos_prueba">Datos de prueba (ficticios), todos con la contraseña Tem_sin2026% · asegurada Camila Rojas, RUT 15.842.371-5 · asegurada Daniela Vergara, RUT 17.552.093-7 · liquidadora Paulina Fernández, RUT 16.234.567-2 (activa \"Soy liquidador de Andes\").</string>
     -->
-    <string name="opcion_soy_liquidador">Soy liquidador de Andes</string>
-    <string name="texto_ingreso_cliente">Ingresa con el RUT y la contraseña que te entregó tu liquidador.</string>
-    <string name="texto_ingreso_liquidador">Ingreso para el equipo de Andes: usa tu RUT y tu contraseña de liquidador.</string>
-    <string name="campo_rut_liquidador">RUT del liquidador</string>
-    <string name="ayuda_rut_liquidador">Ejemplo: 16.234.567-2</string>
 
-
+    <string name="texto_ingreso">Ingresa con tu RUT y tu contraseña.</string>
+    <string name="titulo_asignaciones">Casos por asignar</string>
+    <string name="texto_analista">Hola, %1$s. Casos pendientes de asignar: %2$d</string>
+    <string name="sin_pendientes">No hay casos por asignar. Todo al día.</string>
+    <string name="titulo_asignar">Asignar liquidador</string>
+    <string name="texto_asignar_caso">Caso %1$s · %2$s</string>
+    <string name="texto_sin_candidatos">No hay liquidadores activos para este ramo.</string>
+    <string name="texto_carga_liquidador">Casos abiertos: %1$d</string>
+    <string name="etiqueta_sugerido">Sugerido</string>
+    <string name="btn_asignar">Asignar</string>
 
     <string name="texto_recuperar">Escribe tu RUT y el correo de tu cuenta. Te enviaremos una contraseña temporal para que puedas entrar y elegir una nueva.</string>
     <string name="seccion_tu_cuenta">Tu cuenta</string>
@@ -65,7 +69,7 @@
     <string name="campo_comuna_perfil">Comuna (opcional)</string>
     <string name="opcion_sin_indicar">Sin indicar</string>
     <string name="campo_fecha_nacimiento">Fecha de nacimiento (opcional)</string>
-    <string name="ayuda_fecha_nacimiento">Día-mes-año, por ejemplo 14-05-1990</string>
+    <string name="ayuda_fecha_nacimiento">Toca para elegir tu fecha. Debes ser mayor de 18 años</string>
     <string name="btn_quitar_foto">Quitar foto (usar avatar por defecto)</string>
     <string name="btn_guardar_cambios">Guardar cambios</string>
     <string name="btn_cambiar_clave">Cambiar contraseña</string>

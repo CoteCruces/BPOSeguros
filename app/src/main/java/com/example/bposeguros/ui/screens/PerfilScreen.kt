@@ -44,12 +44,14 @@ import com.example.bposeguros.ui.components.AvatarUsuario
 import com.example.bposeguros.ui.components.BarraSuperior
 import com.example.bposeguros.ui.components.BotonPrincipal
 import com.example.bposeguros.ui.components.BotonSecundario
+import com.example.bposeguros.ui.components.CampoFecha
 import com.example.bposeguros.ui.components.CampoSeleccion
 import com.example.bposeguros.ui.components.CampoTexto
 import com.example.bposeguros.ui.components.DialogoCerrarSesion
 import com.example.bposeguros.ui.components.FilaDato
 import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.theme.Dimens
+import com.example.bposeguros.ui.util.Fechas
 import com.example.bposeguros.viewmodel.PerfilViewModel
 import kotlinx.coroutines.launch
 
@@ -200,14 +202,15 @@ fun PerfilScreen(
                     icono = R.drawable.ic_ubicacion,
                     error = uiState.errorComuna
                 )
-                CampoTexto(
+                CampoFecha(
                     valor = uiState.fechaNacimiento,
-                    onValorCambia = viewModel::onFechaCambia,
+                    onFechaElegida = viewModel::onFechaCambia,
                     etiqueta = stringResource(R.string.campo_fecha_nacimiento),
                     icono = R.drawable.ic_calendario,
                     error = uiState.errorFecha,
                     ayuda = stringResource(R.string.ayuda_fecha_nacimiento),
-                    tipoTeclado = KeyboardType.Number
+                    desde = Fechas.haceAnios(120),
+                    hasta = Fechas.haceAnios(18)
                 )
             }
 

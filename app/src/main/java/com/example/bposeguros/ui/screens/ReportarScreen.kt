@@ -18,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bposeguros.R
@@ -30,6 +29,7 @@ import com.example.bposeguros.ui.components.CampoSeleccion
 import com.example.bposeguros.ui.components.CampoTexto
 import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.theme.Dimens
+import com.example.bposeguros.ui.util.Fechas
 import com.example.bposeguros.viewmodel.ReportarViewModel
 
 @Composable
@@ -83,7 +83,8 @@ fun ReportarScreen(
                     icono = R.drawable.ic_calendario,
                     error = uiState.errorFecha,
                     ayuda = stringResource(R.string.ayuda_fecha, ReportarViewModel.DIAS_MAXIMOS_REPORTE),
-                    diasAtras = ReportarViewModel.DIAS_MAXIMOS_REPORTE
+                    desde = Fechas.haceDias(ReportarViewModel.DIAS_MAXIMOS_REPORTE),
+                    hasta = Fechas.hoy()
                 )
                 CampoSeleccion(
                     etiqueta = stringResource(R.string.campo_comuna),

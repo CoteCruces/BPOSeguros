@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.example.bposeguros.model.Aviso
+import com.example.bposeguros.model.CandidatoLiquidador
 import com.example.bposeguros.model.Compania
 import com.example.bposeguros.model.DocumentoAdjunto
 import com.example.bposeguros.model.Etapa
@@ -303,7 +304,8 @@ class SiniestroDbHelper(context: Context) :
 
 
 
-        /*
+
+
         private const val SQL_PRECARGAR_SINIESTROS =
             "INSERT INTO $TABLA_SINIESTROS ($SIN_ID, $SIN_NUMERO, $SIN_ASEGURADO, $SIN_COMPANIA, $SIN_TIPO, " +
                     "$SIN_F_OCURRENCIA, $SIN_F_REPORTE, $SIN_COMUNA, $SIN_DESCRIPCION, $SIN_ETAPA, $SIN_F_ETAPA, " +
@@ -378,7 +380,10 @@ class SiniestroDbHelper(context: Context) :
                     "(5, '2026-09-23 14:10', 'Solicitud de documento', 'Necesitamos 2 documentos para tu siniestro SIN-26-004838.', 0), " +
                     "(10, '2026-08-19 11:00', 'Cierre', 'Tu siniestro SIN-26-004745 fue cerrado. Revisa el detalle de la resolución.', 1)"
 
-*/
+
+
+
+
 
         private const val SQL_SELECT_USUARIOS =
             "SELECT u.*, r.$ROL_NOMBRE AS $ROL_NOMBRE " +
@@ -421,11 +426,11 @@ class SiniestroDbHelper(context: Context) :
         db.execSQL("UPDATE $TABLA_USUARIOS SET $USU_CLAVE = ?", arrayOf(Seguridad.huella(CLAVE_EJEMPLO)))
         db.execSQL(SQL_PRECARGAR_COMPANIAS)
         db.execSQL(SQL_PRECARGAR_TIPOS)
-        /*db.execSQL(SQL_PRECARGAR_SINIESTROS)
+        db.execSQL(SQL_PRECARGAR_SINIESTROS)
         db.execSQL(SQL_PRECARGAR_GESTIONES)
         db.execSQL(SQL_PRECARGAR_SOLICITUDES)
         db.execSQL(SQL_PRECARGAR_ADJUNTOS)
-        db.execSQL(SQL_PRECARGAR_AVISOS)*/
+        db.execSQL(SQL_PRECARGAR_AVISOS)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -552,6 +557,67 @@ class SiniestroDbHelper(context: Context) :
                     "ORDER BY (s.$SIN_ETAPA = ${Etapa.CERRADO.id}), s.$SIN_F_ETAPA, s.$SIN_ID",
             arrayOf(idLiquidador.toString())
         ) { leerSiniestro(it) }
+
+    fun listarSiniestrosSinAsignar(): List<Siniestro> =
+        consultar(
+            "$SQL_SELECT_SINIESTROS WHERE s.$SIN_LIQUIDADOR IS NULL " +
+                    "AND s.$SIN_ETAPA <> ${Etapa.CERRADO.id} ORDER BY s.$SIN_ID",
+            null
+        ) { leerSiniestro(it) }
+
+
+    fun listarCandidatos(idSiniestro: Long): List<CandidatoLiquidador> {
+        val linea = consultar(
+            "SELECT t.$TIP_LINEA AS $TIP_LINEA FROM $TABLA_SINIESTROS s " +
+                    "INNER JOIN $TABLA_TIPOS t ON s.$SIN_TIPO = t.$TIP_ID WHERE s.$SIN_ID = ?",
+            arrayOf(idSiniestro.toString())
+        ) { it.texto(TIP_LINEA) }.firstOrNull() ?: return emptyList()
+        val equipo = if (linea == LineaSiniestro.VEHICULO.name) "Vehículos" else "Hogar"
+
+        return consultar(
+            "SELECT u.$USU_ID, u.$USU_NOMBRE, u.$USU_CODIGO, u.$USU_EQUIPO, " +
+                    "(SELECT COUNT(*) FROM $TABLA_SINIESTROS x WHERE x.$SIN_LIQUIDADOR = u.$USU_ID " +
+                    "AND x.$SIN_ETAPA <> ${Etapa.CERRADO.id}) AS abiertos " +
+                    "FROM $TABLA_USUARIOS u " +
+                    "WHERE u.$USU_ROL = ${Rol.ID_LIQUIDADOR} AND u.$USU_ACTIVO = 1 AND u.$USU_EQUIPO = ? " +
+                    "ORDER BY abiertos, u.$USU_ID",
+            arrayOf(equipo)
+        ) { c ->
+            CandidatoLiquidador(
+                id = c.largo(USU_ID), nombre = c.texto(USU_NOMBRE), codigo = c.texto(USU_CODIGO),
+                equipo = c.texto(USU_EQUIPO), casosAbiertos = c.entero("abiertos")
+            )
+        }
+    }
+
+
+    fun asignarLiquidador(idSiniestro: Long, candidato: CandidatoLiquidador, responsable: String, fechaHora: String): Boolean {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val filas = db.update(
+                TABLA_SINIESTROS,
+                ContentValues().apply { put(SIN_LIQUIDADOR, candidato.id) },
+                "$SIN_ID = ? AND $SIN_LIQUIDADOR IS NULL", arrayOf(idSiniestro.toString())
+            )
+            if (filas == 0) return false
+            insertarGestion(
+                Gestion(
+                    siniestroId = idSiniestro, fechaHora = fechaHora, tipo = "Asignación",
+                    descripcion = "Tu caso fue asignado a ${candidato.nombreVisible()}.",
+                    responsable = responsable, visible = true
+                )
+            )
+            insertarAviso(
+                idSiniestro, fechaHora, "Liquidador asignado",
+                "Tu caso ya tiene liquidador: ${candidato.nombreVisible()}."
+            )
+            db.setTransactionSuccessful()
+            return true
+        } finally {
+            db.endTransaction()
+        }
+    }
 
     fun buscarCasos(idLiquidador: Long, texto: String, rutLimpio: String): List<Siniestro> =
         consultar(
