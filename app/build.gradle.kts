@@ -69,5 +69,4 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
 
 
-
 }

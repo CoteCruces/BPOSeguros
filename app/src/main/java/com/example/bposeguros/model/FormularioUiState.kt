@@ -11,14 +11,16 @@ data class FormularioUiState(
     val errorCorreo: String? = null,
     val errorGeneral: String? = null,
 
-    val cuentaCreada: Boolean = false
+    val cuentaCreada: Boolean = false,
+    val enviando: Boolean = false
 )
 
 data class RecuperarClaveUiState(
     val correo: String = "",
     val errorCorreo: String? = null,
     val errorGeneral: String? = null,
-    val solicitudEnviada: Boolean = false
+    val solicitudEnviada: Boolean = false,
+    val enviando: Boolean = false
 )
 
 data class CambiarClaveUiState(
