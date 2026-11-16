@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -76,10 +77,14 @@ fun RecuperarClaveScreen(
                         color = MaterialTheme.colorScheme.error
                     )
                 }
+                AnimatedVisibility(visible = uiState.enviando) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
                 BotonPrincipal(
-                    texto = stringResource(R.string.btn_enviar_clave),
+                    texto = stringResource(if (uiState.enviando) R.string.btn_enviando else R.string.btn_enviar_clave),
                     onClick = viewModel::onEnviar,
                     icono = R.drawable.ic_correo,
+                    habilitado = !uiState.enviando,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

@@ -2,6 +2,7 @@ package com.example.bposeguros.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.bposeguros.data.EnvioCorreo
 import com.example.bposeguros.data.MotivoClave
 import com.example.bposeguros.data.SiniestroDbHelper
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class FormularioViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -52,25 +54,30 @@ class FormularioViewModel(application: Application) : AndroidViewModel(applicati
         if (errorRut != null || errorCorreo != null) return
 
 
-        val claveTemporal = Seguridad.claveTemporal()
+        if (estado.enviando) return   // evita doble toque (ponlo al inicio de onCrear)
 
+        val claveTemporal = Seguridad.claveTemporal()
         val id = db.insertarAsegurado(rutLimpio, estado.correo, Seguridad.huella(claveTemporal))
         if (id == -1L) {
             _uiState.update { it.copy(errorGeneral = "No se pudo crear la cuenta. Revisa los datos") }
             return
         }
 
-        val enviado = EnvioCorreo.enviarClaveTemporal(
-            getApplication(), estado.correo, claveTemporal, MotivoClave.CREACION
-        )
-        if (!enviado) {
-            db.eliminarUsuario(id)
-            _uiState.update {
-                it.copy(errorGeneral = "No pudimos enviar el correo al cliente. La cuenta no fue creada; inténtalo otra vez")
+        _uiState.update { it.copy(enviando = true) }
+        viewModelScope.launch {
+            val enviado = EnvioCorreo.enviarClaveTemporal(estado.correo, claveTemporal, MotivoClave.CREACION)
+            if (!enviado) {
+                db.eliminarUsuario(id)
+                _uiState.update {
+                    it.copy(
+                        enviando = false,
+                        errorGeneral = "No pudimos enviar el correo al cliente. La cuenta no fue creada; inténtalo otra vez"
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(enviando = false, rut = formatearRut(rutLimpio), cuentaCreada = true) }
             }
-            return
         }
-        _uiState.update { it.copy(rut = formatearRut(rutLimpio), cuentaCreada = true) }
     }
 
 

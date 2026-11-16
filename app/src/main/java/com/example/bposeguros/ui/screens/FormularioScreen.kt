@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -123,17 +124,24 @@ fun FormularioContent(
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
+                            AnimatedVisibility(visible = uiState.enviando) {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            }
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)) {
                             BotonSecundario(
                                 texto = stringResource(R.string.btn_limpiar),
                                 onClick = onLimpiar,
                                 modifier = Modifier.weight(1f)
+
                             )
                             BotonPrincipal(
-                                texto = stringResource(R.string.btn_crear_cuenta),
+                                texto = stringResource(
+                                    if (uiState.enviando) R.string.btn_enviando else R.string.btn_crear_cuenta
+                                ),
                                 onClick = onCrear,
                                 icono = R.drawable.ic_check,
+                                habilitado = !uiState.enviando,
                                 modifier = Modifier.weight(1f)
                             )
                         }
