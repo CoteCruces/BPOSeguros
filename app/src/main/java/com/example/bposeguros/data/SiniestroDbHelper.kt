@@ -19,6 +19,7 @@ import com.example.bposeguros.model.SolicitudDocumento
 import com.example.bposeguros.model.TipoSiniestro
 import com.example.bposeguros.model.Usuario
 import com.example.bposeguros.ui.util.Seguridad
+import com.example.bposeguros.model.LiquidadorResumen
 
 
 class SiniestroDbHelper(context: Context) :
@@ -485,6 +486,54 @@ class SiniestroDbHelper(context: Context) :
             put(USU_CLAVE_TEMPORAL, 1)
             put(USU_ROL, Rol.ID_ASEGURADO)
         })
+
+    fun insertarLiquidador(
+        rut: String, nombre: String, correo: String, equipo: String, codigo: String, huellaClave: String
+    ): Long =
+        writableDatabase.insert(TABLA_USUARIOS, null, ContentValues().apply {
+            put(USU_RUT, rut)
+            put(USU_NOMBRE, nombre)
+            put(USU_CORREO, correo)
+            put(USU_CLAVE, huellaClave)
+            put(USU_CLAVE_TEMPORAL, 1)
+            put(USU_CODIGO, codigo)
+            put(USU_EQUIPO, equipo)
+            put(USU_ACTIVO, 1)
+            put(USU_ROL, Rol.ID_LIQUIDADOR)
+        })
+
+    fun siguienteCodigoLiquidador(): String {
+        var mayor = 0
+        readableDatabase.rawQuery(
+            "SELECT $USU_CODIGO FROM $TABLA_USUARIOS WHERE $USU_ROL = ${Rol.ID_LIQUIDADOR}", null
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                val numero = cursor.getString(0).removePrefix("LIQ-").toIntOrNull()
+                if (numero != null && numero > mayor) mayor = numero
+            }
+        }
+        return "LIQ-" + (mayor + 1).toString().padStart(2, '0')
+    }
+
+    fun listarLiquidadores(): List<LiquidadorResumen> = consultar(
+        "SELECT u.$USU_ID, u.$USU_NOMBRE, u.$USU_CODIGO, u.$USU_EQUIPO, u.$USU_ACTIVO, " +
+                "(SELECT COUNT(*) FROM $TABLA_SINIESTROS x WHERE x.$SIN_LIQUIDADOR = u.$USU_ID " +
+                "AND x.$SIN_ETAPA <> ${Etapa.CERRADO.id}) AS abiertos " +
+                "FROM $TABLA_USUARIOS u WHERE u.$USU_ROL = ${Rol.ID_LIQUIDADOR} ORDER BY u.$USU_NOMBRE",
+        null
+    ) { c ->
+        LiquidadorResumen(
+            id = c.largo(USU_ID), nombre = c.texto(USU_NOMBRE), codigo = c.texto(USU_CODIGO),
+            equipo = c.texto(USU_EQUIPO), activo = c.entero(USU_ACTIVO) == 1, casosAbiertos = c.entero("abiertos")
+        )
+    }
+
+    fun cambiarEstadoLiquidador(idLiquidador: Long, activo: Boolean): Int =
+        writableDatabase.update(
+            TABLA_USUARIOS,
+            ContentValues().apply { put(USU_ACTIVO, if (activo) 1 else 0) },
+            "$USU_ID = ? AND $USU_ROL = ${Rol.ID_LIQUIDADOR}", arrayOf(idLiquidador.toString())
+        )
 
     fun actualizarPerfil(usuario: Usuario): Int =
         writableDatabase.update(

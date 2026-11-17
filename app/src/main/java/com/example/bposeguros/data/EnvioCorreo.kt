@@ -9,10 +9,15 @@ enum class MotivoClave { CREACION, RECUPERACION }
 
 object EnvioCorreo {
 
-    suspend fun enviarClaveTemporal(correo: String, claveTemporal: String, motivo: MotivoClave): Boolean =
+    suspend fun enviarClaveTemporal(
+        correo: String,
+        claveTemporal: String,
+        motivo: MotivoClave,
+        rol: String = "ASEGURADO"
+    ): Boolean =
         try {
             ClienteRetrofit.notificaciones.enviarClaveTemporal(
-                ClaveTemporalRequest(correo, claveTemporal, motivo.name)
+                ClaveTemporalRequest(correo, claveTemporal, motivo.name, rol)
             )
             true
         } catch (e: IOException) {
