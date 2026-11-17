@@ -266,5 +266,30 @@
     <string name="btn_ver_mis_siniestros">Ver mis siniestros</string>
 
 
+    <string name="titulo_nuevo_liquidador">Nuevo liquidador</string>
+    <string name="banner_nuevo_liquidador">Crea la cuenta de un liquidador</string>
+    <string name="banner_nuevo_liquidador_sub">Le enviaremos su contraseña temporal por correo</string>
+    <string name="btn_nuevo_liquidador">Crear nuevo liquidador</string>
+    <string name="btn_crear_liquidador">Crear liquidador</string>
+    <string name="btn_crear_otro_liquidador">Crear otro liquidador</string>
+    <string name="campo_nombre_completo">Nombre completo</string>
+    <string name="campo_equipo">Equipo</string>
+    <string name="ayuda_nombre_completo">Nombre y apellido, sin números ni símbolos</string>
+    <string name="ayuda_correo_liquidador">Correo personal del liquidador: ahí recibirá su contraseña temporal</string>
+    <string name="liquidador_creado">Cuenta creada para %1$s (%2$s). Enviamos una contraseña temporal a %3$s. Deberá cambiarla en su primer ingreso.</string>
+    <string name="titulo_liquidadores">Liquidadores</string>
+    <string name="texto_liquidadores">Aquí puedes bloquear a un liquidador que ya no trabaja en la empresa. No se elimina: conserva su historial.</string>
+    <string name="sin_liquidadores">Todavía no hay liquidadores registrados.</string>
+    <string name="estado_activo">Activo</string>
+    <string name="estado_bloqueado">Bloqueado</string>
+    <string name="btn_bloquear">Bloquear</string>
+    <string name="btn_habilitar">Habilitar</string>
+    <string name="titulo_bloquear">¿Bloquear a %1$s?</string>
+    <string name="texto_bloquear">No podrá iniciar sesión ni recibirá casos nuevos. Tiene %1$d caso(s) abierto(s): seguirán a su nombre hasta que los reasignes. Puedes volver a habilitarlo cuando quieras.</string>
+    <string name="titulo_habilitar">¿Habilitar a %1$s?</string>
+    <string name="texto_habilitar">Podrá volver a iniciar sesión y recibir casos nuevos.</string>
+    <string name="texto_codigo_equipo">%1$s · Equipo %2$s</string>
+    <string name="texto_casos_abiertos_liq">%1$d caso(s) abierto(s)</string>
+    <string name="cd_ver_liquidadores">Ver liquidadores</string>
 
 </resources>
