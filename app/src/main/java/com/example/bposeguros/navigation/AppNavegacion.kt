@@ -28,6 +28,8 @@ import com.example.bposeguros.ui.screens.DetalleSiniestroScreen
 import com.example.bposeguros.ui.screens.LoginScreen
 import com.example.bposeguros.ui.screens.MisSiniestrosScreen
 import com.example.bposeguros.ui.screens.FormularioScreen
+import com.example.bposeguros.ui.screens.LiquidadoresScreen
+import com.example.bposeguros.ui.screens.NuevoLiquidadorScreen
 import com.example.bposeguros.ui.screens.PerfilScreen
 import com.example.bposeguros.ui.screens.RecuperarClaveScreen
 import com.example.bposeguros.ui.screens.ReportarScreen
@@ -35,6 +37,7 @@ import com.example.bposeguros.ui.screens.ResultadosScreen
 import com.example.bposeguros.viewmodel.AnalistaViewModel
 import com.example.bposeguros.viewmodel.AseguradoViewModel
 import com.example.bposeguros.viewmodel.LiquidadorViewModel
+import com.example.bposeguros.viewmodel.LiquidadoresViewModel
 import com.example.bposeguros.viewmodel.SesionViewModel
 
 @Composable
@@ -45,6 +48,7 @@ fun AppNavegacion() {
     val aseguradoViewModel: AseguradoViewModel = viewModel()
     val liquidadorViewModel: LiquidadorViewModel = viewModel()
     val analistaViewModel: AnalistaViewModel = viewModel()
+    val liquidadoresViewModel: LiquidadoresViewModel = viewModel()
 
     val usuario by sesionViewModel.usuarioActual.collectAsStateWithLifecycle()
 
@@ -253,10 +257,34 @@ fun AppNavegacion() {
                 onCerrarDialogo = analistaViewModel::onCerrarDialogo,
                 onAsignar = { candidato -> analistaViewModel.onAsignar(candidato, actual) },
                 onMensajeMostrado = analistaViewModel::onMensajeMostrado,
+                onNuevoLiquidador = { navController.navigate(Ruta.NuevoLiquidador.ruta) },
+                onVerLiquidadores = { navController.navigate(Ruta.Liquidadores.ruta) },
                 onVerPerfil = { navController.navigate(Ruta.Perfil.ruta) },
                 onCerrarSesion = cerrarSesion
             )
         }
+
+        composable(Ruta.Liquidadores.ruta) {
+            val actual = usuario ?: return@composable
+            val estado by liquidadoresViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(Unit) { liquidadoresViewModel.cargar() }
+
+            LiquidadoresScreen(
+                uiState = estado,
+                onVolver = { navController.navigateUp() },
+                onNuevoLiquidador = { navController.navigate(Ruta.NuevoLiquidador.ruta) },
+                onPedirCambio = liquidadoresViewModel::onPedirCambio,
+                onConfirmarCambio = { liquidadoresViewModel.onConfirmarCambio(actual) },
+                onCancelarCambio = liquidadoresViewModel::onCancelarCambio,
+                onMensajeMostrado = liquidadoresViewModel::onMensajeMostrado
+            )
+        }
+
+        composable(Ruta.NuevoLiquidador.ruta) {
+            val actual = usuario ?: return@composable
+            NuevoLiquidadorScreen(analista = actual, onVolver = { navController.navigateUp() })
+        }
+
 
         composable(Ruta.Registro.ruta) {
             FormularioScreen(onVolver = { navController.navigateUp() })

@@ -15,7 +15,7 @@ class SesionViewModel(application: Application) : AndroidViewModel(application) 
 
     private val sesion = SesionPreferencias(application)
 
-    private val _usuarioActual = MutableStateFlow(db.buscarUsuarioPorId(sesion.leer()))
+    private val _usuarioActual = MutableStateFlow(cargarSesionActiva())
     val usuarioActual: StateFlow<Usuario?> = _usuarioActual.asStateFlow()
 
     fun iniciarSesion(usuario: Usuario) {
@@ -25,7 +25,16 @@ class SesionViewModel(application: Application) : AndroidViewModel(application) 
 
     fun refrescar() {
         val actual = _usuarioActual.value ?: return
-        _usuarioActual.value = db.buscarUsuarioPorId(actual.id)
+        val usuario = db.buscarUsuarioPorId(actual.id)
+        if (usuario != null && !usuario.activo) cerrarSesion() else _usuarioActual.value = usuario
+    }
+    private fun cargarSesionActiva(): Usuario? {
+        val usuario = db.buscarUsuarioPorId(sesion.leer())
+        if (usuario != null && !usuario.activo) {
+            sesion.borrar()
+            return null
+        }
+        return usuario
     }
 
     fun cerrarSesion() {
