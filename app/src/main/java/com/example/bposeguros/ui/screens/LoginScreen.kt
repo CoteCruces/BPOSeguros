@@ -48,7 +48,7 @@ fun LoginScreen(
         onRutCambia = viewModel::onRutCambia,
         onClaveCambia = viewModel::onClaveCambia,
         onAlternarVisibilidad = viewModel::onAlternarVisibilidad,
-        onIngresar = { viewModel.onIngresar()?.let(onIngresoExitoso) },
+        onIngresar = { viewModel.onIngresar(onIngresoExitoso) },
         onOlvideClave = onOlvideClave
     )
 }
@@ -109,9 +109,10 @@ fun LoginContent(
                         error = uiState.errorClave
                     )
                     BotonPrincipal(
-                        texto = stringResource(R.string.btn_ingresar),
+                        texto = stringResource(if (uiState.ingresando) R.string.btn_ingresando else R.string.btn_ingresar),
                         onClick = onIngresar,
                         icono = R.drawable.ic_check,
+                        habilitado = !uiState.ingresando,
                         modifier = Modifier.fillMaxWidth()
                     )
                     TextButton(onClick = onOlvideClave, modifier = Modifier.align(Alignment.CenterHorizontally)) {

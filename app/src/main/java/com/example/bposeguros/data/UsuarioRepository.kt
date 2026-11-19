@@ -1,0 +1,43 @@
+package com.example.bposeguros.data
+
+import com.example.bposeguros.data.remote.ClienteRetrofit
+import com.example.bposeguros.data.remote.LoginRequest
+import com.example.bposeguros.data.remote.UsuarioApi
+import com.example.bposeguros.data.remote.aUsuario
+import com.example.bposeguros.model.Usuario
+import com.google.gson.Gson
+import retrofit2.HttpException
+import java.io.IOException
+
+
+class ErrorApi(mensaje: String) : Exception(mensaje)
+
+
+private data class CuerpoError(val message: String?, val detail: String?)
+
+
+class UsuarioRepository(
+    private val api: UsuarioApi = ClienteRetrofit.usuarios
+) {
+
+    suspend fun iniciarSesion(rut: String, contrasena: String): Result<Usuario> =
+        llamar { api.iniciarSesion(LoginRequest(rut, contrasena)).aUsuario() }
+
+
+    private suspend fun <T> llamar(bloque: suspend () -> T): Result<T> =
+        try {
+            Result.success(bloque())
+        } catch (e: HttpException) {
+            Result.failure(ErrorApi(mensajeDelServidor(e)))
+        } catch (e: IOException) {
+            Result.failure(ErrorApi("No hay conexión con el servidor. Revisa que los microservicios estén encendidos"))
+        }
+
+    private fun mensajeDelServidor(e: HttpException): String {
+        val cuerpo = e.response()?.errorBody()?.string()
+        val mensaje = runCatching {
+            Gson().fromJson(cuerpo, CuerpoError::class.java)?.let { it.message ?: it.detail }
+        }.getOrNull()
+        return if (mensaje.isNullOrBlank()) "Ocurrió un error inesperado (${e.code()})" else mensaje
+    }
+}

@@ -2,23 +2,22 @@ package com.example.bposeguros.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import com.example.bposeguros.data.SiniestroDbHelper
+import androidx.lifecycle.viewModelScope
+import com.example.bposeguros.data.UsuarioRepository
 import com.example.bposeguros.model.LoginUiState
-import com.example.bposeguros.model.Rol
 import com.example.bposeguros.model.Usuario
-import com.example.bposeguros.ui.util.Seguridad
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = SiniestroDbHelper.obtener(application)
+    private val repositorio = UsuarioRepository()
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
-
 
     fun onRutCambia(valor: String) {
         _uiState.update { it.copy(rut = valor, errorRut = null) }
@@ -33,8 +32,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    fun onIngresar(): Usuario? {
+    fun onIngresar(onExito: (Usuario) -> Unit) {
         val estado = _uiState.value
+        if (estado.ingresando) return
 
         val errorRut = when {
             estado.rut.isBlank() -> "El RUT es obligatorio"
@@ -44,24 +44,30 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         val errorClave = if (estado.clave.isBlank()) "Escribe tu contraseña" else null
         if (errorRut != null || errorClave != null) {
             _uiState.update { it.copy(errorRut = errorRut, errorClave = errorClave) }
-            return null
+            return
         }
 
-        val usuario = db.buscarPorRutYClave(limpiarRut(estado.rut), Seguridad.huella(estado.clave))
+        _uiState.update { it.copy(ingresando = true) }
+        viewModelScope.launch {
+            repositorio.iniciarSesion(limpiarRut(estado.rut), estado.clave)
+                .onSuccess { usuario ->
+                    _uiState.value = LoginUiState()
+                    onExito(usuario)
+                }
+                .onFailure { error ->
+                    val mensaje = error.message.orEmpty()
+                    _uiState.update {
 
-        val error = when {
-            usuario == null -> "RUT o contraseña incorrectos"
-            !usuario.activo -> "Tu cuenta no está activa. Comunícate con Andes"
-            else -> null
+
+                        if (mensaje.startsWith("RUT")) {
+                            it.copy(ingresando = false, errorRut = mensaje)
+                        } else {
+                            it.copy(ingresando = false, errorClave = mensaje)
+                        }
+                    }
+                }
         }
-        if (error != null) {
-            _uiState.update { it.copy(errorClave = error) }
-            return null
-        }
-        _uiState.value = LoginUiState()
-        return usuario
     }
-
 
     private fun limpiarRut(valor: String): String =
         valor.replace(".", "").replace("-", "").trim().uppercase()
