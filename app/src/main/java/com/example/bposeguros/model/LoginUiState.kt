@@ -5,5 +5,6 @@ data class LoginUiState(
     val clave: String = "",
     val claveVisible: Boolean = false,
     val errorRut: String? = null,
-    val errorClave: String? = null
+    val errorClave: String? = null,
+    val ingresando: Boolean = false
 )

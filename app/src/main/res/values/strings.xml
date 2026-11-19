@@ -106,6 +106,7 @@
     <string name="btn_crear_cuenta">Crear cuenta</string>
     <string name="cuenta_creada">Cuenta creada para el RUT %1$s. Enviamos una contraseña temporal a %2$s. El cliente deberá cambiarla una vez que ingrese.</string>
     <string name="btn_enviando">Enviando…</string>
+    <string name="btn_ingresando">Ingresando…</string>
 
     <string name="btn_crear_otra">Crear otra cuenta</string>
 
