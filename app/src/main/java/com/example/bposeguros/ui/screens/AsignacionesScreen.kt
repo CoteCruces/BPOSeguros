@@ -4,13 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +54,8 @@ fun AsignacionesScreen(
     onCerrarDialogo: () -> Unit,
     onAsignar: (CandidatoLiquidador) -> Unit,
     onMensajeMostrado: () -> Unit,
+    onNuevoLiquidador: () -> Unit,
+    onVerLiquidadores: () -> Unit,
     onVerPerfil: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
@@ -67,6 +72,9 @@ fun AsignacionesScreen(
     Scaffold(
         topBar = {
             BarraSuperior(titulo = stringResource(R.string.titulo_asignaciones)) {
+                IconButton(onClick = onVerLiquidadores) {
+                    Icon(painterResource(R.drawable.ic_persona), contentDescription = stringResource(R.string.cd_ver_liquidadores))
+                }
                 IconButton(onClick = onVerPerfil) {
                     AvatarUsuario(ruta = usuario.foto, tamano = 32.dp, conBorde = false)
                 }
@@ -76,6 +84,13 @@ fun AsignacionesScreen(
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onNuevoLiquidador,
+                icon = { Icon(painterResource(R.drawable.ic_persona_agregar), contentDescription = null) },
+                text = { Text(stringResource(R.string.btn_nuevo_liquidador)) }
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         LazyColumn(
@@ -104,6 +119,7 @@ fun AsignacionesScreen(
                     modifier = Modifier.animateItem()
                 )
             }
+            item { Spacer(Modifier.height(72.dp)) }
         }
     }
 

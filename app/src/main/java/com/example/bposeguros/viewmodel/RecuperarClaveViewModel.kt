@@ -35,6 +35,10 @@ class RecuperarClaveViewModel(application: Application) : AndroidViewModel(appli
             else -> null
         }
         if (estado.enviando) return
+        if (errorCorreo != null) {
+            _uiState.update { it.copy(errorCorreo = errorCorreo) }
+            return
+        }
 
         val usuario = db.buscarUsuarioPorCorreo(estado.correo)
         if (usuario == null || !usuario.activo) {
