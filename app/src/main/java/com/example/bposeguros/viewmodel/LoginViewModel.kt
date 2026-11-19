@@ -55,16 +55,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     onExito(usuario)
                 }
                 .onFailure { error ->
-                    val mensaje = error.message.orEmpty()
-                    _uiState.update {
-
-
-                        if (mensaje.startsWith("RUT")) {
-                            it.copy(ingresando = false, errorRut = mensaje)
-                        } else {
-                            it.copy(ingresando = false, errorClave = mensaje)
-                        }
-                    }
+                    _uiState.update { it.copy(ingresando = false, errorClave = error.message) }
                 }
         }
     }
