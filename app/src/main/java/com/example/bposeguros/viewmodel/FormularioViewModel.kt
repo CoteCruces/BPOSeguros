@@ -3,11 +3,8 @@ package com.example.bposeguros.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.bposeguros.data.EnvioCorreo
-import com.example.bposeguros.data.MotivoClave
-import com.example.bposeguros.data.SiniestroDbHelper
+import com.example.bposeguros.data.UsuarioRepository
 import com.example.bposeguros.model.FormularioUiState
-import com.example.bposeguros.ui.util.Seguridad
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,11 +13,10 @@ import kotlinx.coroutines.launch
 
 class FormularioViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = SiniestroDbHelper.obtener(application)
+    private val repositorio = UsuarioRepository()
 
     private val _uiState = MutableStateFlow(FormularioUiState())
     val uiState: StateFlow<FormularioUiState> = _uiState.asStateFlow()
-
 
     fun onRutCambia(valor: String) {
         _uiState.update { it.copy(rut = valor, errorRut = null, errorGeneral = null) }
@@ -31,60 +27,50 @@ class FormularioViewModel(application: Application) : AndroidViewModel(applicati
     }
 
 
-    fun onCrear() {
+    fun onCrear(solicitanteId: Long) {
         val estado = _uiState.value
+        if (estado.enviando) return
         val rutLimpio = limpiarRut(estado.rut)
 
         val errorRut = when {
             estado.rut.isBlank() -> "El RUT es obligatorio"
             !rutValido(estado.rut) -> "El RUT no es válido. Revisa el dígito verificador"
-            db.buscarUsuarioPorRut(rutLimpio) != null -> "Ya existe una cuenta con ese RUT"
             else -> null
         }
-
         val errorCorreo = when {
             estado.correo.isBlank() -> "El correo es obligatorio"
             !estado.correo.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")) ->
                 "Ingresa un correo válido (ejemplo: usuario@dominio.com)"
-            db.correoEnUso(estado.correo) -> "Ya existe una cuenta con ese correo"
             else -> null
         }
 
         _uiState.update { it.copy(errorRut = errorRut, errorCorreo = errorCorreo, errorGeneral = null) }
         if (errorRut != null || errorCorreo != null) return
 
-
-        if (estado.enviando) return   // evita doble toque (ponlo al inicio de onCrear)
-
-        val claveTemporal = Seguridad.claveTemporal()
-        val id = db.insertarAsegurado(rutLimpio, estado.correo, Seguridad.huella(claveTemporal))
-        if (id == -1L) {
-            _uiState.update { it.copy(errorGeneral = "No se pudo crear la cuenta. Revisa los datos") }
-            return
-        }
-
         _uiState.update { it.copy(enviando = true) }
         viewModelScope.launch {
-            val enviado = EnvioCorreo.enviarClaveTemporal(estado.correo, claveTemporal, MotivoClave.CREACION)
-            if (!enviado) {
-                db.eliminarUsuario(id)
-                _uiState.update {
-                    it.copy(
-                        enviando = false,
-                        errorGeneral = "No pudimos enviar el correo al cliente. La cuenta no fue creada; inténtalo otra vez"
-                    )
+            repositorio.crearAsegurado(solicitanteId, rutLimpio, estado.correo)
+                .onSuccess {
+                    _uiState.update { it.copy(enviando = false, rut = formatearRut(rutLimpio), cuentaCreada = true) }
                 }
-            } else {
-                _uiState.update { it.copy(enviando = false, rut = formatearRut(rutLimpio), cuentaCreada = true) }
-            }
+                .onFailure { error ->
+                    _uiState.update { conError(it, error.message.orEmpty()) }
+                }
         }
     }
 
+
+    private fun conError(estado: FormularioUiState, mensaje: String): FormularioUiState = when {
+        mensaje.startsWith("Ya existe") && mensaje.contains("RUT") ->
+            estado.copy(enviando = false, errorRut = mensaje)
+        mensaje.startsWith("Ya existe") && mensaje.contains("correo") ->
+            estado.copy(enviando = false, errorCorreo = mensaje)
+        else -> estado.copy(enviando = false, errorGeneral = mensaje)
+    }
 
     fun onLimpiar() {
         _uiState.value = FormularioUiState()
     }
-
 
     private fun limpiarRut(valor: String): String =
         valor.replace(".", "").replace("-", "").trim().uppercase()
