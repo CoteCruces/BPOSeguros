@@ -2,7 +2,9 @@ package com.example.bposeguros.data
 
 import com.example.bposeguros.data.remote.CambiarContrasenaRequest
 import com.example.bposeguros.data.remote.ClienteRetrofit
+import com.example.bposeguros.data.remote.CrearLiquidadorRequest
 import com.example.bposeguros.data.remote.LoginRequest
+import com.example.bposeguros.data.remote.RegistroAseguradoRequest
 import com.example.bposeguros.data.remote.UsuarioApi
 import com.example.bposeguros.data.remote.aUsuario
 import com.example.bposeguros.model.Usuario
@@ -31,6 +33,22 @@ class UsuarioRepository(
 
     suspend fun obtener(id: Long): Result<Usuario> =
         llamar { api.obtener(id).aUsuario() }
+
+    suspend fun crearAsegurado(solicitanteId: Long, rut: String, correo: String): Result<Usuario> =
+        llamar { api.crearAsegurado(RegistroAseguradoRequest(solicitanteId, rut, correo)).aUsuario() }
+
+    suspend fun crearLiquidador(
+        solicitanteId: Long, rut: String, nombre: String, correo: String, equipo: String
+    ): Result<Usuario> =
+        llamar { api.crearLiquidador(
+            CrearLiquidadorRequest(
+                solicitanteId,
+                rut,
+                nombre,
+                correo,
+                equipo
+            )
+        ).aUsuario() }
 
 
     private suspend fun <T> llamar(bloque: suspend () -> T): Result<T> =

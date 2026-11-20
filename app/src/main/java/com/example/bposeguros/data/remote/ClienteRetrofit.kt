@@ -6,11 +6,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ClienteRetrofit {
+    //http://10.0.2.2:8081/
+    private const val URL_USUARIOS = "https://qjv1jjz4-8081.brs.devtunnels.ms/"
 
-    private const val URL_USUARIOS = "http://10.0.2.2:8081/"
-
-    
-    private const val URL_NOTIFICACIONES = "http://10.0.2.2:8084/"
+    //http://10.0.2.2:8084/
+    private const val URL_NOTIFICACIONES = "https://qjv1jjz4-8084.brs.devtunnels.ms/"
     private val okHttp = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(20, TimeUnit.SECONDS)

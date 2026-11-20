@@ -46,6 +46,7 @@ import com.example.bposeguros.viewmodel.FormularioViewModel
 
 @Composable
 fun FormularioScreen(
+    solicitanteId: Long,
     onVolver: () -> Unit,
     viewModel: FormularioViewModel = viewModel()
 ) {
@@ -56,7 +57,7 @@ fun FormularioScreen(
         onVolver = onVolver,
         onRutCambia = viewModel::onRutCambia,
         onCorreoCambia = viewModel::onCorreoCambia,
-        onCrear = viewModel::onCrear,
+        onCrear = { viewModel.onCrear(solicitanteId) },
         onLimpiar = viewModel::onLimpiar
     )
 }

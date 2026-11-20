@@ -287,7 +287,8 @@ fun AppNavegacion() {
 
 
         composable(Ruta.Registro.ruta) {
-            FormularioScreen(onVolver = { navController.navigateUp() })
+            val actual = usuario ?: return@composable
+            FormularioScreen(solicitanteId = actual.id, onVolver = { navController.navigateUp() })
         }
     }
 }

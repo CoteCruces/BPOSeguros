@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.bposeguros.data.EnvioCorreo
 import com.example.bposeguros.data.MotivoClave
 import com.example.bposeguros.data.SiniestroDbHelper
+import com.example.bposeguros.data.UsuarioRepository
 import com.example.bposeguros.model.Equipo
 import com.example.bposeguros.model.NuevoLiquidadorUiState
 import com.example.bposeguros.model.Rol
@@ -20,7 +21,7 @@ import kotlinx.coroutines.launch
 
 class NuevoLiquidadorViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = SiniestroDbHelper.obtener(application)
+    private val repositorio = UsuarioRepository()
 
     private val _uiState = MutableStateFlow(NuevoLiquidadorUiState())
     val uiState: StateFlow<NuevoLiquidadorUiState> = _uiState.asStateFlow()
@@ -46,12 +47,10 @@ class NuevoLiquidadorViewModel(application: Application) : AndroidViewModel(appl
         val errorRut = when {
             estado.rut.isBlank() -> "El RUT es obligatorio"
             !Validaciones.rutValido(estado.rut) -> "El RUT no es válido. Revisa el dígito verificador"
-            db.buscarUsuarioPorRut(rutLimpio) != null -> "Ya existe una cuenta con ese RUT"
             else -> null
         }
         val errorNombre = Validaciones.errorNombreCompleto(estado.nombre)
         val errorCorreo = Validaciones.errorCorreo(estado.correo)
-            ?: if (db.correoEnUso(estado.correo)) "Ya existe una cuenta con ese correo" else null
         val errorEquipo = if (estado.equipoElegido == null) "Elige el equipo del liquidador" else null
 
         _uiState.update {
@@ -64,40 +63,27 @@ class NuevoLiquidadorViewModel(application: Application) : AndroidViewModel(appl
 
         val equipo = Equipo.lista[estado.equipoElegido!!]
         val nombre = estado.nombre.trim().replace(Regex("\\s+"), " ")
-        val claveTemporal = Seguridad.claveTemporal()
 
         _uiState.update { it.copy(enviando = true) }
         viewModelScope.launch {
-            val enviado = EnvioCorreo.enviarClaveTemporal(
-                correo = estado.correo,
-                claveTemporal = claveTemporal,
-                motivo = MotivoClave.CREACION,
-                rol = "LIQUIDADOR"
-            )
-            if (!enviado) {
-                _uiState.update {
-                    it.copy(
-                        enviando = false,
-                        errorGeneral = "No pudimos enviar el correo al liquidador. La cuenta no fue creada; inténtalo otra vez"
-                    )
+            repositorio.crearLiquidador(analista.id, rutLimpio, nombre, estado.correo, equipo)
+                .onSuccess { creado ->
+                    _uiState.update {
+                        it.copy(enviando = false, liquidadorCreado = true, codigoCreado = creado.codigo)
+                    }
                 }
-                return@launch
-            }
-
-            val codigo = db.siguienteCodigoLiquidador()
-            val id = db.insertarLiquidador(
-                rut = rutLimpio, nombre = nombre, correo = estado.correo, equipo = equipo,
-                codigo = codigo, huellaClave = Seguridad.huella(claveTemporal)
-            )
-            if (id == -1L) {
-                _uiState.update {
-                    it.copy(enviando = false, errorGeneral = "No se pudo crear la cuenta. Revisa los datos")
+                .onFailure { error ->
+                    val mensaje = error.message.orEmpty()
+                    _uiState.update {
+                        when {
+                            mensaje.startsWith("Ya existe") && mensaje.contains("RUT") ->
+                                it.copy(enviando = false, errorRut = mensaje)
+                            mensaje.startsWith("Ya existe") && mensaje.contains("correo") ->
+                                it.copy(enviando = false, errorCorreo = mensaje)
+                            else -> it.copy(enviando = false, errorGeneral = mensaje)
+                        }
+                    }
                 }
-            } else {
-                _uiState.update {
-                    it.copy(enviando = false, liquidadorCreado = true, codigoCreado = codigo)
-                }
-            }
         }
     }
 
