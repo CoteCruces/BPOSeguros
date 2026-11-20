@@ -1,5 +1,6 @@
 package com.example.bposeguros.data
 
+import com.example.bposeguros.data.remote.CambiarContrasenaRequest
 import com.example.bposeguros.data.remote.ClienteRetrofit
 import com.example.bposeguros.data.remote.LoginRequest
 import com.example.bposeguros.data.remote.UsuarioApi
@@ -22,6 +23,12 @@ class UsuarioRepository(
 
     suspend fun iniciarSesion(rut: String, contrasena: String): Result<Usuario> =
         llamar { api.iniciarSesion(LoginRequest(rut, contrasena)).aUsuario() }
+
+    suspend fun cambiarContrasena(id: Long, actual: String, nueva: String): Result<Unit> =
+        llamar { api.cambiarContrasena(id, CambiarContrasenaRequest(actual, nueva)) }
+
+    suspend fun obtener(id: Long): Result<Usuario> =
+        llamar { api.obtener(id).aUsuario() }
 
 
     private suspend fun <T> llamar(bloque: suspend () -> T): Result<T> =

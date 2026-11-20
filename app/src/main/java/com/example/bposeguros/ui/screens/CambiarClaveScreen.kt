@@ -87,9 +87,10 @@ fun CambiarClaveScreen(
                 )
             }
             BotonPrincipal(
-                texto = stringResource(R.string.btn_guardar_clave),
+                texto = stringResource(if (uiState.guardando) R.string.btn_guardando else R.string.btn_guardar_clave),
                 onClick = { viewModel.onGuardar(idUsuario) },
                 icono = R.drawable.ic_check,
+                habilitado = !uiState.guardando,
                 modifier = Modifier.fillMaxWidth()
             )
         }

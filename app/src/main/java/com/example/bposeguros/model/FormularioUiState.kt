@@ -31,7 +31,8 @@ data class CambiarClaveUiState(
     val errorActual: String? = null,
     val errorNueva: String? = null,
     val errorRepetir: String? = null,
-    val cambiada: Boolean = false
+    val cambiada: Boolean = false,
+    val guardando: Boolean = false
 )
 
 data class PerfilUiState(
