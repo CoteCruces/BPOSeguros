@@ -13,6 +13,8 @@ import java.io.IOException
 
 class ErrorApi(mensaje: String) : Exception(mensaje)
 
+private const val SIN_CONEXION = "No hay conexión con el servidor. Revisa que los microservicios estén encendidos"
+
 
 private data class CuerpoError(val message: String?, val detail: String?)
 
@@ -37,7 +39,7 @@ class UsuarioRepository(
         } catch (e: HttpException) {
             Result.failure(ErrorApi(mensajeDelServidor(e)))
         } catch (e: IOException) {
-            Result.failure(ErrorApi("No hay conexión con el servidor. Revisa que los microservicios estén encendidos"))
+            Result.failure(ErrorApi(SIN_CONEXION))
         }
 
     private fun mensajeDelServidor(e: HttpException): String {
@@ -45,6 +47,12 @@ class UsuarioRepository(
         val mensaje = runCatching {
             Gson().fromJson(cuerpo, CuerpoError::class.java)?.let { it.message ?: it.detail }
         }.getOrNull()
-        return if (mensaje.isNullOrBlank()) "Ocurrió un error inesperado (${e.code()})" else mensaje
+        return when {
+
+            !mensaje.isNullOrBlank() -> mensaje
+
+            e.code() in listOf(404, 502, 503, 504) -> SIN_CONEXION
+            else -> "Ocurrió un error inesperado (${e.code()})"
+        }
     }
 }

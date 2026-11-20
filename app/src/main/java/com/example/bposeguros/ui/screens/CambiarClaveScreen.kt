@@ -15,6 +15,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import com.example.bposeguros.ui.styles.EstilosTarjeta
+import com.example.bposeguros.ui.theme.Exito
+import com.example.bposeguros.ui.theme.ExitoFondo
+import kotlinx.coroutines.delay
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bposeguros.R
@@ -24,6 +33,7 @@ import com.example.bposeguros.ui.components.CampoContrasena
 import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.CambiarClaveViewModel
+
 
 @Composable
 fun CambiarClaveScreen(
@@ -35,7 +45,12 @@ fun CambiarClaveScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(uiState.cambiada) { if (uiState.cambiada) onCambiada() }
+    LaunchedEffect(uiState.cambiada) {
+        if (uiState.cambiada) {
+            delay(2000)
+            onCambiada()
+        }
+    }
 
     Scaffold(
         topBar = { BarraSuperior(titulo = stringResource(R.string.titulo_cambiar_clave), onVolver = onVolver) },
@@ -53,6 +68,20 @@ fun CambiarClaveScreen(
                 stringResource(if (obligatorio) R.string.texto_clave_obligatoria else R.string.texto_clave_voluntaria),
                 style = MaterialTheme.typography.bodyLarge
             )
+            AnimatedVisibility(visible = uiState.cambiada, enter = expandVertically() + fadeIn()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = EstilosTarjeta.forma,
+                    colors = CardDefaults.cardColors(containerColor = ExitoFondo)
+                ) {
+                    Text(
+                        text = stringResource(R.string.clave_cambiada),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Exito,
+                        modifier = Modifier.padding(Dimens.espacioMedio)
+                    )
+                }
+            }
             TarjetaSeccion(titulo = stringResource(R.string.seccion_contrasena)) {
                 CampoContrasena(
                     valor = uiState.actual,
@@ -90,7 +119,7 @@ fun CambiarClaveScreen(
                 texto = stringResource(if (uiState.guardando) R.string.btn_guardando else R.string.btn_guardar_clave),
                 onClick = { viewModel.onGuardar(idUsuario) },
                 icono = R.drawable.ic_check,
-                habilitado = !uiState.guardando,
+                habilitado = !uiState.guardando && !uiState.cambiada,
                 modifier = Modifier.fillMaxWidth()
             )
         }
