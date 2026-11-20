@@ -4,6 +4,7 @@ import com.example.bposeguros.data.remote.CambiarContrasenaRequest
 import com.example.bposeguros.data.remote.ClienteRetrofit
 import com.example.bposeguros.data.remote.CrearLiquidadorRequest
 import com.example.bposeguros.data.remote.LoginRequest
+import com.example.bposeguros.data.remote.RecuperarClaveRequest
 import com.example.bposeguros.data.remote.RegistroAseguradoRequest
 import com.example.bposeguros.data.remote.UsuarioApi
 import com.example.bposeguros.data.remote.aUsuario
@@ -30,6 +31,11 @@ class UsuarioRepository(
 
     suspend fun cambiarContrasena(id: Long, actual: String, nueva: String): Result<Unit> =
         llamar { api.cambiarContrasena(id, CambiarContrasenaRequest(actual, nueva)) }
+
+    // El servidor (ms-usuarios) busca el correo en MySQL, genera la clave temporal,
+    // la guarda con hash y le pide a ms-notificaciones que envíe el correo.
+    suspend fun recuperarClave(correo: String): Result<Unit> =
+        llamar { api.recuperarClave(RecuperarClaveRequest(correo)); Unit }
 
     suspend fun obtener(id: Long): Result<Usuario> =
         llamar { api.obtener(id).aUsuario() }
