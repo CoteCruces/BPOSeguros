@@ -15,6 +15,7 @@
     <string name="titulo_mis_casos">Mis casos asignados</string>
     <string name="titulo_recuperar">Recuperar contraseña</string>
     <string name="titulo_cambiar_clave">Cambiar contraseña</string>
+    <string name="clave_cambiada">¡Listo! Tu contraseña fue cambiada con éxito.</string>
     <string name="titulo_perfil">Mi perfil</string>
     <string name="titulo_nuevo_cliente">Nuevo cliente</string>
     <string name="titulo_todos">Todos mis siniestros</string>
