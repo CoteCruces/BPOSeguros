@@ -60,6 +60,7 @@ fun LiquidadoresScreen(
     onCerrarCasos: () -> Unit,
     onReintentar: () -> Unit,
     onPedirCambio: (LiquidadorResumen) -> Unit,
+    onContinuarCambio: () -> Unit,
     onConfirmarCambio: () -> Unit,
     onCancelarCambio: () -> Unit,
     onMensajeMostrado: () -> Unit
@@ -178,27 +179,54 @@ fun LiquidadoresScreen(
 
     uiState.pendienteDeCambio?.let { liquidador ->
         val bloqueando = liquidador.activo
-        AlertDialog(
-            onDismissRequest = onCancelarCambio,
-            icon = { Icon(painterResource(R.drawable.ic_candado), contentDescription = null) },
-            title = {
-                Text(stringResource(if (bloqueando) R.string.titulo_bloquear else R.string.titulo_habilitar, liquidador.nombre))
-            },
-            text = {
-                Text(
-                    if (bloqueando) stringResource(R.string.texto_bloquear, liquidador.casosAbiertos)
-                    else stringResource(R.string.texto_habilitar)
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = onConfirmarCambio) {
-                    Text(stringResource(if (bloqueando) R.string.btn_bloquear else R.string.btn_habilitar))
+
+        if (!uiState.confirmandoCambio) {
+            AlertDialog(
+                onDismissRequest = onCancelarCambio,
+                icon = { Icon(painterResource(R.drawable.ic_candado), contentDescription = null) },
+                title = {
+                    Text(stringResource(if (bloqueando) R.string.titulo_bloquear else R.string.titulo_habilitar, liquidador.nombre))
+                },
+                text = {
+                    Text(
+                        if (bloqueando) stringResource(R.string.texto_bloquear, liquidador.casosAbiertos)
+                        else stringResource(R.string.texto_habilitar)
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = onContinuarCambio) { Text(stringResource(R.string.liq_continuar)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = onCancelarCambio) { Text(stringResource(R.string.btn_cancelar)) }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = onCancelarCambio) { Text(stringResource(R.string.btn_cancelar)) }
-            }
-        )
+            )
+        } else {
+            AlertDialog(
+                onDismissRequest = onCancelarCambio,
+                icon = { Icon(painterResource(R.drawable.ic_candado), contentDescription = null) },
+                title = {
+                    Text(stringResource(if (bloqueando) R.string.liq_seguro_bloquear else R.string.liq_seguro_habilitar, liquidador.nombre))
+                },
+                text = {
+                    Text(
+                        when {
+                            !bloqueando -> stringResource(R.string.liq_seguro_texto_habilitar)
+                            liquidador.casosAbiertos > 0 ->
+                                stringResource(R.string.liq_seguro_texto_bloquear_con_casos, liquidador.casosAbiertos)
+                            else -> stringResource(R.string.liq_seguro_texto_bloquear_sin_casos)
+                        }
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = onConfirmarCambio) {
+                        Text(stringResource(if (bloqueando) R.string.liq_si_bloquear else R.string.liq_si_habilitar))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onCancelarCambio) { Text(stringResource(R.string.btn_cancelar)) }
+                }
+            )
+        }
     }
 }
 
@@ -310,6 +338,7 @@ private fun LiquidadoresPreview() {
             onCerrarCasos = {},
             onReintentar = {},
             onPedirCambio = {},
+            onContinuarCambio = {},
             onConfirmarCambio = {},
             onCancelarCambio = {},
             onMensajeMostrado = {}

@@ -45,6 +45,12 @@ import com.example.bposeguros.ui.components.BarraSuperior
 import com.example.bposeguros.ui.components.DialogoCerrarSesion
 import com.example.bposeguros.ui.components.TarjetaSiniestro
 import com.example.bposeguros.ui.theme.Dimens
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
+import com.example.bposeguros.data.remote.LiquidadorPropuesto
+import com.example.bposeguros.data.remote.SiniestroRespuesta
+import com.example.bposeguros.ui.styles.EstilosTarjeta
 
 @Composable
 fun AsignacionesScreen(
@@ -53,6 +59,9 @@ fun AsignacionesScreen(
     onElegirCaso: (Siniestro) -> Unit,
     onCerrarDialogo: () -> Unit,
     onAsignar: (CandidatoLiquidador) -> Unit,
+    onReasignar: (SiniestroRespuesta) -> Unit,
+    onCerrarReasignar: () -> Unit,
+    onConfirmarReasignar: (LiquidadorPropuesto) -> Unit,
     onMensajeMostrado: () -> Unit,
     onNuevoLiquidador: () -> Unit,
     onVerLiquidadores: () -> Unit,
@@ -105,6 +114,23 @@ fun AsignacionesScreen(
                     stringResource(R.string.texto_analista, usuario.primerNombre(), uiState.pendientes.size),
                     style = MaterialTheme.typography.bodyMedium
                 )
+            }
+            if (uiState.porReasignar.isNotEmpty()) {
+                item(key = "titulo-por-reasignar") {
+                    EncabezadoPorReasignar(cantidad = uiState.porReasignar.size, modifier = Modifier.animateItem())
+                }
+                items(uiState.porReasignar, key = { "por-reasignar-${it.id}" }) { caso ->
+                    TarjetaPorReasignar(
+                        caso = caso,
+                        onReasignar = { onReasignar(caso) },
+                        modifier = Modifier.animateItem()
+                    )
+                }
+            }
+            uiState.errorPorReasignar?.let { mensajeError ->
+                item(key = "error-por-reasignar") {
+                    Text(mensajeError, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                }
             }
             if (uiState.pendientes.isEmpty()) {
                 item { Text(stringResource(R.string.sin_pendientes)) }
@@ -182,7 +208,148 @@ fun AsignacionesScreen(
         )
     }
 
+    uiState.casoAReasignar?.let { caso ->
+        var elegido by remember(caso.id, uiState.candidatosReasignar) {
+            mutableStateOf(uiState.candidatosReasignar.firstOrNull()?.id)
+        }
+        val errorReasignar = uiState.errorReasignar
+
+        AlertDialog(
+            onDismissRequest = onCerrarReasignar,
+            title = { Text(stringResource(R.string.titulo_reasignar)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Dimens.espacioChico)) {
+                    Text(
+                        stringResource(R.string.texto_asignar_caso, caso.numero, caso.tipoNombre),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    if (uiState.cargandoCandidatos) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                    if (errorReasignar != null) {
+                        Text(errorReasignar, color = MaterialTheme.colorScheme.error)
+                    } else if (!uiState.cargandoCandidatos && uiState.candidatosReasignar.isEmpty()) {
+                        Text(stringResource(R.string.texto_sin_candidatos), color = MaterialTheme.colorScheme.error)
+                    }
+                    uiState.candidatosReasignar.forEachIndexed { indice, candidato ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .selectable(
+                                    selected = elegido == candidato.id,
+                                    onClick = { elegido = candidato.id },
+                                    role = Role.RadioButton
+                                )
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(selected = elegido == candidato.id, onClick = null)
+                            Column(modifier = Modifier.padding(start = Dimens.espacioChico)) {
+                                Text(candidato.nombre + " (" + candidato.codigo + ")", style = MaterialTheme.typography.bodyLarge)
+                                val carga = stringResource(R.string.texto_carga_liquidador, candidato.casosAbiertos.toInt())
+                                Text(
+                                    if (indice == 0) carga + " · " + stringResource(R.string.etiqueta_sugerido) else carga,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { uiState.candidatosReasignar.firstOrNull { it.id == elegido }?.let(onConfirmarReasignar) },
+                    enabled = elegido != null && !uiState.cargandoCandidatos
+                ) { Text(stringResource(R.string.btn_reasignar)) }
+            },
+            dismissButton = {
+                TextButton(onClick = onCerrarReasignar) { Text(stringResource(R.string.btn_cancelar)) }
+            }
+        )
+    }
+
     if (preguntarSalida) {
         DialogoCerrarSesion(onConfirmar = onCerrarSesion, onCancelar = { preguntarSalida = false })
     }
+
+}
+
+@Composable
+private fun EncabezadoPorReasignar(cantidad: Int, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Text(
+            stringResource(R.string.titulo_por_reasignar, cantidad),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.error
+        )
+        Text(
+            stringResource(R.string.texto_por_reasignar),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun TarjetaPorReasignar(
+    caso: SiniestroRespuesta,
+    onReasignar: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colorTexto = MaterialTheme.colorScheme.onErrorContainer
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = EstilosTarjeta.forma,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        elevation = EstilosTarjeta.elevacion()
+    ) {
+        Column(
+            modifier = Modifier.padding(Dimens.espacioMedio),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text("N° ${caso.numero} · ${caso.tipoNombre}", style = MaterialTheme.typography.titleMedium, color = colorTexto)
+            Text(
+                stringResource(R.string.reasignar_linea_cliente, caso.aseguradoNombre, caso.aseguradoRut),
+                style = MaterialTheme.typography.bodyMedium, color = colorTexto
+            )
+            Text(
+                stringResource(R.string.reasignar_linea_compania, caso.companiaNombre),
+                style = MaterialTheme.typography.bodyMedium, color = colorTexto
+            )
+            Text(
+                stringResource(R.string.reasignar_linea_etapa, caso.etapaEtiqueta),
+                style = MaterialTheme.typography.bodyMedium, color = colorTexto
+            )
+            Text(
+                stringResource(
+                    R.string.reasignar_linea_fechas,
+                    fechaCortaCaso(caso.fechaOcurrencia), fechaCortaCaso(caso.fechaReporte), caso.comuna
+                ),
+                style = MaterialTheme.typography.bodySmall, color = colorTexto
+            )
+            Text(caso.descripcion, style = MaterialTheme.typography.bodySmall, color = colorTexto)
+            caso.liquidadorAnteriorNombre?.let {
+                Text(
+                    stringResource(R.string.reasignar_linea_anterior, it),
+                    style = MaterialTheme.typography.bodySmall, color = colorTexto
+                )
+            }
+            if (caso.fueraDePlazo) {
+                Text(
+                    stringResource(R.string.reasignar_fuera_plazo),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onReasignar) { Text(stringResource(R.string.btn_reasignar)) }
+            }
+        }
+    }
+}
+
+private fun fechaCortaCaso(fecha: String): String {
+    val partes = fecha.take(10).split("-")
+    return if (partes.size == 3) "${partes[2]}-${partes[1]}-${partes[0]}" else fecha
 }

@@ -74,8 +74,12 @@ class LiquidadoresViewModel(application: Application) : AndroidViewModel(applica
         _uiState.update { it.copy(pendienteDeCambio = liquidador) }
     }
 
+    fun onContinuarCambio() {
+        _uiState.update { it.copy(confirmandoCambio = true) }
+    }
+
     fun onCancelarCambio() {
-        _uiState.update { it.copy(pendienteDeCambio = null) }
+        _uiState.update { it.copy(pendienteDeCambio = null, confirmandoCambio = false) }
     }
 
     fun onConfirmarCambio(analista: Usuario) {
@@ -83,14 +87,19 @@ class LiquidadoresViewModel(application: Application) : AndroidViewModel(applica
         if (analista.rolId != Rol.ID_ANALISTA) return
 
         val bloquear = liquidador.activo
-        _uiState.update { it.copy(pendienteDeCambio = null, cargando = true) }
+        _uiState.update { it.copy(pendienteDeCambio = null, confirmandoCambio = false, cargando = true) }
         viewModelScope.launch {
             val resultado = if (bloquear) repositorio.bloquear(liquidador.id, analista.id)
             else repositorio.habilitar(liquidador.id, analista.id)
 
             resultado
                 .onSuccess {
-                    val texto = if (bloquear) "${liquidador.nombre} fue bloqueado" else "${liquidador.nombre} fue habilitado"
+                    val texto = when {
+                        !bloquear -> "${liquidador.nombre} fue habilitado"
+                        liquidador.casosAbiertos > 0 ->
+                            "${liquidador.nombre} fue bloqueado. Sus ${liquidador.casosAbiertos} caso(s) quedaron por reasignar"
+                        else -> "${liquidador.nombre} fue bloqueado"
+                    }
                     _uiState.update { it.copy(mensaje = texto) }
                     recargar()
                 }

@@ -306,4 +306,25 @@
     <string name="texto_casos_abiertos_liq">%1$d caso(s) abierto(s)</string>
     <string name="cd_ver_liquidadores">Ver liquidadores</string>
 
+
+    <string name="liq_continuar">Continuar</string>
+    <string name="liq_seguro_bloquear">¿Estás seguro de bloquear a %1$s?</string>
+    <string name="liq_seguro_texto_bloquear_con_casos">Sus %1$d caso(s) abierto(s) quedarán por reasignar y no podrá iniciar sesión. Esta acción afecta a los clientes de esos casos.</string>
+    <string name="liq_seguro_texto_bloquear_sin_casos">No podrá iniciar sesión hasta que lo habilites de nuevo.</string>
+    <string name="liq_seguro_habilitar">¿Estás seguro de habilitar a %1$s?</string>
+    <string name="liq_seguro_texto_habilitar">Podrá volver a iniciar sesión y recibir casos nuevos.</string>
+    <string name="liq_si_bloquear">Sí, bloquear</string>
+    <string name="liq_si_habilitar">Sí, habilitar</string>
+
+    <string name="titulo_por_reasignar">Casos por reasignar (%1$d)</string>
+    <string name="texto_por_reasignar">Estos casos quedaron sin liquidador porque su liquidador fue bloqueado. Reasígnalos para que continúen.</string>
+    <string name="reasignar_linea_cliente">Cliente: %1$s · %2$s</string>
+    <string name="reasignar_linea_compania">Compañía: %1$s</string>
+    <string name="reasignar_linea_etapa">Etapa: %1$s</string>
+    <string name="reasignar_linea_fechas">Ocurrió el %1$s · Reportado el %2$s · %3$s</string>
+    <string name="reasignar_linea_anterior">Liquidador anterior: %1$s</string>
+    <string name="reasignar_fuera_plazo">Fuera de plazo</string>
+    <string name="btn_reasignar">Reasignar</string>
+    <string name="titulo_reasignar">Reasignar caso</string>
+
 </resources>

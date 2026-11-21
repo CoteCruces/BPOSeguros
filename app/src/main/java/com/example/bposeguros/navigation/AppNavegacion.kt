@@ -256,6 +256,9 @@ fun AppNavegacion() {
                 onElegirCaso = analistaViewModel::onElegirCaso,
                 onCerrarDialogo = analistaViewModel::onCerrarDialogo,
                 onAsignar = { candidato -> analistaViewModel.onAsignar(candidato, actual) },
+                onReasignar = analistaViewModel::onReasignar,
+                onCerrarReasignar = analistaViewModel::onCerrarReasignar,
+                onConfirmarReasignar = { candidato -> analistaViewModel.onConfirmarReasignar(candidato, actual) },
                 onMensajeMostrado = analistaViewModel::onMensajeMostrado,
                 onNuevoLiquidador = { navController.navigate(Ruta.NuevoLiquidador.ruta) },
                 onVerLiquidadores = { navController.navigate(Ruta.Liquidadores.ruta) },
@@ -279,6 +282,7 @@ fun AppNavegacion() {
                 onCerrarCasos = liquidadoresViewModel::onCerrarCasos,
                 onReintentar = liquidadoresViewModel::cargar,
                 onPedirCambio = liquidadoresViewModel::onPedirCambio,
+                onContinuarCambio = liquidadoresViewModel::onContinuarCambio,
                 onConfirmarCambio = { liquidadoresViewModel.onConfirmarCambio(actual) },
                 onCancelarCambio = liquidadoresViewModel::onCancelarCambio,
                 onMensajeMostrado = liquidadoresViewModel::onMensajeMostrado
