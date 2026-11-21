@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -35,21 +38,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.bposeguros.R
+import com.example.bposeguros.data.remote.HistorialResponse
 import com.example.bposeguros.model.LiquidadorResumen
 import com.example.bposeguros.model.LiquidadoresUiState
 import com.example.bposeguros.ui.components.BarraSuperior
+import com.example.bposeguros.ui.components.CampoTexto
 import com.example.bposeguros.ui.styles.EstilosTarjeta
 import com.example.bposeguros.ui.theme.BPOSegurosTheme
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.ui.theme.Exito
 import com.example.bposeguros.ui.theme.ExitoFondo
 
-
 @Composable
 fun LiquidadoresScreen(
     uiState: LiquidadoresUiState,
     onVolver: () -> Unit,
     onNuevoLiquidador: () -> Unit,
+    onBusquedaCambia: (String) -> Unit,
+    onVerMas: () -> Unit,
+    onVerCasos: (LiquidadorResumen) -> Unit,
+    onCerrarCasos: () -> Unit,
+    onReintentar: () -> Unit,
     onPedirCambio: (LiquidadorResumen) -> Unit,
     onConfirmarCambio: () -> Unit,
     onCancelarCambio: () -> Unit,
@@ -84,19 +93,88 @@ fun LiquidadoresScreen(
             verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
         ) {
             item { Text(stringResource(R.string.texto_liquidadores), style = MaterialTheme.typography.bodyMedium) }
-            if (uiState.liquidadores.isEmpty()) {
-                item { Text(stringResource(R.string.sin_liquidadores)) }
+
+            item {
+                CampoTexto(
+                    valor = uiState.busqueda,
+                    onValorCambia = onBusquedaCambia,
+                    etiqueta = stringResource(R.string.liq_buscar),
+                    icono = R.drawable.ic_buscar,
+                    error = null
+                )
             }
-            items(uiState.liquidadores, key = { it.id }) { liquidador ->
+
+            if (uiState.cargando) {
+                item { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) }
+            }
+
+            val mensajeError = uiState.error
+            if (mensajeError != null) {
+                item {
+                    Column {
+                        Text(mensajeError, color = MaterialTheme.colorScheme.error)
+                        TextButton(onClick = onReintentar) { Text(stringResource(R.string.liq_reintentar)) }
+                    }
+                }
+            } else if (!uiState.cargando && uiState.liquidadores.isEmpty()) {
+                item {
+                    Text(
+                        stringResource(
+                            if (uiState.busqueda.isBlank()) R.string.sin_liquidadores else R.string.liq_sin_resultados
+                        )
+                    )
+                }
+            }
+
+
+            items(uiState.liquidadores.take(uiState.visibles), key = { it.id }) { liquidador ->
                 FilaLiquidador(
                     liquidador = liquidador,
+                    onVerCasos = { onVerCasos(liquidador) },
                     onPedirCambio = { onPedirCambio(liquidador) },
                     modifier = Modifier.animateItem()
                 )
             }
+
+            val restantes = uiState.liquidadores.size - uiState.visibles
+            if (restantes > 0) {
+                item {
+                    TextButton(onClick = onVerMas, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.liq_ver_mas, restantes))
+                    }
+                }
+            }
+
             item { Spacer(Modifier.height(72.dp)) }
         }
     }
+
+
+    uiState.liquidadorConCasos?.let { liquidador ->
+        val errorCasos = uiState.errorCasos
+        AlertDialog(
+            onDismissRequest = onCerrarCasos,
+            icon = { Icon(painterResource(R.drawable.ic_maleta), contentDescription = null) },
+            title = { Text(stringResource(R.string.liq_titulo_casos, liquidador.nombre)) },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(Dimens.espacioMedio)
+                ) {
+                    when {
+                        uiState.cargandoCasos -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        errorCasos != null -> Text(errorCasos, color = MaterialTheme.colorScheme.error)
+                        uiState.casosDelLiquidador.isEmpty() -> Text(stringResource(R.string.liq_sin_casos))
+                        else -> uiState.casosDelLiquidador.forEach { caso -> FilaCaso(caso) }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = onCerrarCasos) { Text(stringResource(R.string.liq_cerrar)) }
+            }
+        )
+    }
+
 
     uiState.pendienteDeCambio?.let { liquidador ->
         val bloqueando = liquidador.activo
@@ -125,12 +203,36 @@ fun LiquidadoresScreen(
 }
 
 @Composable
+private fun FilaCaso(caso: HistorialResponse) {
+    Column {
+        Text("N° ${caso.numero} · ${caso.etapaEtiqueta}", style = MaterialTheme.typography.titleSmall)
+        Text(
+            "${caso.aseguradoNombre} · ${caso.companiaNombre} · ${caso.tipoNombre}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = if (caso.diasTrabajados <= 0L) stringResource(R.string.liq_asignado_hoy)
+            else stringResource(R.string.liq_dias_caso, caso.diasTrabajados.toInt(), fechaCorta(caso.fechaInicio)),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+
+private fun fechaCorta(fecha: String): String {
+    val partes = fecha.take(10).split("-")
+    return if (partes.size == 3) "${partes[2]}-${partes[1]}-${partes[0]}" else fecha
+}
+
+@Composable
 private fun FilaLiquidador(
     liquidador: LiquidadorResumen,
+    onVerCasos: () -> Unit,
     onPedirCambio: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     val fondoEstado by animateColorAsState(
         targetValue = if (liquidador.activo) ExitoFondo else MaterialTheme.colorScheme.errorContainer,
         label = "fondoEstado"
@@ -146,25 +248,24 @@ private fun FilaLiquidador(
         colors = EstilosTarjeta.colores(),
         elevation = EstilosTarjeta.elevacion()
     ) {
-        Row(
-            modifier = Modifier.padding(Dimens.espacioMedio),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Dimens.espacioChico)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(liquidador.nombre, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    stringResource(R.string.texto_codigo_equipo, liquidador.codigo, liquidador.equipo),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    stringResource(R.string.texto_casos_abiertos_liq, liquidador.casosAbiertos),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Column(horizontalAlignment = Alignment.End) {
+        Column(modifier = Modifier.padding(Dimens.espacioMedio)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimens.espacioChico)
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(liquidador.nombre, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        stringResource(R.string.texto_codigo_equipo, liquidador.codigo, liquidador.equipo),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        stringResource(R.string.texto_casos_abiertos_liq, liquidador.casosAbiertos),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Text(
                     text = stringResource(if (liquidador.activo) R.string.estado_activo else R.string.estado_bloqueado),
                     style = MaterialTheme.typography.labelMedium,
@@ -173,6 +274,15 @@ private fun FilaLiquidador(
                         .background(fondoEstado, RoundedCornerShape(50))
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onVerCasos) {
+                    Icon(painterResource(R.drawable.ic_maleta), contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                    Text(stringResource(R.string.liq_ver_casos))
+                }
                 TextButton(onClick = onPedirCambio) {
                     Text(stringResource(if (liquidador.activo) R.string.btn_bloquear else R.string.btn_habilitar))
                 }
@@ -194,6 +304,11 @@ private fun LiquidadoresPreview() {
             ),
             onVolver = {},
             onNuevoLiquidador = {},
+            onBusquedaCambia = {},
+            onVerMas = {},
+            onVerCasos = {},
+            onCerrarCasos = {},
+            onReintentar = {},
             onPedirCambio = {},
             onConfirmarCambio = {},
             onCancelarCambio = {},

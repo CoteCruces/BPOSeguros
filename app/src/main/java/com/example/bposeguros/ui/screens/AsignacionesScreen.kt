@@ -73,7 +73,7 @@ fun AsignacionesScreen(
         topBar = {
             BarraSuperior(titulo = stringResource(R.string.titulo_asignaciones)) {
                 IconButton(onClick = onVerLiquidadores) {
-                    Icon(painterResource(R.drawable.ic_persona), contentDescription = stringResource(R.string.cd_ver_liquidadores))
+                    Icon(painterResource(R.drawable.ic_maleta), contentDescription = stringResource(R.string.cd_ver_liquidadores))
                 }
                 IconButton(onClick = onVerPerfil) {
                     AvatarUsuario(ruta = usuario.foto, tamano = 32.dp, conBorde = false)

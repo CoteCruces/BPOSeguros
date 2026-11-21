@@ -37,3 +37,60 @@ fun UsuarioResponse.aUsuario() = Usuario(
     claveTemporal = claveTemporal, codigo = codigo, equipo = equipo,
     activo = activo, rolId = rolId, rolNombre = rolNombre
 )
+
+
+
+
+data class SolicitanteRequest(val solicitanteId: Long)
+
+data class ConteoCasosResponse(val liquidadorId: Long, val casosAbiertos: Long)
+
+data class HistorialResponse(
+    val asignacionId: Long?,
+    val siniestroId: Long,
+    val numero: String,
+    val aseguradoNombre: String,
+    val companiaNombre: String,
+    val tipoNombre: String,
+    val etapa: String,
+    val etapaEtiqueta: String,
+    val resultado: String?,
+    val fechaInicio: String,
+    val fechaFin: String?,
+    val diasTrabajados: Long,
+    val vigente: Boolean,
+    val motivoFin: String?
+)
+
+data class SiniestroRespuesta(
+    val id: Long,
+    val numero: String,
+    val aseguradoId: Long,
+    val aseguradoNombre: String,
+    val aseguradoRut: String,
+    val companiaId: Long,
+    val companiaNombre: String,
+    val tipoId: Long,
+    val tipoNombre: String,
+    val fechaOcurrencia: String,
+    val fechaReporte: String,
+    val comuna: String,
+    val descripcion: String,
+    val etapaId: Int,
+    val etapa: String,
+    val etapaEtiqueta: String,
+    val fechaCambioEtapa: String?,
+    val liquidadorId: Long?,
+    val liquidadorNombre: String?,
+    val liquidadorCodigo: String?,
+    val liquidadorEquipo: String?,
+    val fechaAsignacion: String?,
+    val diasAsignado: Long?,
+    val liquidadorAnteriorId: Long?,
+    val liquidadorAnteriorNombre: String?,
+    val porReasignar: Boolean,
+    val fueraDePlazo: Boolean,
+    val resultado: String?,
+    val mensajeCierre: String?,
+    val ultimaActualizacion: String?
+)

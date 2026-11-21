@@ -23,6 +23,17 @@
     <string name="titulo_entre_fechas">Del %1$s al %2$s</string>
 
 
+    <string name="liq_buscar">Buscar por RUT o código</string>
+    <string name="liq_ver_mas">Ver más (%1$d restantes)</string>
+    <string name="liq_ver_casos">Ver casos</string>
+    <string name="liq_titulo_casos">Casos de %1$s</string>
+    <string name="liq_sin_casos">No tiene casos abiertos en este momento.</string>
+    <string name="liq_sin_resultados">Ningún liquidador coincide con tu búsqueda.</string>
+    <string name="liq_dias_caso">Lleva %1$d día(s) con este caso (desde %2$s)</string>
+    <string name="liq_asignado_hoy">Asignado hoy</string>
+    <string name="liq_cerrar">Cerrar</string>
+    <string name="liq_reintentar">Reintentar</string>
+
 
     <string name="banner_bienvenida_titulo">Te damos la bienvenida</string>
     <string name="banner_bienvenida_subtitulo">Sigue tu siniestro sin llamar ni escribir</string>
@@ -288,7 +299,7 @@
     <string name="btn_bloquear">Bloquear</string>
     <string name="btn_habilitar">Habilitar</string>
     <string name="titulo_bloquear">¿Bloquear a %1$s?</string>
-    <string name="texto_bloquear">No podrá iniciar sesión ni recibirá casos nuevos. Tiene %1$d caso(s) abierto(s): seguirán a su nombre hasta que los reasignes. Puedes volver a habilitarlo cuando quieras.</string>
+    <string name="texto_bloquear">No podrá iniciar sesión ni recibirá casos nuevos. Tiene %1$d caso(s) abierto(s): quedarán por reasignar y los verás en tu pantalla principal. Puedes volver a habilitarlo cuando quieras.</string>
     <string name="titulo_habilitar">¿Habilitar a %1$s?</string>
     <string name="texto_habilitar">Podrá volver a iniciar sesión y recibir casos nuevos.</string>
     <string name="texto_codigo_equipo">%1$s · Equipo %2$s</string>

@@ -9,6 +9,9 @@ object ClienteRetrofit {
     //http://10.0.2.2:8081/
     private const val URL_USUARIOS = "http://10.0.2.2:8081/"
 
+    //http://10.0.2.2:8083/
+    private const val URL_SINIESTROS = "http://10.0.2.2:8083/"
+
     //http://10.0.2.2:8084/
     private const val URL_NOTIFICACIONES = "http://10.0.2.2:8084/"
     private val okHttp = OkHttpClient.Builder()
@@ -23,5 +26,7 @@ object ClienteRetrofit {
             .build()
 
     val usuarios: UsuarioApi by lazy { crear(URL_USUARIOS).create(UsuarioApi::class.java) }
+
+    val siniestros: SiniestrosApi by lazy { crear(URL_SINIESTROS).create(SiniestrosApi::class.java) }
     val notificaciones: NotificacionesApi by lazy { crear(URL_NOTIFICACIONES).create(NotificacionesApi::class.java) }
 }
