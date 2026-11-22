@@ -26,6 +26,7 @@ data class LiquidadoresUiState(
     val cargando: Boolean = false,
     val error: String? = null,
     val pendienteDeCambio: LiquidadorResumen? = null,
+    val confirmandoCambio: Boolean = false,
     val liquidadorConCasos: LiquidadorResumen? = null,         // el que tiene abierta la ventana de casos
     val casosDelLiquidador: List<HistorialResponse> = emptyList(),
     val cargandoCasos: Boolean = false,

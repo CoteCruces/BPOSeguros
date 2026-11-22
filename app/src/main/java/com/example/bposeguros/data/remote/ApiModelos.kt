@@ -94,3 +94,13 @@ data class SiniestroRespuesta(
     val mensajeCierre: String?,
     val ultimaActualizacion: String?
 )
+
+data class LiquidadorPropuesto(
+    val id: Long,
+    val nombre: String,
+    val codigo: String,
+    val equipo: String,
+    val casosAbiertos: Long
+)
+
+data class AsignarSiniestroRequest(val solicitanteId: Long, val liquidadorId: Long)
