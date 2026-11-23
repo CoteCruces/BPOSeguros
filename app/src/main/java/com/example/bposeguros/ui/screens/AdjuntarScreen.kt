@@ -111,9 +111,6 @@ fun AdjuntarScreen(
     }
 
 
-    val lanzadorPdf = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri != null) viewModel.onPdfElegido(uri)
-    }
 
     Scaffold(
         topBar = { BarraSuperior(titulo = stringResource(R.string.titulo_adjuntar), onVolver = onVolver) },
@@ -169,26 +166,14 @@ fun AdjuntarScreen(
                         if (Permisos.tiene(context, Permisos.IMAGENES)) abrirGaleria()
                         else pedirPermisoGaleria.launch(Permisos.IMAGENES)
                     }
-                    BotonConIcono(R.drawable.ic_documento, stringResource(R.string.btn_pdf), Modifier.fillMaxWidth()) {
-                        lanzadorPdf.launch(arrayOf("application/pdf"))
-                    }
+
                 }
                 uiState.errorFoto?.let {
                     Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }
-                AnimatedVisibility(visible = uiState.foto != null, enter = scaleIn() + fadeIn()) {
-                    uiState.foto?.let { foto ->
-                        Image(
-                            bitmap = foto.asImageBitmap(),
-                            contentDescription = stringResource(R.string.cd_vista_previa),
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp)
-                                .clip(RoundedCornerShape(Dimens.radioCampo))
-                        )
-                    }
-                }
+
+
+
                 AnimatedVisibility(visible = uiState.documento != null, enter = scaleIn() + fadeIn()) {
                     uiState.documento?.let { documento ->
                         Row(verticalAlignment = Alignment.CenterVertically) {

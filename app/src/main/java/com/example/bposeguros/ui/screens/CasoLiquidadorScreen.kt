@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -33,6 +34,9 @@ import com.example.bposeguros.ui.components.CampoTexto
 import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.LiquidadorViewModel
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun CasoLiquidadorScreen(
@@ -44,6 +48,8 @@ fun CasoLiquidadorScreen(
     val detalle by viewModel.detalle.collectAsStateWithLifecycle()
     val acciones by viewModel.acciones.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var confirmandoCierre by remember { mutableStateOf(false) }
 
     LaunchedEffect(idSiniestro) { viewModel.cargarDetalle(idSiniestro, liquidador.id) }
 
@@ -153,7 +159,7 @@ fun CasoLiquidadorScreen(
             val permitidos = siniestro.etapa.resultadosPermitidos()
             DialogoFormulario(
                 titulo = stringResource(R.string.btn_cerrar_caso),
-                onConfirmar = { viewModel.cerrarCaso(liquidador) },
+                onConfirmar = { if (viewModel.validarCierre()) confirmandoCierre = true },
                 onCancelar = viewModel::cerrarDialogo
             ) {
                 CampoSeleccion(
@@ -177,6 +183,25 @@ fun CasoLiquidadorScreen(
         }
 
         null -> {}
+
+    }
+
+    if (confirmandoCierre) {
+        AlertDialog(
+            onDismissRequest = { confirmandoCierre = false },
+            icon = { Icon(painterResource(R.drawable.ic_candado), contentDescription = null) },
+            title = { Text(stringResource(R.string.cierre_seguro_titulo, siniestro.numero)) },
+            text = { Text(stringResource(R.string.cierre_seguro_texto)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmandoCierre = false
+                    viewModel.cerrarCaso(liquidador)
+                }) { Text(stringResource(R.string.btn_si_cerrar)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmandoCierre = false }) { Text(stringResource(R.string.btn_cancelar)) }
+            }
+        )
     }
 }
 

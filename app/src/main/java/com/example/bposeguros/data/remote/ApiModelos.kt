@@ -139,7 +139,7 @@ data class AdjuntoRespuesta(
     val cargadoPor: String,
     val comentario: String?,
     val solicitudId: Long?,
-    val urlArchivo: String
+    val urlArchivo: String?
 )
 
 data class AvisoRespuesta(

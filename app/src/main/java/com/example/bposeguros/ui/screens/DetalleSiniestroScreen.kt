@@ -236,11 +236,13 @@ private fun FilaAdjunto(adjunto: DocumentoAdjunto) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
+                
+                if (adjunto.rutaArchivo.isNotBlank()) {
+                    try {
+                        contexto.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(adjunto.rutaArchivo)))
+                    } catch (e: Exception) {
 
-                try {
-                    contexto.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(adjunto.rutaArchivo)))
-                } catch (e: Exception) {
-
+                    }
                 }
             }
     ) {

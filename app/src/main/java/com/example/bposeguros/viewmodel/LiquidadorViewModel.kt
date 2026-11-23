@@ -160,6 +160,19 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+
+    fun validarCierre(): Boolean {
+        val estado = _acciones.value
+        val errorResultado = if (estado.resultadoElegido == null) "Elige el resultado" else null
+        val errorMensaje = when {
+            estado.mensajeCierre.isBlank() -> "Escribe un mensaje para el asegurado"
+            estado.mensajeCierre.trim().length < 15 -> "Explica un poco más (mínimo 15 caracteres)"
+            else -> null
+        }
+        _acciones.update { it.copy(errorResultado = errorResultado, errorMensaje = errorMensaje) }
+        return errorResultado == null && errorMensaje == null
+    }
+
     fun cerrarCaso(liquidador: Usuario) {
         val siniestro = _detalle.value.siniestro ?: return
         val estado = _acciones.value

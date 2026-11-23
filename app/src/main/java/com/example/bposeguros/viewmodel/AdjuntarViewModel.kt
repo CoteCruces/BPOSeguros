@@ -110,7 +110,7 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
 
         val errorTipo = if (estado.opcionElegida == null) "Indica qué documento es" else null
         val errorFoto =
-            if (estado.foto == null && estado.documento == null) "Toma una foto, elige una imagen o un PDF" else null
+            if (estado.foto == null && estado.documento == null) "Toma una foto o elige una imagen" else null
         _uiState.update { it.copy(errorTipo = errorTipo, errorFoto = errorFoto) }
         if (errorTipo != null || errorFoto != null) return
 
