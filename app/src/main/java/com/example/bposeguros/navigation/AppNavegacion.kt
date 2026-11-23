@@ -52,6 +52,10 @@ fun AppNavegacion() {
 
     val usuario by sesionViewModel.usuarioActual.collectAsStateWithLifecycle()
 
+
+    val cargandoSesion by sesionViewModel.cargando.collectAsStateWithLifecycle()
+    if (cargandoSesion) return
+
     val inicio = remember { rutaInicial(sesionViewModel.usuarioActual.value) }
 
     val cerrarSesion = {

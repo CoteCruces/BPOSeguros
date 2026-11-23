@@ -2,31 +2,43 @@ package com.example.bposeguros.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import com.example.bposeguros.data.SiniestroDbHelper
-import com.example.bposeguros.model.Etapa
+import androidx.lifecycle.viewModelScope
+import com.example.bposeguros.data.CatalogoRepository
+import com.example.bposeguros.data.SiniestroRepository
+import com.example.bposeguros.data.avisoCorto
 import com.example.bposeguros.model.ReportarUiState
-import com.example.bposeguros.model.Siniestro
+import com.example.bposeguros.model.TipoSiniestro
 import com.example.bposeguros.ui.util.Fechas
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class ReportarViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         const val DIAS_MAXIMOS_REPORTE = 180
     }
-    private val db = SiniestroDbHelper.obtener(application)
-    private val todosLosTipos = db.listarTipos()
 
-    private val _uiState = MutableStateFlow(
-        ReportarUiState(
-            companias = db.listarCompanias().filter { it.activa },
-            comunas = db.listarComunas()
-        )
-    )
+    private val catalogo = CatalogoRepository(application)
+    private val repositorio = SiniestroRepository()
+
+    private var todosLosTipos: List<TipoSiniestro> = emptyList()
+    private var enviando = false
+
+    private val _uiState = MutableStateFlow(ReportarUiState())
     val uiState: StateFlow<ReportarUiState> = _uiState.asStateFlow()
+
+    init {
+
+        viewModelScope.launch {
+            todosLosTipos = catalogo.tipos()
+            val companias = catalogo.companias().filter { it.activa }
+            val comunas = catalogo.comunas()
+            _uiState.update { it.copy(companias = companias, comunas = comunas) }
+        }
+    }
 
     fun onCompaniaElegida(posicion: Int) {
         val compania = _uiState.value.companias[posicion]
@@ -60,7 +72,9 @@ class ReportarViewModel(application: Application) : AndroidViewModel(application
         _uiState.update { it.copy(posibleDuplicado = null) }
     }
 
-    fun onEnviar(idAsegurado: Long, confirmado: Boolean = false) {
+
+        fun onEnviar(idAsegurado: Long, confirmado: Boolean = false) {
+        if (enviando) return
         val estado = _uiState.value
         val fechaBd = Fechas.desdeTextoUsuario(estado.fechaOcurrencia)
         val hoy = Fechas.hoy()
@@ -101,31 +115,22 @@ class ReportarViewModel(application: Application) : AndroidViewModel(application
         val compania = estado.companias[estado.companiaElegida!!]
         val tipo = estado.tipos[estado.tipoElegido!!]
 
-        if (!confirmado) {
-            val duplicado = db.buscarPosibleDuplicado(idAsegurado, compania.id, tipo.id, fechaBd)
-            if (duplicado != null) {
-                _uiState.update { it.copy(posibleDuplicado = duplicado) }
-                return
-            }
-        }
+        enviando = true
+        viewModelScope.launch {
+            try {
+                repositorio.reportar(
+                    idAsegurado, compania.id, tipo.id, fechaBd, estado.comuna, estado.descripcion.trim()
+                )
+                    .onSuccess { siniestro ->
+                        _uiState.update { it.copy(posibleDuplicado = null, numeroCreado = siniestro.numero) }
+                    }
+                    .onFailure { error ->
 
-        val numero = db.siguienteNumeroSiniestro(hoy.take(4).toInt())
-        val nuevo = Siniestro(
-            numero = numero,
-            aseguradoId = idAsegurado,
-            companiaId = compania.id,
-            tipoId = tipo.id,
-            fechaOcurrencia = fechaBd,
-            fechaReporte = hoy,
-            comuna = estado.comuna,
-            descripcion = estado.descripcion.trim(),
-            etapa = Etapa.RECIBIDO,
-            fechaCambioEtapa = hoy,
-            fueraDePlazo = Fechas.diasEntre(fechaBd, hoy) > 30
-        )
-        val id = db.insertarSiniestro(nuevo, Fechas.ahora())
-        if (id != -1L) {
-            _uiState.update { it.copy(posibleDuplicado = null, numeroCreado = numero) }
+                        getApplication<Application>().avisoCorto(error.message.orEmpty())
+                    }
+            } finally {
+                enviando = false
+            }
         }
     }
 }

@@ -52,5 +52,6 @@ data class PerfilUiState(
     val errorFecha: String? = null,
     val errorFoto: String? = null,
 
-    val guardado: Boolean = false
+    val guardado: Boolean = false,
+    val errorGeneral: String? = null
 )

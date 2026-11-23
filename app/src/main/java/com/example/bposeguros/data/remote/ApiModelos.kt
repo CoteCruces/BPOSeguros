@@ -103,4 +103,84 @@ data class LiquidadorPropuesto(
     val casosAbiertos: Long
 )
 
-data class AsignarSiniestroRequest(val solicitanteId: Long, val liquidadorId: Long)
+data class AsignarSiniestroRequest(
+    val solicitanteId: Long,
+    val liquidadorId: Long
+)
+
+
+
+data class GestionResponse(
+    val id: Long,
+    val siniestroId: Long,
+    val fechaHora: String,
+    val tipo: String,
+    val descripcion: String,
+    val responsable: String,
+    val visibleAsegurado: Boolean
+)
+
+data class SolicitudResponse(
+    val id: Long,
+    val siniestroId: Long,
+    val documentoSolicitado: String,
+    val comentario: String?,
+    val fechaSolicitud: String,
+    val entregado: Boolean,
+    val fechaEntrega: String?
+)
+
+data class AdjuntoRespuesta(
+    val id: Long,
+    val siniestroId: Long,
+    val nombreArchivo: String,
+    val tipoDocumento: String,
+    val fechaCarga: String,
+    val cargadoPor: String,
+    val comentario: String?,
+    val solicitudId: Long?,
+    val urlArchivo: String
+)
+
+data class AvisoRespuesta(
+    val id: Long,
+    val siniestroId: Long,
+    val numeroSiniestro: String,
+    val fechaHora: String,
+    val motivo: String,
+    val mensaje: String,
+    val leido: Boolean
+)
+
+data class ReportarSiniestroRequest(
+    val aseguradoId: Long,
+    val companiaId: Long,
+    val tipoId: Long,
+    val fechaOcurrencia: String,
+    val comuna: String,
+    val descripcion: String
+)
+
+data class NuevaGestionRequest(
+    val liquidadorId: Long,
+    val descripcion: String
+)
+
+
+data class NuevaSolicitudRequest(
+    val liquidadorId: Long,
+    val documento: String,
+    val comentario: String
+)
+
+
+data class AvanzarEtapaRequest(
+    val liquidadorId: Long
+)
+
+
+data class CerrarSiniestroRequest(
+    val liquidadorId: Long,
+    val resultado: String,
+    val mensaje: String
+)

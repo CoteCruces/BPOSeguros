@@ -101,7 +101,7 @@ fun CasoLiquidadorScreen(
                     )
                 }
             }
-            SeccionDocumentos(detalle.solicitudes, detalle.adjuntos) {}
+            SeccionDocumentos(detalle.solicitudes, detalle.adjuntos, paraLiquidador = true) {}
             SeccionDatos(siniestro)
             SeccionHistorial(detalle.gestiones, mostrarVisibilidad = true)
         }

@@ -260,7 +260,7 @@
     <string name="texto_adjuntar_a">Siniestro %1$s</string>
     <string name="titulo_no_se_puede">No es posible adjuntar</string>
     <string name="seccion_que_documento">¿Qué documento es?</string>
-    <string name="seccion_imagen">Imagen</string>
+    <string name="seccion_imagen">Foto o documento PDF</string>
     <string name="campo_tipo_documento">Tipo de documento</string>
     <string name="campo_comentario">Comentario</string>
     <string name="ayuda_opcional">Opcional</string>
@@ -278,6 +278,7 @@
     <string name="btn_revisar">Revisar</string>
     <string name="titulo_reporte_ok">Recibimos tu reporte</string>
     <string name="btn_ver_mis_siniestros">Ver mis siniestros</string>
+    <string name="btn_pdf">Elegir un PDF</string>
 
 
     <string name="titulo_nuevo_liquidador">Nuevo liquidador</string>
@@ -305,6 +306,11 @@
     <string name="texto_codigo_equipo">%1$s · Equipo %2$s</string>
     <string name="texto_casos_abiertos_liq">%1$d caso(s) abierto(s)</string>
     <string name="cd_ver_liquidadores">Ver liquidadores</string>
+
+
+    <string name="seccion_documentos_liq">Documentos recibidos</string>
+    <string name="subtitulo_pedidos_liq">Documentos solicitados</string>
+    <string name="subtitulo_enviados_liq">Documentos recibidos (%1$d)</string>
 
 
     <string name="liq_continuar">Continuar</string>

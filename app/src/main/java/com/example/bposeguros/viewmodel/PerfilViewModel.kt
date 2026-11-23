@@ -4,21 +4,30 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.bposeguros.data.CatalogoRepository
 import com.example.bposeguros.data.ConvertidorImagen
-import com.example.bposeguros.data.SiniestroDbHelper
+import com.example.bposeguros.data.UsuarioLocalRepository
+import com.example.bposeguros.data.UsuarioRepository
 import com.example.bposeguros.model.PerfilUiState
 import com.example.bposeguros.model.Usuario
 import com.example.bposeguros.ui.util.Fechas
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PerfilViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = SiniestroDbHelper.obtener(application)
+    private val catalogo = CatalogoRepository(application)
+    private val remoto = UsuarioRepository()
+    private val local = UsuarioLocalRepository(application)
+
     private var idCargado = -1L
-    private val comunas = db.listarComunas()
+    private var guardando = false
 
     private val _uiState = MutableStateFlow(PerfilUiState())
     val uiState: StateFlow<PerfilUiState> = _uiState.asStateFlow()
@@ -31,17 +40,20 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             correo = usuario.correo,
             telefono = usuario.telefono,
             comuna = usuario.comuna,
-            comunas = comunas,
             fechaNacimiento = Fechas.paraCampo(usuario.fechaNacimiento),
             fotoActual = usuario.foto
         )
+        viewModelScope.launch {
+            val comunas = catalogo.comunas()
+            _uiState.update { it.copy(comunas = comunas) }
+        }
     }
 
-    fun onNombreCambia(valor: String) = _uiState.update { it.copy(nombre = valor, errorNombre = null, guardado = false) }
-    fun onCorreoCambia(valor: String) = _uiState.update { it.copy(correo = valor.trim(), errorCorreo = null, guardado = false) }
-    fun onTelefonoCambia(valor: String) = _uiState.update { it.copy(telefono = valor, errorTelefono = null, guardado = false) }
-    fun onComunaCambia(valor: String) = _uiState.update { it.copy(comuna = valor, errorComuna = null, guardado = false) }
-    fun onFechaCambia(valor: String) = _uiState.update { it.copy(fechaNacimiento = valor, errorFecha = null, guardado = false) }
+    fun onNombreCambia(valor: String) = _uiState.update { it.copy(nombre = valor, errorNombre = null, errorGeneral = null, guardado = false) }
+    fun onCorreoCambia(valor: String) = _uiState.update { it.copy(correo = valor.trim(), errorCorreo = null, errorGeneral = null, guardado = false) }
+    fun onTelefonoCambia(valor: String) = _uiState.update { it.copy(telefono = valor, errorTelefono = null, errorGeneral = null, guardado = false) }
+    fun onComunaCambia(valor: String) = _uiState.update { it.copy(comuna = valor, errorComuna = null, errorGeneral = null, guardado = false) }
+    fun onFechaCambia(valor: String) = _uiState.update { it.copy(fechaNacimiento = valor, errorFecha = null, errorGeneral = null, guardado = false) }
 
     fun onFotoTomada(foto: Bitmap) {
         _uiState.update { it.copy(fotoNueva = foto, errorFoto = null, guardado = false) }
@@ -60,6 +72,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun onGuardar(usuario: Usuario) {
+        if (guardando) return
         val estado = _uiState.value
         val fechaBd = Fechas.desdeTextoUsuario(estado.fechaNacimiento)
 
@@ -81,11 +94,11 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             else -> null
         }
 
+
         val errorCorreo = when {
             estado.correo.isBlank() -> "El correo es obligatorio"
             !estado.correo.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")) ->
                 "Ingresa un correo válido (ejemplo: usuario@dominio.com)"
-            db.correoEnUso(estado.correo, usuario.id) -> "Ya existe otra cuenta con ese correo"
             else -> null
         }
 
@@ -100,40 +113,68 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
 
         val errorComuna = when {
             estado.comuna.isBlank() -> null
-            estado.comuna !in comunas -> "Esa comuna no está en la lista. Elige una de las opciones"
+            estado.comuna !in estado.comunas -> "Esa comuna no está en la lista. Elige una de las opciones"
             else -> null
         }
 
         _uiState.update {
             it.copy(
                 errorNombre = errorNombre, errorCorreo = errorCorreo, errorTelefono = errorTelefono,
-                errorComuna = errorComuna, errorFecha = errorFecha
+                errorComuna = errorComuna, errorFecha = errorFecha, errorGeneral = null
             )
         }
         if (listOf(errorNombre, errorCorreo, errorTelefono, errorComuna, errorFecha).any { it != null }) return
 
-        var rutaFoto = estado.fotoActual
-        if (estado.fotoNueva != null) {
-            val archivo = ConvertidorImagen.guardar(
-                getApplication(), estado.fotoNueva, "perfil_${usuario.id}_${System.currentTimeMillis()}.jpg"
-            )
-            if (archivo == null) {
-                _uiState.update { it.copy(errorFoto = "No pudimos guardar la foto. Intenta otra vez") }
-                return
-            }
-            rutaFoto = archivo.absolutePath
-        }
+        guardando = true
+        viewModelScope.launch {
+            try {
+                var rutaFoto = estado.fotoActual
+                val fotoNueva = estado.fotoNueva
+                if (fotoNueva != null) {
+                    val archivo = withContext(Dispatchers.IO) {
+                        ConvertidorImagen.guardar(
+                            getApplication(), fotoNueva, "perfil_${usuario.id}_${System.currentTimeMillis()}.jpg"
+                        )
+                    }
+                    if (archivo == null) {
+                        _uiState.update { it.copy(errorFoto = "No pudimos guardar la foto. Intenta otra vez") }
+                        return@launch
+                    }
+                    rutaFoto = archivo.absolutePath
+                }
 
-        db.actualizarPerfil(
-            usuario.copy(
-                nombre = estado.nombre.trim(),
-                correo = estado.correo,
-                telefono = estado.telefono.trim(),
-                comuna = estado.comuna,
-                fechaNacimiento = if (fechaBd == null) "" else fechaBd,
-                foto = rutaFoto
-            )
-        )
-        _uiState.update { it.copy(fotoActual = rutaFoto, fotoNueva = null, guardado = true) }
+
+                remoto.actualizarPerfil(
+                    id = usuario.id,
+                    nombre = estado.nombre.trim(),
+                    correo = estado.correo,
+                    telefono = estado.telefono.trim(),
+                    comuna = estado.comuna,
+                    fechaNacimiento = fechaBd ?: ""
+                )
+                    .onSuccess { actualizado ->
+                        local.guardar(actualizado.copy(foto = rutaFoto), reemplazarFoto = true)
+                        _uiState.update { it.copy(fotoActual = rutaFoto, fotoNueva = null, guardado = true) }
+                    }
+                    .onFailure { error ->
+                        _uiState.update { conError(it, error.message.orEmpty()) }
+                    }
+            } finally {
+                guardando = false
+            }
+        }
+    }
+
+
+    private fun conError(estado: PerfilUiState, mensaje: String): PerfilUiState {
+        val m = mensaje.lowercase()
+        return when {
+            "correo" in m -> estado.copy(errorCorreo = mensaje)
+            "nombre" in m || "apellido" in m || "palabra" in m -> estado.copy(errorNombre = mensaje)
+            "celular" in m || "teléfono" in m || "telefono" in m -> estado.copy(errorTelefono = mensaje)
+            "comuna" in m -> estado.copy(errorComuna = mensaje)
+            "fecha" in m || "año" in m -> estado.copy(errorFecha = mensaje)
+            else -> estado.copy(errorGeneral = mensaje)
+        }
     }
 }

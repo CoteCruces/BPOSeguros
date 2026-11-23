@@ -62,6 +62,12 @@ import com.example.bposeguros.ui.theme.EtapaCerrado
 import com.example.bposeguros.ui.theme.EtapaEvaluacion
 import com.example.bposeguros.ui.theme.TextoOscuro
 import com.example.bposeguros.ui.util.Fechas
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
+
 
 @Composable
 fun DetalleSiniestroScreen(
@@ -165,15 +171,27 @@ fun SeccionDatos(siniestro: Siniestro) {
 fun SeccionDocumentos(
     solicitudes: List<SolicitudDocumento>,
     adjuntos: List<DocumentoAdjunto>,
+    paraLiquidador: Boolean = false,
     accion: @Composable () -> Unit
 ) {
-    TarjetaSeccion(titulo = stringResource(R.string.seccion_documentos)) {
+    TarjetaSeccion(
+        titulo = stringResource(if (paraLiquidador) R.string.seccion_documentos_liq else R.string.seccion_documentos)
+    ) {
         if (solicitudes.isNotEmpty()) {
-            Text(stringResource(R.string.subtitulo_pedidos), style = MaterialTheme.typography.labelLarge)
+            Text(
+                stringResource(if (paraLiquidador) R.string.subtitulo_pedidos_liq else R.string.subtitulo_pedidos),
+                style = MaterialTheme.typography.labelLarge
+            )
             solicitudes.forEach { FilaSolicitud(it) }
             HorizontalDivider()
         }
-        Text(stringResource(R.string.subtitulo_enviados, adjuntos.size), style = MaterialTheme.typography.labelLarge)
+        Text(
+            stringResource(
+                if (paraLiquidador) R.string.subtitulo_enviados_liq else R.string.subtitulo_enviados,
+                adjuntos.size
+            ),
+            style = MaterialTheme.typography.labelLarge
+        )
         if (adjuntos.isEmpty()) Text(stringResource(R.string.texto_sin_adjuntos), style = MaterialTheme.typography.bodyMedium)
         adjuntos.forEach { FilaAdjunto(it) }
         accion()
@@ -211,18 +229,22 @@ private fun FilaSolicitud(solicitud: SolicitudDocumento) {
 
 @Composable
 private fun FilaAdjunto(adjunto: DocumentoAdjunto) {
-    val foto = remember(adjunto.rutaArchivo) { ConvertidorImagen.leer(adjunto.rutaArchivo)?.asImageBitmap() }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        if (foto != null) {
-            Image(
-                bitmap = foto, contentDescription = adjunto.tipoDocumento, contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
-        } else {
-            Icon(painterResource(R.drawable.ic_documento), contentDescription = null, modifier = Modifier.size(48.dp))
-        }
+    val contexto = LocalContext.current
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+
+                try {
+                    contexto.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(adjunto.rutaArchivo)))
+                } catch (e: Exception) {
+
+                }
+            }
+    ) {
+        Icon(painterResource(R.drawable.ic_documento), contentDescription = null, modifier = Modifier.size(48.dp))
         Column(Modifier.padding(start = Dimens.espacioChico)) {
             Text(adjunto.tipoDocumento, style = MaterialTheme.typography.bodyLarge)
             Text(
