@@ -1,6 +1,8 @@
 package com.example.bposeguros.data
 
+import android.util.Log
 import com.google.gson.Gson
+import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -17,12 +19,18 @@ private data class CuerpoError(val message: String?, val detail: String?)
 suspend fun <T> llamarApi(bloque: suspend () -> T): Result<T> =
     try {
         Result.success(bloque())
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: HttpException) {
         Result.failure(ErrorApi(mensajeDelServidor(e)))
     } catch (e: SocketTimeoutException) {
         Result.failure(ErrorApi("El servidor tardó demasiado en responder. Revisa si la acción se realizó antes de volver a intentarlo"))
     } catch (e: IOException) {
         Result.failure(ErrorApi(SIN_CONEXION))
+    } catch (e: Exception) {
+
+        Log.e("LlamadaApi", "Fallo inesperado al procesar la respuesta", e)
+        Result.failure(ErrorApi("No pudimos procesar la respuesta del servidor (${e.javaClass.simpleName}: ${e.message})"))
     }
 
 private fun mensajeDelServidor(e: HttpException): String {

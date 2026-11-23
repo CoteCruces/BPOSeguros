@@ -37,6 +37,13 @@ object ConvertidorImagen {
         null
     }
 
+
+    fun aBytes(bitmap: Bitmap): ByteArray {
+        val salida = java.io.ByteArrayOutputStream()
+        achicar(bitmap).compress(Bitmap.CompressFormat.JPEG, CALIDAD_JPEG, salida)
+        return salida.toByteArray()
+    }
+
     fun leer(ruta: String): Bitmap? =
         if (ruta.isBlank() || !File(ruta).exists()) null else BitmapFactory.decodeFile(ruta)
 

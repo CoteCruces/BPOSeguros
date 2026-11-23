@@ -48,6 +48,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.net.Uri
+import androidx.compose.ui.Alignment
 import com.example.bposeguros.R
 import com.example.bposeguros.permisos.Permisos
 import com.example.bposeguros.ui.components.BarraSuperior
@@ -108,6 +110,8 @@ fun AdjuntarScreen(
         if (ok) abrirGaleria() else avisarDenegado(textoGaleria)
     }
 
+
+
     Scaffold(
         topBar = { BarraSuperior(titulo = stringResource(R.string.titulo_adjuntar), onVolver = onVolver) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -162,21 +166,24 @@ fun AdjuntarScreen(
                         if (Permisos.tiene(context, Permisos.IMAGENES)) abrirGaleria()
                         else pedirPermisoGaleria.launch(Permisos.IMAGENES)
                     }
+
                 }
                 uiState.errorFoto?.let {
                     Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }
-                AnimatedVisibility(visible = uiState.foto != null, enter = scaleIn() + fadeIn()) {
-                    uiState.foto?.let { foto ->
-                        Image(
-                            bitmap = foto.asImageBitmap(),
-                            contentDescription = stringResource(R.string.cd_vista_previa),
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp)
-                                .clip(RoundedCornerShape(Dimens.radioCampo))
-                        )
+
+
+
+                AnimatedVisibility(visible = uiState.documento != null, enter = scaleIn() + fadeIn()) {
+                    uiState.documento?.let { documento ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(painterResource(R.drawable.ic_documento), contentDescription = null, modifier = Modifier.size(40.dp))
+                            Text(
+                                documento.nombre,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = Dimens.espacioChico)
+                            )
+                        }
                     }
                 }
             }

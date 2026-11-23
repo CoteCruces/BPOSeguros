@@ -2,34 +2,44 @@ package com.example.bposeguros.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import com.example.bposeguros.data.SiniestroDbHelper
+import androidx.lifecycle.viewModelScope
+import com.example.bposeguros.data.ReasignacionRepository
+import com.example.bposeguros.data.SiniestroRepository
+import com.example.bposeguros.data.remote.LiquidadorPropuesto
+import com.example.bposeguros.data.remote.SiniestroRespuesta
+import com.example.bposeguros.data.remote.aCandidato
 import com.example.bposeguros.model.AsignacionUiState
 import com.example.bposeguros.model.CandidatoLiquidador
 import com.example.bposeguros.model.Rol
 import com.example.bposeguros.model.Siniestro
 import com.example.bposeguros.model.Usuario
-import com.example.bposeguros.ui.util.Fechas
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import androidx.lifecycle.viewModelScope
-import com.example.bposeguros.data.ReasignacionRepository
-import com.example.bposeguros.data.remote.LiquidadorPropuesto
-import com.example.bposeguros.data.remote.SiniestroRespuesta
 import kotlinx.coroutines.launch
 
 class AnalistaViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = SiniestroDbHelper.obtener(application)
+
+    private val siniestros = SiniestroRepository()
     private val reasignacion = ReasignacionRepository()
 
     private val _uiState = MutableStateFlow(AsignacionUiState())
     val uiState: StateFlow<AsignacionUiState> = _uiState.asStateFlow()
 
+
     fun cargar() {
-        _uiState.update { it.copy(pendientes = db.listarSiniestrosSinAsignar()) }
+        cargarPendientes()
         cargarPorReasignar()
+    }
+
+    private fun cargarPendientes() {
+        viewModelScope.launch {
+            siniestros.sinAsignar()
+                .onSuccess { lista -> _uiState.update { it.copy(pendientes = lista) } }
+                .onFailure { e -> _uiState.update { it.copy(mensaje = e.message) } }
+        }
     }
 
     private fun cargarPorReasignar() {
@@ -40,8 +50,15 @@ class AnalistaViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+
     fun onElegirCaso(caso: Siniestro) {
-        _uiState.update { it.copy(casoElegido = caso, candidatos = db.listarCandidatos(caso.id)) }
+        viewModelScope.launch {
+            reasignacion.candidatos(caso.id)
+                .onSuccess { lista ->
+                    _uiState.update { it.copy(casoElegido = caso, candidatos = lista.map { c -> c.aCandidato() }) }
+                }
+                .onFailure { e -> _uiState.update { it.copy(mensaje = e.message) } }
+        }
     }
 
     fun onCerrarDialogo() {
@@ -52,27 +69,30 @@ class AnalistaViewModel(application: Application) : AndroidViewModel(application
         val caso = _uiState.value.casoElegido ?: return
         if (analista.rolId != Rol.ID_ANALISTA) return
 
-        val asignado = db.asignarLiquidador(caso.id, candidato, analista.comoResponsable(), Fechas.ahora())
-        val mensaje = if (asignado) {
-            "Caso ${caso.numero} asignado a ${candidato.nombreVisible()}"
-        } else {
-            "Ese caso ya tenía liquidador. Actualizamos la lista"
-        }
-        _uiState.update {
-            it.copy(
-                pendientes = db.listarSiniestrosSinAsignar(),
-                casoElegido = null,
-                candidatos = emptyList(),
-                mensaje = mensaje
-            )
+        viewModelScope.launch {
+            reasignacion.reasignar(caso.id, analista.id, candidato.id)
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            casoElegido = null, candidatos = emptyList(),
+                            mensaje = "Caso ${caso.numero} asignado a ${candidato.nombreVisible()}"
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(casoElegido = null, candidatos = emptyList(), mensaje = e.message) }
+                }
+            cargarPendientes()
         }
     }
 
 
     fun onReasignar(caso: SiniestroRespuesta) {
         _uiState.update {
-            it.copy(casoAReasignar = caso, candidatosReasignar = emptyList(),
-                cargandoCandidatos = true, errorReasignar = null)
+            it.copy(
+                casoAReasignar = caso, candidatosReasignar = emptyList(),
+                cargandoCandidatos = true, errorReasignar = null
+            )
         }
         viewModelScope.launch {
             reasignacion.candidatos(caso.id)

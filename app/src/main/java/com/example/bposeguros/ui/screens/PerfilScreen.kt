@@ -213,6 +213,9 @@ fun PerfilScreen(
                     hasta = Fechas.haceAnios(18)
                 )
             }
+            uiState.errorGeneral?.let {
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            }
 
             BotonPrincipal(
                 texto = stringResource(R.string.btn_guardar_cambios),

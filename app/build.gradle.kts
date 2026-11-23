@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -64,9 +65,11 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
 
-
     implementation("io.coil-kt.coil3:coil-compose:3.4.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
 
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
 }

@@ -1,6 +1,7 @@
 package com.example.bposeguros.model
 
 import android.graphics.Bitmap
+import android.net.Uri
 
 data class OpcionDocumento(
     val texto: String,
@@ -13,6 +14,7 @@ data class AdjuntarUiState(
     val opciones: List<OpcionDocumento> = emptyList(),
     val opcionElegida: Int? = null,
     val foto: Bitmap? = null,
+    val documento: ArchivoElegido? = null,
     val comentario: String = "",
 
     val errorTipo: String? = null,
@@ -20,3 +22,6 @@ data class AdjuntarUiState(
     val errorGeneral: String? = null,
     val guardado: Boolean = false
 )
+
+
+data class ArchivoElegido(val uri: Uri, val nombre: String)

@@ -201,6 +201,9 @@
     <string name="paso_evaluacion_sin_pendientes">Tu liquidador está revisando tu caso. Si necesitamos algo más, te avisaremos.</string>
     <string name="paso_liquidacion">Tenemos todo lo necesario. Estamos definiendo la resolución con tu compañía de seguros.</string>
     <string name="paso_cerrado">Tu caso terminó. Revisa el resultado y el mensaje de cierre.</string>
+    <string name="cierre_seguro_titulo">¿Estás seguro de cerrar el caso %1$s?</string>
+    <string name="cierre_seguro_texto">Esta acción cierra el caso y no se puede deshacer. El asegurado recibirá el resultado y tu mensaje de cierre.</string>
+    <string name="btn_si_cerrar">Sí, cerrar el caso</string>
 
 
 
@@ -260,7 +263,7 @@
     <string name="texto_adjuntar_a">Siniestro %1$s</string>
     <string name="titulo_no_se_puede">No es posible adjuntar</string>
     <string name="seccion_que_documento">¿Qué documento es?</string>
-    <string name="seccion_imagen">Imagen</string>
+    <string name="seccion_imagen">Foto o Imagen</string>
     <string name="campo_tipo_documento">Tipo de documento</string>
     <string name="campo_comentario">Comentario</string>
     <string name="ayuda_opcional">Opcional</string>
@@ -278,6 +281,7 @@
     <string name="btn_revisar">Revisar</string>
     <string name="titulo_reporte_ok">Recibimos tu reporte</string>
     <string name="btn_ver_mis_siniestros">Ver mis siniestros</string>
+    <string name="btn_pdf">Elegir un PDF</string>
 
 
     <string name="titulo_nuevo_liquidador">Nuevo liquidador</string>
@@ -305,6 +309,11 @@
     <string name="texto_codigo_equipo">%1$s · Equipo %2$s</string>
     <string name="texto_casos_abiertos_liq">%1$d caso(s) abierto(s)</string>
     <string name="cd_ver_liquidadores">Ver liquidadores</string>
+
+
+    <string name="seccion_documentos_liq">Documentos recibidos</string>
+    <string name="subtitulo_pedidos_liq">Documentos solicitados</string>
+    <string name="subtitulo_enviados_liq">Documentos recibidos (%1$d)</string>
 
 
     <string name="liq_continuar">Continuar</string>

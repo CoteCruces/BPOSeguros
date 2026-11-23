@@ -3,10 +3,8 @@ package com.example.bposeguros.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.bposeguros.data.SiniestroDbHelper
 import com.example.bposeguros.data.UsuarioRepository
 import com.example.bposeguros.model.CambiarClaveUiState
-import com.example.bposeguros.ui.util.Seguridad
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +14,6 @@ import kotlinx.coroutines.launch
 class CambiarClaveViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repositorio = UsuarioRepository()
-    private val db = SiniestroDbHelper.obtener(application)
 
     private val _uiState = MutableStateFlow(CambiarClaveUiState())
     val uiState: StateFlow<CambiarClaveUiState> = _uiState.asStateFlow()
@@ -29,6 +26,7 @@ class CambiarClaveViewModel(application: Application) : AndroidViewModel(applica
     fun onGuardar(idUsuario: Long) {
         val estado = _uiState.value
         if (estado.guardando) return
+
 
         val errorActual = if (estado.actual.isBlank()) "Escribe tu contraseña actual" else null
         val errorNueva = when {
@@ -56,7 +54,6 @@ class CambiarClaveViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             repositorio.cambiarContrasena(idUsuario, estado.actual, estado.nueva)
                 .onSuccess {
-                    db.cambiarClave(idUsuario, Seguridad.huella(estado.nueva), temporal = false)
                     _uiState.value = CambiarClaveUiState(cambiada = true)
                 }
                 .onFailure { error ->

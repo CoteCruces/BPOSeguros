@@ -2,25 +2,26 @@ package com.example.bposeguros.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.bposeguros.data.Notificador
-import com.example.bposeguros.data.SiniestroDbHelper
+import com.example.bposeguros.data.SiniestroRepository
+import com.example.bposeguros.data.avisoCorto
 import com.example.bposeguros.model.AccionesUiState
 import com.example.bposeguros.model.DetalleUiState
 import com.example.bposeguros.model.DialogoLiquidador
-import com.example.bposeguros.model.Gestion
 import com.example.bposeguros.model.Siniestro
-import com.example.bposeguros.model.SolicitudDocumento
 import com.example.bposeguros.model.TipoDocumento
 import com.example.bposeguros.model.Usuario
-import com.example.bposeguros.ui.util.Fechas
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class LiquidadorViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = SiniestroDbHelper.obtener(application)
+    private val repositorio = SiniestroRepository()
 
     private val _casos = MutableStateFlow<List<Siniestro>>(emptyList())
     val casos: StateFlow<List<Siniestro>> = _casos.asStateFlow()
@@ -35,12 +36,21 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
     val busqueda: StateFlow<String> = _busqueda.asStateFlow()
 
 
+    private var cargaDeCasos: Job? = null
 
     fun cargarCasos(idLiquidador: Long) {
+        cargaDeCasos?.cancel()
+        cargaDeCasos = viewModelScope.launch { recargarCasos(idLiquidador) }
+    }
+
+    private suspend fun recargarCasos(idLiquidador: Long) {
         val texto = _busqueda.value.trim()
-        _casos.value =
-            if (texto.isEmpty()) db.listarSiniestrosAsignados(idLiquidador)
-            else db.buscarCasos(idLiquidador, texto, texto.replace(".", "").replace("-", "").uppercase())
+        val resultado =
+            if (texto.isEmpty()) repositorio.siniestrosAsignados(idLiquidador)
+            else repositorio.buscarCasos(idLiquidador, texto)
+        resultado
+            .onSuccess { _casos.value = it }
+            .onFailure { getApplication<Application>().avisoCorto(it.message.orEmpty()) }
     }
 
     fun onBusquedaCambia(texto: String, idLiquidador: Long) {
@@ -54,16 +64,15 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun cargarDetalle(idSiniestro: Long, idLiquidador: Long) {
-        val siniestro = db.buscarSiniestroDeLiquidador(idSiniestro, idLiquidador)
-        _detalle.value = if (siniestro == null) DetalleUiState() else DetalleUiState(
-            siniestro = siniestro,
-            gestiones = db.listarGestiones(idSiniestro, soloVisibles = false),
-            solicitudes = db.listarSolicitudes(idSiniestro),
-            adjuntos = db.listarAdjuntos(idSiniestro)
-        )
+        viewModelScope.launch { recargarDetalle(idSiniestro, idLiquidador) }
     }
 
+    private suspend fun recargarDetalle(idSiniestro: Long, idLiquidador: Long) {
 
+        repositorio.detalle(idSiniestro, aseguradoId = null, liquidadorId = idLiquidador, soloVisibles = false)
+            .onSuccess { _detalle.value = it }
+            .onFailure { getApplication<Application>().avisoCorto(it.message.orEmpty()) }
+    }
 
     fun abrirDialogo(dialogo: DialogoLiquidador) {
         _acciones.value = AccionesUiState(dialogo = dialogo)
@@ -103,14 +112,12 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
             _acciones.update { it.copy(errorGestion = error) }
             return
         }
-        db.insertarGestion(
-            Gestion(
-                siniestroId = siniestro.id, fechaHora = Fechas.ahora(), tipo = Gestion.TIPO_NOTA_LIQUIDADOR,
-                descripcion = estado.descripcionGestion.trim(), responsable = liquidador.comoResponsable(),
-                visible = false
-            )
-        )
-        terminar(siniestro, liquidador, "Gestión registrada")
+        viewModelScope.launch {
+            // El servidor la guarda como nota interna: el asegurado no la ve
+            repositorio.registrarGestion(siniestro.id, liquidador.id, estado.descripcionGestion.trim())
+                .onSuccess { terminar(siniestro, liquidador, "Gestión registrada") }
+                .onFailure { e -> _acciones.update { it.copy(errorGestion = e.message) } }
+        }
     }
 
     fun solicitarDocumento(liquidador: Usuario) {
@@ -121,28 +128,17 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
             return
         }
         val documento = TipoDocumento.lista[estado.documentoElegido]
-        if (db.hayDocumentoPendiente(siniestro.id, documento)) {
-            _acciones.update { it.copy(errorDocumento = "Ya pediste este documento y el asegurado aún no lo entrega") }
-            return
+        viewModelScope.launch {
+            repositorio.solicitarDocumento(siniestro.id, liquidador.id, documento, estado.comentarioSolicitud.trim())
+                .onSuccess {
+                    avisar(
+                        siniestro, "Solicitud de documento",
+                        "Necesitamos ${documento.lowercase()} para tu siniestro ${siniestro.numero}."
+                    )
+                    terminar(siniestro, liquidador, "Documento solicitado")
+                }
+                .onFailure { e -> _acciones.update { it.copy(errorDocumento = e.message) } }
         }
-        val ahora = Fechas.ahora()
-        db.insertarSolicitud(
-            SolicitudDocumento(
-                siniestroId = siniestro.id, tipoDocumento = documento,
-                comentario = estado.comentarioSolicitud.trim(), fechaSolicitud = ahora.take(10)
-            )
-        )
-        val comentario = estado.comentarioSolicitud.trim()
-        val texto = "Necesitamos: ${documento.lowercase()}." + if (comentario.isEmpty()) "" else " $comentario"
-        db.insertarGestion(
-            Gestion(
-                siniestroId = siniestro.id, fechaHora = ahora, tipo = "Solicitud de documento",
-                descripcion = texto, responsable = liquidador.comoResponsable(), visible = true
-            )
-        )
-        avisar(siniestro, ahora, "Solicitud de documento",
-            "Necesitamos ${documento.lowercase()} para tu siniestro ${siniestro.numero}.")
-        terminar(siniestro, liquidador, "Documento solicitado")
     }
 
     fun avanzarEtapa(liquidador: Usuario) {
@@ -152,22 +148,29 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
             _acciones.update { it.copy(mensaje = "Este caso no se puede avanzar desde su etapa actual") }
             return
         }
-        if (db.contarPendientes(siniestro.id) > 0) {
-            _acciones.update { it.copy(mensaje = "Primero deben estar entregados todos los documentos pendientes") }
-            return
+        viewModelScope.launch {
+            repositorio.avanzarEtapa(siniestro.id, liquidador.id)
+                .onSuccess {
+                    val nombreEtapa = getApplication<Application>().getString(siguiente.etiqueta)
+                    avisar(siniestro, "Cambio de etapa", "Tu siniestro ${siniestro.numero} pasó a \"$nombreEtapa\".")
+                    terminar(siniestro, liquidador, "El caso avanzó a $nombreEtapa")
+                }
+
+                .onFailure { e -> _acciones.update { it.copy(mensaje = e.message) } }
         }
-        val ahora = Fechas.ahora()
-        db.actualizarEtapa(siniestro.id, siguiente, ahora.take(10))
-        val nombreEtapa = getApplication<Application>().getString(siguiente.etiqueta)
-        db.insertarGestion(
-            Gestion(
-                siniestroId = siniestro.id, fechaHora = ahora, tipo = "Cambio de etapa",
-                descripcion = "Tu caso pasó a \"$nombreEtapa\". Estamos definiendo la resolución con tu compañía.",
-                responsable = liquidador.comoResponsable(), visible = true
-            )
-        )
-        avisar(siniestro, ahora, "Cambio de etapa", "Tu siniestro ${siniestro.numero} pasó a \"$nombreEtapa\".")
-        terminar(siniestro, liquidador, "El caso avanzó a $nombreEtapa")
+    }
+
+
+    fun validarCierre(): Boolean {
+        val estado = _acciones.value
+        val errorResultado = if (estado.resultadoElegido == null) "Elige el resultado" else null
+        val errorMensaje = when {
+            estado.mensajeCierre.isBlank() -> "Escribe un mensaje para el asegurado"
+            estado.mensajeCierre.trim().length < 15 -> "Explica un poco más (mínimo 15 caracteres)"
+            else -> null
+        }
+        _acciones.update { it.copy(errorResultado = errorResultado, errorMensaje = errorMensaje) }
+        return errorResultado == null && errorMensaje == null
     }
 
     fun cerrarCaso(liquidador: Usuario) {
@@ -187,30 +190,29 @@ class LiquidadorViewModel(application: Application) : AndroidViewModel(applicati
         }
         val resultado = permitidos[estado.resultadoElegido!!]
         val nombreResultado = getApplication<Application>().getString(resultado.etiqueta)
-        val ahora = Fechas.ahora()
 
-        db.cerrarSiniestro(siniestro.id, resultado, estado.mensajeCierre.trim(), ahora.take(10))
-        db.insertarGestion(
-            Gestion(
-                siniestroId = siniestro.id, fechaHora = ahora, tipo = "Cierre",
-                descripcion = "Tu caso fue cerrado. Resultado: $nombreResultado.",
-                responsable = liquidador.comoResponsable(), visible = true
-            )
-        )
-        avisar(siniestro, ahora, "Cierre",
-            "Tu siniestro ${siniestro.numero} fue cerrado ($nombreResultado). Revisa el mensaje de cierre.")
-        terminar(siniestro, liquidador, "Caso cerrado")
+        viewModelScope.launch {
+            repositorio.cerrar(siniestro.id, liquidador.id, resultado.name, estado.mensajeCierre.trim())
+                .onSuccess {
+                    avisar(
+                        siniestro, "Cierre",
+                        "Tu siniestro ${siniestro.numero} fue cerrado ($nombreResultado). Revisa el mensaje de cierre."
+                    )
+                    terminar(siniestro, liquidador, "Caso cerrado")
+                }
+                .onFailure { e -> _acciones.update { it.copy(errorMensaje = e.message) } }
+        }
     }
 
 
-    private fun avisar(siniestro: Siniestro, ahora: String, motivo: String, mensaje: String) {
-        db.insertarAviso(siniestro.id, ahora, motivo, mensaje)
-        Notificador.mostrar(getApplication(), siniestro.id, motivo, mensaje)
+
+    private fun avisar(siniestro: Siniestro, motivo: String, mensaje: String) {
+        Notificador.mostrar(getApplication<Application>(), siniestro.id, motivo, mensaje)
     }
 
-    private fun terminar(siniestro: Siniestro, liquidador: Usuario, mensaje: String) {
+    private suspend fun terminar(siniestro: Siniestro, liquidador: Usuario, mensaje: String) {
         _acciones.value = AccionesUiState(mensaje = mensaje)
-        cargarDetalle(siniestro.id, liquidador.id)
-        cargarCasos(liquidador.id)
+        recargarDetalle(siniestro.id, liquidador.id)
+        recargarCasos(liquidador.id)
     }
 }
