@@ -34,7 +34,12 @@ data class DocumentoAdjunto(
     val cargadoPor: String,
     val comentario: String = "",
     val solicitudId: Long? = null
-)
+){
+
+    val esImagen: Boolean
+        get() = rutaArchivo.isNotBlank() && !nombreArchivo.endsWith(".pdf", ignoreCase = true)
+}
+
 
 data class Aviso(
     val id: Long = 0,

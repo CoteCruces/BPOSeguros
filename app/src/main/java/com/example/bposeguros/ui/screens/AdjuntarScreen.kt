@@ -60,6 +60,7 @@ import com.example.bposeguros.ui.components.TarjetaSeccion
 import com.example.bposeguros.ui.theme.Dimens
 import com.example.bposeguros.viewmodel.AdjuntarViewModel
 import kotlinx.coroutines.launch
+import com.example.bposeguros.data.avisoCorto
 
 @Composable
 fun AdjuntarScreen(
@@ -74,9 +75,23 @@ fun AdjuntarScreen(
 
     LaunchedEffect(idSiniestro) { viewModel.cargar(idSiniestro, idAsegurado) }
 
-    LaunchedEffect(uiState.guardado) { if (uiState.guardado) onGuardado() }
+    LaunchedEffect(uiState.guardado) {
+        if (uiState.guardado) {
+            context.avisoCorto("Documento enviado con éxito")
+            onGuardado()
+        }
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.mensaje) {
+        uiState.mensaje?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onMensajeMostrado()
+        }
+    }
+
+
     val scope = rememberCoroutineScope()
     val textoCamara = stringResource(R.string.permiso_camara_denegado)
     val textoGaleria = stringResource(R.string.permiso_galeria_denegado)
@@ -172,7 +187,18 @@ fun AdjuntarScreen(
                     Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }
 
-
+                AnimatedVisibility(visible = uiState.foto != null, enter = scaleIn() + fadeIn()) {
+                    uiState.foto?.let { foto ->
+                        Image(
+                            bitmap = foto.asImageBitmap(),
+                            contentDescription = stringResource(R.string.cd_vista_previa),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(RoundedCornerShape(Dimens.espacioChico))
+                        )
+                    }
+                }
 
                 AnimatedVisibility(visible = uiState.documento != null, enter = scaleIn() + fadeIn()) {
                     uiState.documento?.let { documento ->

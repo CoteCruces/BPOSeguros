@@ -20,6 +20,7 @@ data class AdjuntarUiState(
     val errorTipo: String? = null,
     val errorFoto: String? = null,
     val errorGeneral: String? = null,
+    val mensaje: String? = null,
     val guardado: Boolean = false
 )
 

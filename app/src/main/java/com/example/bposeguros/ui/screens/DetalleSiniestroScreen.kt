@@ -67,6 +67,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
+import coil3.compose.AsyncImage
 
 
 @Composable
@@ -246,7 +247,20 @@ private fun FilaAdjunto(adjunto: DocumentoAdjunto) {
                 }
             }
     ) {
-        Icon(painterResource(R.drawable.ic_documento), contentDescription = null, modifier = Modifier.size(48.dp))
+        if (adjunto.esImagen) {
+            AsyncImage(
+                model = adjunto.rutaArchivo,
+                contentDescription = stringResource(R.string.cd_vista_previa),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_galeria),
+                error = painterResource(R.drawable.ic_documento),
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(Dimens.espacioChico))
+            )
+        } else {
+            Icon(painterResource(R.drawable.ic_documento), contentDescription = null, modifier = Modifier.size(64.dp))
+        }
         Column(Modifier.padding(start = Dimens.espacioChico)) {
             Text(adjunto.tipoDocumento, style = MaterialTheme.typography.bodyLarge)
             Text(
