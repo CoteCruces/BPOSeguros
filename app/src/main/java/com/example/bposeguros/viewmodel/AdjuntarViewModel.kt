@@ -27,6 +27,7 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
     companion object {
 
         private const val MAXIMO_BYTES = 9 * 1024 * 1024
+        const val MENSAJE_IMAGEN_CARGADA = "Imagen cargada con éxito"
     }
 
     private class ArchivoParaSubir(val bytes: ByteArray, val nombre: String, val tipo: String)
@@ -85,16 +86,24 @@ class AdjuntarViewModel(application: Application) : AndroidViewModel(application
 
 
     fun onFotoTomada(foto: Bitmap) {
-        _uiState.update { it.copy(foto = foto, documento = null, errorFoto = null) }
+        _uiState.update {
+            it.copy(foto = foto, documento = null, errorFoto = null, mensaje = MENSAJE_IMAGEN_CARGADA)
+        }
     }
 
     fun onImagenElegida(uri: Uri) {
         val foto = ConvertidorImagen.desdeUri(getApplication(), uri)
         _uiState.update {
             if (foto == null) it.copy(errorFoto = "No pudimos abrir esa imagen. Prueba con otra")
-            else it.copy(foto = foto, documento = null, errorFoto = null)
+            else it.copy(foto = foto, documento = null, errorFoto = null, mensaje = MENSAJE_IMAGEN_CARGADA)
         }
     }
+
+    fun onMensajeMostrado() {
+        _uiState.update { it.copy(mensaje = null) }
+    }
+
+
 
     fun onPdfElegido(uri: Uri) {
         val (nombre, tamano) = datosDelArchivo(uri)
